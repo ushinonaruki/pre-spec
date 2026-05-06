@@ -1,0 +1,19 @@
+{
+  "name": "pre-spec",
+  "dockerComposeFile": "../compose.yaml",
+  "service": "node",
+  "workspaceFolder": "/app",
+  "overrideCommand": false,
+  "forwardPorts": [
+    3000
+  ],
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bradlc.vscode-tailwindcss",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
