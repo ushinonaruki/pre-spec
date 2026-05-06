@@ -3,10 +3,11 @@
 import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Heading, Project, SkipReason } from '@/types'
-import { extractHeadings, insertUnderHeading, mergeHeadings, SPEC_TEMPLATE } from '@/lib/markdown'
-import { appendAnswerLog, appendSkipLog, appendStartLog } from '@/lib/logBuilder'
 import { loadState, saveProject } from '@/lib/storage'
-import { buildSkipEntry, extractOpenQuestions } from '@/lib/openQuestions'
+import { extractOpenQuestions } from '@/lib/openQuestions'
+import { createProject } from '@/lib/ldd/project'
+import { updateProjectSpec, selectHeading, completeCurrentHeading } from '@/lib/ldd/headings'
+import { applyAnswer, applySkip, DUMMY_QUESTION } from '@/lib/ldd/specPatch'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
 import HeadingNav from '@/components/HeadingNav'
@@ -14,28 +15,6 @@ import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
 
 type BottomTab = 'log' | 'memo' | 'openq'
-
-const DUMMY_QUESTION = 'このセクションについて考えていることを入力してください'
-
-function newProject(prompt: string): Project {
-  const now = new Date().toISOString()
-  const spec = SPEC_TEMPLATE
-  const headings = extractHeadings(spec)
-  const log = appendStartLog('', { prompt })
-  return {
-    id: crypto.randomUUID(),
-    createdAt: now,
-    updatedAt: now,
-    initialPrompt: prompt,
-    uploads: [],
-    spec,
-    log,
-    memo: '',
-    headings,
-    currentHeadingId: headings[0]?.id ?? null,
-    isCompleted: false,
-  }
-}
 
 function downloadFile(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' })
@@ -72,86 +51,30 @@ export default function Home() {
   )
 
   const handleStart = (prompt: string) => {
-    const p = newProject(prompt)
+    const p = createProject(prompt)
     saveProject(p)
     setProject(p)
   }
 
   const handleSpecChange = (value: string) => {
-    updateProject((prev) => {
-      const freshHeadings = extractHeadings(value)
-      const merged = mergeHeadings(prev.headings, freshHeadings)
-      const currentStillExists = merged.some((h) => h.id === prev.currentHeadingId)
-      return {
-        ...prev,
-        spec: value,
-        headings: merged,
-        currentHeadingId: currentStillExists ? prev.currentHeadingId : (merged[0]?.id ?? null),
-      }
-    })
+    updateProject((prev) => updateProjectSpec(prev, value))
   }
 
   const handleSelectHeading = (id: string) => {
-    updateProject((prev) => {
-      const headings = prev.headings.map((h) =>
-        h.id === id && h.status === 'unvisited' ? { ...h, status: 'in_progress' as const } : h,
-      )
-      return { ...prev, headings, currentHeadingId: id }
-    })
+    updateProject((prev) => selectHeading(prev, id))
   }
 
   const handleAnswer = (answer: string) => {
-    updateProject((prev) => {
-      const heading = prev.headings.find((h) => h.id === prev.currentHeadingId)
-      if (!heading) return prev
-
-      const insertion = `- ${answer}`
-      const newSpec = insertUnderHeading(prev.spec, heading.title, insertion)
-      const newLog = appendAnswerLog(prev.log, {
-        heading: heading.title,
-        question: DUMMY_QUESTION,
-        answer,
-      })
-      return { ...prev, spec: newSpec, log: newLog }
-    })
+    updateProject((prev) => applyAnswer(prev, { question: DUMMY_QUESTION, answer }))
   }
 
   const handleSkip = (reason: SkipReason, detail?: string) => {
-    updateProject((prev) => {
-      const heading = prev.headings.find((h) => h.id === prev.currentHeadingId)
-      if (!heading) return prev
-
-      const entry = buildSkipEntry({
-        heading: heading.title,
-        question: DUMMY_QUESTION,
-        reason,
-        detail,
-      })
-      const newSpec = insertUnderHeading(prev.spec, 'Open Questions', entry)
-      const newLog = appendSkipLog(prev.log, {
-        heading: heading.title,
-        question: DUMMY_QUESTION,
-        reason,
-        detail,
-      })
-      return { ...prev, spec: newSpec, log: newLog }
-    })
+    updateProject((prev) => applySkip(prev, { question: DUMMY_QUESTION, reason, detail }))
     setBottomTab('openq')
   }
 
   const handleDone = () => {
-    updateProject((prev) => {
-      const headings = prev.headings.map((h) =>
-        h.id === prev.currentHeadingId ? { ...h, status: 'done' as const } : h,
-      )
-      const currentIdx = headings.findIndex((h) => h.id === prev.currentHeadingId)
-      const next = headings.slice(currentIdx + 1).find((h) => h.status !== 'done' && h.status !== 'skipped')
-      const nextId = next?.id ?? null
-      const headings2 = headings.map((h) =>
-        h.id === nextId && h.status === 'unvisited' ? { ...h, status: 'in_progress' as const } : h,
-      )
-      return { ...prev, headings: headings2, currentHeadingId: nextId, isCompleted: !nextId }
-    })
+    updateProject((prev) => completeCurrentHeading(prev))
   }
 
   const handleRegenerate = () => {
