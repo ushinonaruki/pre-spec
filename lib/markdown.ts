@@ -28,20 +28,22 @@ export const SPEC_TEMPLATE = `# Feature Specification
 export function extractHeadings(markdown: string): Heading[] {
   const lines = markdown.split('\n')
   const headings: Heading[] = []
-  let order = 0
+  const occurrenceCount: Record<string, number> = {}
 
   for (const line of lines) {
     const match = line.match(/^## (.+)$/)
     if (match) {
       const title = match[1].trim()
+      const slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-')
+      const occurrence = occurrenceCount[slug] ?? 0
+      occurrenceCount[slug] = occurrence + 1
       headings.push({
-        id: `h-${order}-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        id: `h-${slug}-${occurrence}`,
         title,
         level: 2,
         status: 'unvisited',
         questionRound: 0,
       })
-      order++
     }
   }
   return headings
@@ -49,7 +51,7 @@ export function extractHeadings(markdown: string): Heading[] {
 
 export function mergeHeadings(existing: Heading[], fresh: Heading[]): Heading[] {
   return fresh.map((h) => {
-    const found = existing.find((e) => e.title === h.title)
+    const found = existing.find((e) => e.id === h.id)
     return found ? { ...h, status: found.status, questionRound: found.questionRound } : h
   })
 }
