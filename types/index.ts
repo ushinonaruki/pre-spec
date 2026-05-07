@@ -46,6 +46,9 @@ export type Question = {
   options?: string[]
   status: 'open' | 'answered' | 'skipped'
   answer?: string
+  answeredAt?: string
+  skipReason?: SkipReason
+  skipDetail?: string
   createdAt: string
 }
 

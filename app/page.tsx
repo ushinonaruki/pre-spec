@@ -94,11 +94,13 @@ export default function Home() {
     updateProject((prev) => selectHeading(prev, id))
   }
 
-  const handleGenerateTimeline = useCallback(async () => {
+  const handleGenerateTimeline = useCallback(async (mode: 'initial' | 'deepen' = 'initial') => {
     if (!project || !project.currentHeadingId || isGeneratingTimeline) return
     const heading = project.headings.find((h) => h.id === project.currentHeadingId)
     if (!heading) return
     const headingId = project.currentHeadingId
+    const existingTimeline = project.questionTimelines[headingId]
+    const existingQuestions = existingTimeline?.questions.map((q) => q.text) ?? []
 
     setIsGeneratingTimeline(true)
     try {
@@ -107,6 +109,9 @@ export default function Home() {
           headingTitle: heading.title,
           spec: project.spec,
           memo: project.memo,
+          existingQuestions,
+          recentAggregationLog: project.log.slice(-1500),
+          mode,
         }),
       )
       const raw = extractJSON<{ questions: RawQuestion[] }>(text)
@@ -117,7 +122,7 @@ export default function Home() {
         headingId,
         generatedAt: now,
         questions: raw.questions.map((q) => ({
-          id: q.id,
+          id: crypto.randomUUID(),
           headingId,
           text: q.text,
           reason: q.reason,
@@ -184,7 +189,7 @@ export default function Home() {
       const headingId = prev.currentHeadingId ?? ''
       const questionText = getQuestionText(prev, questionId)
       const withSpec = applySkip(prev, { question: questionText, reason, detail })
-      return skipQuestion(withSpec, { headingId, questionId })
+      return skipQuestion(withSpec, { headingId, questionId, skipReason: reason, skipDetail: detail })
     })
     setBottomTab('openq')
   }
@@ -270,7 +275,7 @@ export default function Home() {
             isGenerating={isGeneratingTimeline}
             formattingQuestionId={formattingQuestionId}
             formattingFallback={formattingFallback}
-            onGenerateTimeline={() => void handleGenerateTimeline()}
+            onGenerateTimeline={(mode) => void handleGenerateTimeline(mode)}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             onSkipQuestion={handleSkipQuestion}
             onDone={handleDone}

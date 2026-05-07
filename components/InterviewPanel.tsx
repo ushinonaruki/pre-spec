@@ -26,7 +26,7 @@ type Props = {
   isGenerating: boolean
   formattingQuestionId: string | null
   formattingFallback: boolean
-  onGenerateTimeline: () => void
+  onGenerateTimeline: (mode: 'initial' | 'deepen') => void
   onAnswerQuestion: (questionId: string, answer: string) => void
   onSkipQuestion: (questionId: string, reason: SkipReason, detail?: string) => void
   onDone: () => void
@@ -235,11 +235,18 @@ export default function InterviewPanel({
 
       <div className="shrink-0 flex gap-2 border-t border-stone-200 pt-3">
         <button
-          onClick={onGenerateTimeline}
+          onClick={() => onGenerateTimeline('initial')}
           disabled={isGenerating}
           className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {isGenerating ? '生成中…' : timeline ? '↺ 質問を再生成' : '+ 質問タイムラインを生成'}
+          {isGenerating ? '生成中…' : '+ 質問を生成'}
+        </button>
+        <button
+          onClick={() => onGenerateTimeline('deepen')}
+          disabled={isGenerating || !timeline}
+          className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          もっと深掘り
         </button>
         <button
           onClick={onDone}
