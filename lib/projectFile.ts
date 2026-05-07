@@ -1,4 +1,4 @@
-import type { ManualEdit, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
+import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
 
 const CURRENT_VERSION = '1'
@@ -82,19 +82,26 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
   const lines: string[] = ['# タイムライン', '']
 
   for (const item of timeline) {
-    if (item.type === 'section_marker') {
+    if (item.type === 'phase_marker') {
+      const pm = item as PhaseMarker
+      lines.push(`\n## ${pm.label}`)
+      lines.push('')
+    } else if (item.type === 'section_marker') {
       const marker = item as SectionMarker
       lines.push(`\n─── ${marker.sectionTitle} ─── *${formatTimestamp(marker.createdAt)}*`)
       lines.push('')
     } else if (item.type === 'question') {
       const q = item as Question
       const meta = [q.kind, q.priority].filter(Boolean).join('・')
-      lines.push(`**Q** ${meta ? `[${meta}] ` : ''}${q.text}`)
+      const prefix = q.questionType === 'initial_confirmation' ? '**[初期確認]**' : '**Q**'
+      lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
       if (q.reason) lines.push(`*理由: ${q.reason}*`)
       if (q.aiGuess) lines.push(`*AI推定: ${q.aiGuess.value}*`)
+      if (q.proposedMarkdown) lines.push(`*提案: ${q.proposedMarkdown}*`)
 
       if (q.status === 'answered') {
-        lines.push(`→ ✓ 回答済み: ${q.answer ?? ''}`)
+        lines.push(`→ ✓ 反映済み`)
+        if (q.reflectedMarkdown) lines.push(`  ${q.reflectedMarkdown}`)
         if (q.answeredAt) lines.push(`  *${formatTimestamp(q.answeredAt)}*`)
       } else if (q.status === 'skipped') {
         lines.push(`→ — スキップ`)

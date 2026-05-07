@@ -46,6 +46,14 @@ export function applyFormattedAnswer(
   return { ...project, spec: newSpec, log: newLog }
 }
 
+export function applyProposedMarkdown(
+  project: Project,
+  params: { sectionTitle: string; markdown: string },
+): Project {
+  const newSpec = insertUnderHeading(project.spec, params.sectionTitle, params.markdown)
+  return { ...project, spec: newSpec, updatedAt: new Date().toISOString() }
+}
+
 export function applySkip(
   project: Project,
   params: { sectionTitle: string; question: string; reason: SkipReason; detail?: string },

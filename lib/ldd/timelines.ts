@@ -1,4 +1,4 @@
-import type { ManualEdit, Project, Question, SectionMarker, SkipReason, TimelineItem } from '@/types'
+import type { ManualEdit, PhaseMarker, Project, Question, SectionMarker, SkipReason, TimelineItem } from '@/types'
 
 export function addSectionMarkerIfNeeded(project: Project): Project {
   const lastMarker = [...project.timeline]
@@ -100,6 +100,37 @@ export function addManualEdit(
     updatedAt: new Date().toISOString(),
     timeline: [...project.timeline, manualEdit],
   }
+}
+
+export function addPhaseMarker(project: Project): Project {
+  const marker: PhaseMarker = {
+    id: crypto.randomUUID(),
+    type: 'phase_marker',
+    label: 'Initial Setup',
+    createdAt: new Date().toISOString(),
+  }
+  return { ...project, timeline: [...project.timeline, marker] }
+}
+
+export function answerInitialConfirmation(
+  project: Project,
+  params: { questionId: string; answerMarkdown: string; reflectedMarkdown: string },
+): Project {
+  const now = new Date().toISOString()
+  const timeline = project.timeline.map((item): TimelineItem => {
+    if (item.type === 'question' && item.id === params.questionId) {
+      return {
+        ...item,
+        status: 'answered' as const,
+        answer: params.answerMarkdown,
+        answeredAt: now,
+        reflectedToSpec: true,
+        reflectedMarkdown: params.reflectedMarkdown,
+      }
+    }
+    return item
+  })
+  return { ...project, timeline, updatedAt: now }
 }
 
 export function skipQuestion(

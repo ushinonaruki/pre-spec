@@ -31,6 +31,13 @@ export type QuestionKind =
 
 export type QuestionPriority = 'high' | 'medium' | 'low'
 
+export type PhaseMarker = {
+  id: string
+  type: 'phase_marker'
+  label: 'Initial Setup'
+  createdAt: string
+}
+
 export type SectionMarker = {
   id: string
   type: 'section_marker'
@@ -52,6 +59,7 @@ export type ManualEdit = {
 export type Question = {
   id: string
   type: 'question'
+  questionType?: 'initial_confirmation' | 'section_question'
   sectionId: string
   sectionTitle: string
   text: string
@@ -62,6 +70,7 @@ export type Question = {
     value: string
     rationale: string
   }
+  proposedMarkdown?: string
   status: 'open' | 'answered' | 'skipped'
   answer?: string
   skipReason?: SkipReason
@@ -73,7 +82,7 @@ export type Question = {
   answeredAt?: string
 }
 
-export type TimelineItem = SectionMarker | Question | ManualEdit
+export type TimelineItem = PhaseMarker | SectionMarker | Question | ManualEdit
 
 export type Project = {
   id: string

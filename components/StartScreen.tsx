@@ -9,7 +9,7 @@ import { UI_TEXT } from '@/lib/uiText'
 type View = 'landing' | 'new_project'
 
 type Props = {
-  onCreate: (inputs: CreateProjectInputs) => void
+  onCreate: (inputs: CreateProjectInputs) => Promise<void>
   onOpenProject: (project: Project) => void
 }
 
@@ -21,6 +21,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
   const [relatedNote, setRelatedNote] = useState('')
   const [memoError, setMemoError] = useState<string | null>(null)
   const [openError, setOpenError] = useState<string | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
   const [isOpeningFile, setIsOpeningFile] = useState(false)
 
   const jsonInputRef = useRef<HTMLInputElement>(null)
@@ -61,17 +62,22 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
     }
   }
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!requirementMemo.trim()) {
       setMemoError(UI_TEXT.startScreen.requirementMemoRequired)
       return
     }
     setMemoError(null)
-    onCreate({
-      requirementMemo: requirementMemo.trim(),
-      baseSpecMarkdown: baseSpecMarkdown || undefined,
-      relatedMarkdown: relatedNote.trim() || undefined,
-    })
+    setIsCreating(true)
+    try {
+      await onCreate({
+        requirementMemo: requirementMemo.trim(),
+        baseSpecMarkdown: baseSpecMarkdown || undefined,
+        relatedMarkdown: relatedNote.trim() || undefined,
+      })
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   if (view === 'landing') {
@@ -176,10 +182,11 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
 
           <div className="flex gap-2">
             <button
-              onClick={handleCreate}
-              className="flex-1 py-2.5 bg-stone-800 text-white text-sm font-medium rounded hover:bg-stone-700 transition-colors"
+              onClick={() => { void handleCreate() }}
+              disabled={isCreating}
+              className="flex-1 py-2.5 bg-stone-800 text-white text-sm font-medium rounded hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
-              {UI_TEXT.startScreen.startButton}
+              {isCreating ? UI_TEXT.startScreen.startButtonLoading : UI_TEXT.startScreen.startButton}
             </button>
             <button
               onClick={() => setView('landing')}
