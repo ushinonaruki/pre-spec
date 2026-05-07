@@ -1,15 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import type { Project } from '@/types'
+import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
 import { UI_TEXT } from '@/lib/uiText'
 
 type Props = {
   onStart: (prompt: string) => Promise<void>
+  onOpenProject: (project: Project) => void
 }
 
-export default function StartScreen({ onStart }: Props) {
+export default function StartScreen({ onStart, onOpenProject }: Props) {
   const [prompt, setPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isOpeningFile, setIsOpeningFile] = useState(false)
+  const [openError, setOpenError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleStart = async () => {
     if (!prompt.trim() || isLoading) return
@@ -18,6 +24,28 @@ export default function StartScreen({ onStart }: Props) {
       await onStart(prompt.trim())
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setOpenError(null)
+    setIsOpeningFile(true)
+    try {
+      const text = await file.text()
+      const raw = JSON.parse(text) as unknown
+      if (!validatePreSpecProject(raw)) {
+        setOpenError(UI_TEXT.startScreen.openProjectJsonError)
+        return
+      }
+      const project = preSpecProjectToProject(raw)
+      onOpenProject(project)
+    } catch {
+      setOpenError(UI_TEXT.startScreen.openProjectJsonError)
+    } finally {
+      setIsOpeningFile(false)
     }
   }
 
@@ -60,6 +88,33 @@ export default function StartScreen({ onStart }: Props) {
             <p className="text-xs text-stone-400 text-center">
               {UI_TEXT.startScreen.generatingNote}
             </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border-t border-stone-200" />
+            <span className="text-xs text-stone-400">または</span>
+            <div className="flex-1 border-t border-stone-200" />
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={(e) => { void handleFileChange(e) }}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isOpeningFile}
+            className="w-full py-2 border border-stone-300 text-stone-600 text-sm rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {isOpeningFile ? UI_TEXT.startScreen.openProjectJsonLoading : UI_TEXT.startScreen.openProjectJson}
+          </button>
+
+          {openError && (
+            <p className="text-xs text-red-600 text-center">{openError}</p>
           )}
         </div>
 

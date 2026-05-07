@@ -1,6 +1,6 @@
 'use client'
 
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
@@ -12,6 +12,7 @@ import { addSectionMarkerIfNeeded, addQuestionsToTimeline, answerQuestion, skipQ
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
+import { projectToPreSpecProject, generateTimelineMarkdown } from '@/lib/projectFile'
 import { UI_TEXT } from '@/lib/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -30,6 +31,16 @@ type RawQuestion = {
 
 function downloadFile(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function downloadJson(filename: string, content: string) {
+  const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -90,6 +101,11 @@ export default function Home() {
       setProject(p)
     }
   }
+
+  const handleOpenProject = useCallback((p: Project) => {
+    saveProject(p)
+    setProject(p)
+  }, [])
 
   const handleSpecChange = (value: string) => {
     updateProject((prev) => updateProjectSpec(prev, value))
@@ -210,12 +226,18 @@ export default function Home() {
   const handleDownloadAll = () => {
     if (!project) return
     downloadFile(UI_TEXT.specEditor.fileLabel, project.spec)
-    setTimeout(() => downloadFile(UI_TEXT.app.downloadLogFilename, project.log), 100)
-    setTimeout(() => downloadFile(UI_TEXT.app.downloadMemoFilename, project.memo || UI_TEXT.app.downloadMemoFallback), 200)
+    setTimeout(() => downloadFile(UI_TEXT.app.downloadMemoFilename, project.memo || UI_TEXT.app.downloadMemoFallback), 100)
+    setTimeout(() => downloadFile(UI_TEXT.app.downloadTimelineFilename, generateTimelineMarkdown(project.timeline)), 200)
+  }
+
+  const handleDownloadProjectJson = () => {
+    if (!project) return
+    const preSpecProject = projectToPreSpecProject(project)
+    downloadJson(UI_TEXT.app.downloadProjectJsonFilename, JSON.stringify(preSpecProject, null, 2))
   }
 
   if (!isHydrated) return <div className="h-screen bg-stone-50" />
-  if (!project) return <StartScreen onStart={handleStart} />
+  if (!project) return <StartScreen onStart={handleStart} onOpenProject={handleOpenProject} />
 
   const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null
   const openQuestions = extractOpenQuestions(project.spec)
@@ -233,6 +255,12 @@ export default function Home() {
             className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
           >
             {UI_TEXT.app.downloadAll}
+          </button>
+          <button
+            onClick={handleDownloadProjectJson}
+            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+          >
+            {UI_TEXT.app.downloadProjectJson}
           </button>
           <button
             onClick={() => router.push('/settings')}
@@ -255,13 +283,12 @@ export default function Home() {
             />
           </div>
           <div className="shrink-0 h-48 border-t border-stone-200 overflow-hidden">
-            <BottomTabs
-              activeTab={bottomTab}
-              onTabChange={setBottomTab}
-              log={project.log}
-              memo={project.memo}
-              onMemoChange={handleMemoChange}
+            <TimelineBottomTabs
+              project={project}
+              bottomTab={bottomTab}
+              setBottomTab={setBottomTab}
               openQuestions={openQuestions}
+              onMemoChange={handleMemoChange}
             />
           </div>
         </div>
@@ -283,5 +310,34 @@ export default function Home() {
         </div>
       </div>
     </div>
+  )
+}
+
+function TimelineBottomTabs({
+  project,
+  bottomTab,
+  setBottomTab,
+  openQuestions,
+  onMemoChange,
+}: {
+  project: Project
+  bottomTab: BottomTab
+  setBottomTab: (t: BottomTab) => void
+  openQuestions: string
+  onMemoChange: (v: string) => void
+}) {
+  const timelineMarkdown = useMemo(
+    () => generateTimelineMarkdown(project.timeline),
+    [project.timeline],
+  )
+  return (
+    <BottomTabs
+      activeTab={bottomTab}
+      onTabChange={setBottomTab}
+      log={timelineMarkdown}
+      memo={project.memo}
+      onMemoChange={onMemoChange}
+      openQuestions={openQuestions}
+    />
   )
 }
