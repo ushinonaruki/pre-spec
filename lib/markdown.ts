@@ -1,4 +1,4 @@
-import type { Heading } from '@/types'
+import type { Section } from '@/types'
 
 export const SPEC_TEMPLATE = `# Feature Specification
 
@@ -25,10 +25,11 @@ export const SPEC_TEMPLATE = `# Feature Specification
 ## Open Questions
 `
 
-export function extractHeadings(markdown: string): Heading[] {
+export function extractSections(markdown: string): Section[] {
   const lines = markdown.split('\n')
-  const headings: Heading[] = []
+  const sections: Section[] = []
   const occurrenceCount: Record<string, number> = {}
+  let order = 0
 
   for (const line of lines) {
     const match = line.match(/^## (.+)$/)
@@ -37,22 +38,21 @@ export function extractHeadings(markdown: string): Heading[] {
       const slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-')
       const occurrence = occurrenceCount[slug] ?? 0
       occurrenceCount[slug] = occurrence + 1
-      headings.push({
-        id: `h-${slug}-${occurrence}`,
+      sections.push({
+        id: `s-${slug}-${occurrence}`,
         title,
         level: 2,
-        status: 'unvisited',
-        questionRound: 0,
+        order: order++,
       })
     }
   }
-  return headings
+  return sections
 }
 
-export function mergeHeadings(existing: Heading[], fresh: Heading[]): Heading[] {
-  return fresh.map((h) => {
-    const found = existing.find((e) => e.id === h.id)
-    return found ? { ...h, status: found.status, questionRound: found.questionRound } : h
+export function mergeSections(existing: Section[], fresh: Section[]): Section[] {
+  return fresh.map((s) => {
+    const found = existing.find((e) => e.id === s.id)
+    return found ? { ...s, order: found.order } : s
   })
 }
 
