@@ -2,9 +2,8 @@ import type { Project } from '@/types'
 import { SPEC_TEMPLATE, extractHeadings } from '@/lib/markdown'
 import { appendStartLog } from '@/lib/logBuilder'
 
-export function createProject(prompt: string): Project {
+export function createProjectWithSpec(prompt: string, spec: string): Project {
   const now = new Date().toISOString()
-  const spec = SPEC_TEMPLATE
   const headings = extractHeadings(spec)
   const log = appendStartLog('', { prompt })
   return {
@@ -19,5 +18,10 @@ export function createProject(prompt: string): Project {
     headings,
     currentHeadingId: headings[0]?.id ?? null,
     isCompleted: false,
+    questionTimelines: {},
   }
+}
+
+export function createProject(prompt: string): Project {
+  return createProjectWithSpec(prompt, SPEC_TEMPLATE)
 }

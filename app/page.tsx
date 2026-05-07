@@ -2,12 +2,16 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Heading, Project, SkipReason } from '@/types'
+import type { Heading, Project, QuestionKind, QuestionPriority, QuestionTimeline, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
 import { extractOpenQuestions } from '@/lib/openQuestions'
-import { createProject } from '@/lib/ldd/project'
+import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
 import { updateProjectSpec, selectHeading, completeCurrentHeading } from '@/lib/ldd/headings'
 import { applyAnswer, applySkip, DUMMY_QUESTION } from '@/lib/ldd/specPatch'
+import { setTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { callLLM } from '@/lib/llm/client'
+import { buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
+import { extractJSON } from '@/lib/llm/extractJSON'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
 import HeadingNav from '@/components/HeadingNav'
@@ -15,6 +19,16 @@ import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
 
 type BottomTab = 'log' | 'memo' | 'openq'
+
+type RawQuestion = {
+  id: string
+  text: string
+  reason?: string
+  kind?: string
+  priority?: string
+  aiGuess?: { value: string; rationale: string }
+  options?: string[]
+}
 
 function downloadFile(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' })
@@ -26,11 +40,17 @@ function downloadFile(filename: string, content: string) {
   URL.revokeObjectURL(url)
 }
 
+function getQuestionText(project: Project, questionId: string): string {
+  const timeline = project.questionTimelines[project.currentHeadingId ?? '']
+  return timeline?.questions.find((q) => q.id === questionId)?.text ?? DUMMY_QUESTION
+}
+
 export default function Home() {
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(() => loadState().project)
   const [specMode, setSpecMode] = useState<'edit' | 'preview'>('edit')
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
+  const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const scheduleProjectSave = useCallback((p: Project) => {
@@ -50,10 +70,17 @@ export default function Home() {
     [scheduleProjectSave],
   )
 
-  const handleStart = (prompt: string) => {
-    const p = createProject(prompt)
-    saveProject(p)
-    setProject(p)
+  const handleStart = async (prompt: string) => {
+    try {
+      const specText = await callLLM(buildInitialSpecPrompt(prompt))
+      const p = createProjectWithSpec(prompt, specText)
+      saveProject(p)
+      setProject(p)
+    } catch {
+      const p = createProject(prompt)
+      saveProject(p)
+      setProject(p)
+    }
   }
 
   const handleSpecChange = (value: string) => {
@@ -64,21 +91,70 @@ export default function Home() {
     updateProject((prev) => selectHeading(prev, id))
   }
 
-  const handleAnswer = (answer: string) => {
-    updateProject((prev) => applyAnswer(prev, { question: DUMMY_QUESTION, answer }))
+  const handleGenerateTimeline = useCallback(async () => {
+    if (!project || !project.currentHeadingId || isGeneratingTimeline) return
+    const heading = project.headings.find((h) => h.id === project.currentHeadingId)
+    if (!heading) return
+    const headingId = project.currentHeadingId
+
+    setIsGeneratingTimeline(true)
+    try {
+      const text = await callLLM(
+        buildQuestionTimelinePrompt({
+          headingTitle: heading.title,
+          spec: project.spec,
+          memo: project.memo,
+        }),
+      )
+      const raw = extractJSON<{ questions: RawQuestion[] }>(text)
+      if (!raw?.questions?.length) throw new Error('Invalid LLM response')
+
+      const now = new Date().toISOString()
+      const timeline: QuestionTimeline = {
+        headingId,
+        generatedAt: now,
+        questions: raw.questions.map((q) => ({
+          id: q.id,
+          headingId,
+          text: q.text,
+          reason: q.reason,
+          kind: q.kind as QuestionKind | undefined,
+          priority: q.priority as QuestionPriority | undefined,
+          aiGuess: q.aiGuess,
+          options: q.options,
+          status: 'open' as const,
+          createdAt: now,
+        })),
+      }
+      updateProject((prev) => setTimeline(prev, timeline))
+    } catch {
+      alert('質問タイムラインの生成に失敗しました。APIキーを確認してください。')
+    } finally {
+      setIsGeneratingTimeline(false)
+    }
+  }, [project, isGeneratingTimeline, updateProject])
+
+  const handleAnswerQuestion = (questionId: string, answer: string) => {
+    updateProject((prev) => {
+      const headingId = prev.currentHeadingId ?? ''
+      const questionText = getQuestionText(prev, questionId)
+      const withSpec = applyAnswer(prev, { question: questionText, answer })
+      return answerQuestion(withSpec, { headingId, questionId, answer })
+    })
   }
 
-  const handleSkip = (reason: SkipReason, detail?: string) => {
-    updateProject((prev) => applySkip(prev, { question: DUMMY_QUESTION, reason, detail }))
+  const handleSkipQuestion = (questionId: string, reason: SkipReason, detail?: string) => {
+    updateProject((prev) => {
+      const headingId = prev.currentHeadingId ?? ''
+      const questionText = getQuestionText(prev, questionId)
+      const withSpec = applySkip(prev, { question: questionText, reason, detail })
+      return skipQuestion(withSpec, { headingId, questionId })
+    })
     setBottomTab('openq')
   }
 
   const handleDone = () => {
     updateProject((prev) => completeCurrentHeading(prev))
-  }
-
-  const handleRegenerate = () => {
-    alert('Stage 2 で LLM による質問再生成が実装されます')
   }
 
   const handleMemoChange = (v: string) => {
@@ -96,6 +172,9 @@ export default function Home() {
 
   const currentHeading: Heading | null =
     project.headings.find((h) => h.id === project.currentHeadingId) ?? null
+
+  const currentTimeline: QuestionTimeline | null =
+    project.currentHeadingId ? (project.questionTimelines[project.currentHeadingId] ?? null) : null
 
   const openQuestions = extractOpenQuestions(project.spec)
   const doneCount = project.headings.filter((h) => h.status === 'done').length
@@ -151,10 +230,12 @@ export default function Home() {
         <div className="w-1/2 min-w-0 overflow-hidden">
           <InterviewPanel
             heading={currentHeading}
-            onAnswer={handleAnswer}
-            onSkip={handleSkip}
+            timeline={currentTimeline}
+            isGenerating={isGeneratingTimeline}
+            onGenerateTimeline={() => void handleGenerateTimeline()}
+            onAnswerQuestion={handleAnswerQuestion}
+            onSkipQuestion={handleSkipQuestion}
             onDone={handleDone}
-            onRegenerateQuestions={handleRegenerate}
           />
         </div>
       </div>
