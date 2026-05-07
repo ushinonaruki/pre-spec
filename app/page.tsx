@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, Heading, Project, QuestionKind, QuestionPriority, QuestionTimeline, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
@@ -47,7 +47,8 @@ function getQuestionText(project: Project, questionId: string): string {
 
 export default function Home() {
   const router = useRouter()
-  const [project, setProject] = useState<Project | null>(() => loadState().project)
+  const [isHydrated, setIsHydrated] = useState(false)
+  const [project, setProject] = useState<Project | null>(null)
   const [specMode, setSpecMode] = useState<'edit' | 'preview'>('edit')
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
@@ -55,8 +56,10 @@ export default function Home() {
   const [formattingFallback, setFormattingFallback] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isHydratedRef = useRef(false)
 
   const scheduleProjectSave = useCallback((p: Project) => {
+    if (!isHydratedRef.current) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => saveProject(p), 400)
   }, [])
@@ -72,6 +75,14 @@ export default function Home() {
     },
     [scheduleProjectSave],
   )
+
+  useEffect(() => {
+    const state = loadState()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setProject(state.project ?? null)
+    isHydratedRef.current = true
+    setIsHydrated(true)
+  }, [])
 
   const handleStart = async (prompt: string) => {
     try {
@@ -211,6 +222,8 @@ export default function Home() {
     setTimeout(() => downloadFile('集約ログ.md', project.log), 100)
     setTimeout(() => downloadFile('参照メモ.md', project.memo || '# 参照メモ\n\n(空)\n'), 200)
   }
+
+  if (!isHydrated) return <div className="h-screen bg-stone-50" />
 
   if (!project) return <StartScreen onStart={handleStart} />
 
