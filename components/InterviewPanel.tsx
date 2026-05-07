@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { Question, QuestionPriority, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
+import type { ManualEdit, Question, QuestionPriority, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
 import { SKIP_REASON_LABELS } from '@/types'
 import { UI_TEXT } from '@/lib/uiText'
 
@@ -16,21 +16,56 @@ type SectionBlock = {
   questions: Question[]
 }
 
-function groupIntoBlocks(timeline: TimelineItem[]): SectionBlock[] {
-  const blocks: SectionBlock[] = []
+type TimelineSlot =
+  | { type: 'block'; id: string; data: SectionBlock }
+  | { type: 'manual_edit'; id: string; data: ManualEdit }
+
+function buildTimelineSlots(timeline: TimelineItem[]): TimelineSlot[] {
+  const slots: TimelineSlot[] = []
   let current: SectionBlock | null = null
 
   for (const item of timeline) {
     if (item.type === 'section_marker') {
-      if (current) blocks.push(current)
+      if (current) slots.push({ type: 'block', id: current.marker.id, data: current })
       current = { marker: item, questions: [] }
-    } else if (item.type === 'question' && current) {
-      current.questions.push(item)
+    } else if (item.type === 'question') {
+      if (current) current.questions.push(item)
+    } else if (item.type === 'manual_edit') {
+      if (current) {
+        slots.push({ type: 'block', id: current.marker.id, data: current })
+        current = null
+      }
+      slots.push({ type: 'manual_edit', id: item.id, data: item })
     }
   }
-  if (current) blocks.push(current)
+  if (current) slots.push({ type: 'block', id: current.marker.id, data: current })
 
-  return blocks.reverse()
+  return slots.reverse()
+}
+
+function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Section[] }) {
+  const affectedTitles = edit.affectedSectionIds
+    .map((id) => sections.find((s) => s.id === id)?.title ?? id)
+    .join(', ')
+
+  return (
+    <div className="border border-stone-200 rounded-lg px-3 py-2 bg-stone-50 space-y-0.5">
+      <p className="text-xs font-medium text-stone-600">✎ {UI_TEXT.manualEdit.label}</p>
+      {edit.memo && (
+        <p className="text-xs text-stone-500">
+          {UI_TEXT.manualEdit.memo}: {edit.memo}
+        </p>
+      )}
+      {affectedTitles && (
+        <p className="text-xs text-stone-400">
+          {UI_TEXT.manualEdit.affected}: {affectedTitles}
+        </p>
+      )}
+      <p className="text-xs text-stone-300">
+        {new Date(edit.createdAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
+      </p>
+    </div>
+  )
 }
 
 type Props = {
@@ -262,7 +297,7 @@ export default function InterviewPanel({
     (item): item is Question => item.type === 'question' && item.status === 'open',
   ).length
 
-  const blocks = groupIntoBlocks(timeline)
+  const slots = buildTimelineSlots(timeline)
 
   const currentIdx = sections.findIndex((s) => s.id === currentSection?.id)
   const nextSection =
@@ -331,32 +366,34 @@ export default function InterviewPanel({
 
       {/* Timeline */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-4" ref={scrollRef}>
-        {blocks.length === 0 ? (
+        {slots.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-stone-400">
             <p className="text-sm">{UI_TEXT.interview.timelineEmpty}</p>
             <p className="text-xs">{UI_TEXT.interview.timelineEmptyHint}</p>
           </div>
         ) : (
-          blocks.map((block) => (
-            <div key={block.marker.id} className="space-y-2">
-              {/* Section marker divider */}
-              <div className="flex items-center gap-2">
-                <div className="flex-1 border-t border-stone-200" />
-                <span className="text-xs text-stone-400 shrink-0 px-1">{block.marker.sectionTitle}</span>
-                <div className="flex-1 border-t border-stone-200" />
+          slots.map((slot) =>
+            slot.type === 'manual_edit' ? (
+              <ManualEditCard key={slot.id} edit={slot.data} sections={sections} />
+            ) : (
+              <div key={slot.id} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 border-t border-stone-200" />
+                  <span className="text-xs text-stone-400 shrink-0 px-1">{slot.data.marker.sectionTitle}</span>
+                  <div className="flex-1 border-t border-stone-200" />
+                </div>
+                {slot.data.questions.slice().reverse().map((q: Question) => (
+                  <QuestionCard
+                    key={q.id}
+                    question={q}
+                    isFormatting={formattingQuestionId === q.id}
+                    onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
+                    onSkip={(reason, detail) => onSkipQuestion(q.id, reason, detail)}
+                  />
+                ))}
               </div>
-              {/* Questions newest-first within block */}
-              {block.questions.slice().reverse().map((q) => (
-                <QuestionCard
-                  key={q.id}
-                  question={q}
-                  isFormatting={formattingQuestionId === q.id}
-                  onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
-                  onSkip={(reason, detail) => onSkipQuestion(q.id, reason, detail)}
-                />
-              ))}
-            </div>
-          ))
+            ),
+          )
         )}
       </div>
     </div>
