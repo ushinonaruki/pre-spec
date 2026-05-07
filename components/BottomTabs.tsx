@@ -1,5 +1,7 @@
 'use client'
 
+import { UI_TEXT } from '@/lib/uiText'
+
 type Tab = 'log' | 'memo' | 'openq'
 
 type Props = {
@@ -20,9 +22,9 @@ export default function BottomTabs({
   openQuestions,
 }: Props) {
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'log', label: '集約ログ.md' },
-    { id: 'memo', label: '参照メモ.md' },
-    { id: 'openq', label: 'Open Questions' },
+    { id: 'log', label: UI_TEXT.bottomTabs.logTab },
+    { id: 'memo', label: UI_TEXT.bottomTabs.memoTab },
+    { id: 'openq', label: UI_TEXT.bottomTabs.openQTab },
   ]
 
   return (
@@ -46,7 +48,7 @@ export default function BottomTabs({
         {activeTab === 'log' && (
           <textarea
             readOnly
-            value={log || '(まだ記録がありません)'}
+            value={log || UI_TEXT.bottomTabs.logEmpty}
             className="w-full h-full resize-none p-3 text-xs font-mono text-stone-600 bg-white focus:outline-none"
           />
         )}
@@ -54,14 +56,14 @@ export default function BottomTabs({
           <textarea
             value={memo}
             onChange={(e) => onMemoChange(e.target.value)}
-            placeholder="参照メモを自由に書いてください。&#10;&#10;例:&#10;## 既存サービス構成&#10;- manager.py は使っていない&#10;- Redis は一時状態のみ"
+            placeholder={UI_TEXT.bottomTabs.memoPlaceholder}
             className="w-full h-full resize-none p-3 text-xs font-mono text-stone-700 bg-white focus:outline-none"
           />
         )}
         {activeTab === 'openq' && (
           <textarea
             readOnly
-            value={openQuestions || '(スキップした質問がここに表示されます)'}
+            value={openQuestions || UI_TEXT.bottomTabs.openQEmpty}
             className="w-full h-full resize-none p-3 text-xs font-mono text-stone-600 bg-white focus:outline-none"
           />
         )}
