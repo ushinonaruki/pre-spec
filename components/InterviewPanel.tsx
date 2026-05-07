@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { ManualEdit, Question, QuestionPriority, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
+import type { ManualEdit, PhaseMarker, Question, QuestionPriority, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
 import { SKIP_REASON_LABELS } from '@/types'
 import { UI_TEXT } from '@/lib/uiText'
 
@@ -16,29 +16,57 @@ type SectionBlock = {
   questions: Question[]
 }
 
+type PhaseBlock = {
+  marker: PhaseMarker
+  questions: Question[]
+}
+
 type TimelineSlot =
   | { type: 'block'; id: string; data: SectionBlock }
+  | { type: 'phase_block'; id: string; data: PhaseBlock }
   | { type: 'manual_edit'; id: string; data: ManualEdit }
 
 function buildTimelineSlots(timeline: TimelineItem[]): TimelineSlot[] {
   const slots: TimelineSlot[] = []
-  let current: SectionBlock | null = null
+  let currentSection: SectionBlock | null = null
+  let currentPhase: PhaseBlock | null = null
+
+  const flushSection = () => {
+    if (currentSection) {
+      slots.push({ type: 'block', id: currentSection.marker.id, data: currentSection })
+      currentSection = null
+    }
+  }
+  const flushPhase = () => {
+    if (currentPhase) {
+      slots.push({ type: 'phase_block', id: currentPhase.marker.id, data: currentPhase })
+      currentPhase = null
+    }
+  }
 
   for (const item of timeline) {
-    if (item.type === 'section_marker') {
-      if (current) slots.push({ type: 'block', id: current.marker.id, data: current })
-      current = { marker: item, questions: [] }
+    if (item.type === 'phase_marker') {
+      flushSection()
+      flushPhase()
+      currentPhase = { marker: item, questions: [] }
+    } else if (item.type === 'section_marker') {
+      flushPhase()
+      flushSection()
+      currentSection = { marker: item, questions: [] }
     } else if (item.type === 'question') {
-      if (current) current.questions.push(item)
-    } else if (item.type === 'manual_edit') {
-      if (current) {
-        slots.push({ type: 'block', id: current.marker.id, data: current })
-        current = null
+      if (item.questionType === 'initial_confirmation') {
+        if (currentPhase) currentPhase.questions.push(item)
+      } else {
+        if (currentSection) currentSection.questions.push(item)
       }
+    } else if (item.type === 'manual_edit') {
+      flushPhase()
+      flushSection()
       slots.push({ type: 'manual_edit', id: item.id, data: item })
     }
   }
-  if (current) slots.push({ type: 'block', id: current.marker.id, data: current })
+  flushPhase()
+  flushSection()
 
   return slots.reverse()
 }
@@ -68,6 +96,219 @@ function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Sectio
   )
 }
 
+function InitialConfirmationCard({
+  question,
+  onConfirm,
+  onSkip,
+}: {
+  question: Question
+  onConfirm: (markdown: string) => void
+  onSkip: (reason: SkipReason, detail?: string) => void
+}) {
+  const [isOpen, setIsOpen] = useState(question.status === 'open')
+  const [mode, setMode] = useState<'default' | 'edit' | 'skip'>('default')
+  const [editedMarkdown, setEditedMarkdown] = useState(question.proposedMarkdown ?? '')
+  const [skipReason, setSkipReason] = useState<SkipReason>('thinking')
+  const [skipDetail, setSkipDetail] = useState('')
+
+  const headerBg =
+    question.status === 'answered'
+      ? 'border-green-200 bg-green-50'
+      : question.status === 'skipped'
+        ? 'border-stone-200 bg-stone-50 opacity-60'
+        : 'border-blue-200 bg-blue-50'
+
+  const statusIcon =
+    question.status === 'answered' ? (
+      <span className="text-xs text-green-700 font-medium shrink-0">{UI_TEXT.interview.statusAnswered}</span>
+    ) : question.status === 'skipped' ? (
+      <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusSkipped}</span>
+    ) : (
+      <span className="text-xs text-blue-500 font-medium shrink-0">{UI_TEXT.interview.statusOpen}</span>
+    )
+
+  const kindPriorityLabels =
+    question.kind ?? question.priority ? (
+      <div className="flex gap-1 flex-wrap">
+        {question.kind && (
+          <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
+            {UI_TEXT.questionKind[question.kind]}
+          </span>
+        )}
+        {question.priority && (
+          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${PRIORITY_COLORS[question.priority]}`}>
+            {question.priority}
+          </span>
+        )}
+      </div>
+    ) : null
+
+  return (
+    <div className={`border rounded-lg overflow-hidden ${headerBg}`}>
+      <button onClick={() => setIsOpen((v) => !v)} className="w-full text-left p-3 space-y-1">
+        <div className="flex items-start gap-2">
+          {statusIcon}
+          <div className="flex-1 min-w-0 space-y-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">
+                {UI_TEXT.initialConfirmation.typeLabel}
+              </span>
+              {kindPriorityLabels}
+            </div>
+            <p className={`text-sm ${question.status === 'skipped' ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
+              {question.text}
+            </p>
+          </div>
+          <span className="text-xs text-stone-400 shrink-0 mt-0.5">{isOpen ? '▲' : '▼'}</span>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="px-3 pb-3 space-y-2 border-t border-blue-100">
+          {question.reason && (
+            <p className="text-xs text-stone-400 italic pt-2">{question.reason}</p>
+          )}
+
+          {question.proposedMarkdown && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-stone-500">{UI_TEXT.initialConfirmation.proposedMarkdownLabel}</p>
+              <pre className="text-xs font-mono bg-stone-50 border border-stone-200 rounded px-2 py-1.5 whitespace-pre-wrap text-stone-700">
+                {question.proposedMarkdown}
+              </pre>
+            </div>
+          )}
+
+          {question.status === 'answered' && question.reflectedMarkdown && (
+            <div className="text-xs bg-green-50 rounded p-2">
+              <p className="font-medium text-green-700 mb-1">{UI_TEXT.initialConfirmation.applyNote}</p>
+              <pre className="font-mono whitespace-pre-wrap text-stone-600">{question.reflectedMarkdown}</pre>
+            </div>
+          )}
+
+          {question.status === 'skipped' && (
+            <div className="space-y-1 pt-2">
+              {question.skipReason && (
+                <p className="text-xs text-stone-500">
+                  {UI_TEXT.interview.skipReasonLabel}: {SKIP_REASON_LABELS[question.skipReason]}
+                </p>
+              )}
+              {question.skipDetail && (
+                <p className="text-xs text-stone-500 italic">{question.skipDetail}</p>
+              )}
+              {question.reflectedMarkdown && (
+                <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
+                  {question.reflectedMarkdown}
+                </p>
+              )}
+            </div>
+          )}
+
+          {question.status === 'open' && (
+            <>
+              {mode === 'default' && (
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => { if (question.proposedMarkdown) onConfirm(question.proposedMarkdown) }}
+                    disabled={!question.proposedMarkdown}
+                    className="py-1.5 px-3 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {UI_TEXT.initialConfirmation.okButton}
+                  </button>
+                  <button
+                    onClick={() => { setEditedMarkdown(question.proposedMarkdown ?? ''); setMode('edit') }}
+                    className="py-1.5 px-3 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                  >
+                    {UI_TEXT.initialConfirmation.editAndApplyButton}
+                  </button>
+                  <button
+                    onClick={() => setMode('skip')}
+                    className="py-1.5 px-3 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                  >
+                    {UI_TEXT.interview.skipButton}
+                  </button>
+                </div>
+              )}
+
+              {mode === 'edit' && (
+                <div className="space-y-2">
+                  <textarea
+                    value={editedMarkdown}
+                    onChange={(e) => setEditedMarkdown(e.target.value)}
+                    placeholder={UI_TEXT.initialConfirmation.editPlaceholder}
+                    rows={4}
+                    className="w-full resize-none border border-stone-300 rounded p-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { if (editedMarkdown.trim()) { onConfirm(editedMarkdown.trim()); setMode('default') } }}
+                      disabled={!editedMarkdown.trim()}
+                      className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {UI_TEXT.initialConfirmation.applyEditButton}
+                    </button>
+                    <button
+                      onClick={() => setMode('default')}
+                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                    >
+                      {UI_TEXT.interview.skipCancelButton}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {mode === 'skip' && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-stone-600">{UI_TEXT.interview.skipReasonLabel}</p>
+                  <div className="space-y-1">
+                    {(Object.keys(SKIP_REASON_LABELS) as SkipReason[]).map((r) => (
+                      <label key={r} className="flex items-center gap-2 text-xs cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`skip-init-${question.id}`}
+                          value={r}
+                          checked={skipReason === r}
+                          onChange={() => setSkipReason(r)}
+                          className="accent-stone-700"
+                        />
+                        {SKIP_REASON_LABELS[r]}
+                      </label>
+                    ))}
+                  </div>
+                  <textarea
+                    value={skipDetail}
+                    onChange={(e) => setSkipDetail(e.target.value)}
+                    placeholder={UI_TEXT.interview.skipDetailPlaceholder}
+                    className="w-full resize-none border border-stone-300 rounded p-2 text-xs h-12 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        onSkip(skipReason, skipDetail.trim() || undefined)
+                        setMode('default')
+                        setSkipDetail('')
+                        setSkipReason('thinking')
+                      }}
+                      className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 transition-colors"
+                    >
+                      {UI_TEXT.interview.skipConfirmButton}
+                    </button>
+                    <button
+                      onClick={() => setMode('default')}
+                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                    >
+                      {UI_TEXT.interview.skipCancelButton}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 type Props = {
   currentSection: Section | null
   sections: Section[]
@@ -78,6 +319,7 @@ type Props = {
   onAddQuestions: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
   onSkipQuestion: (questionId: string, reason: SkipReason, detail?: string) => void
+  onConfirmInitial: (questionId: string, markdown: string, sectionTitle: string) => void
   onNext: () => void
 }
 
@@ -99,7 +341,7 @@ function QuestionCard({
   const [skipDetail, setSkipDetail] = useState('')
 
   const kindPriorityLabels =
-    question.kind || question.priority ? (
+    question.kind ?? question.priority ? (
       <div className="flex gap-1 flex-wrap">
         {question.kind && (
           <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
@@ -132,7 +374,6 @@ function QuestionCard({
 
   return (
     <div className={`border rounded-lg overflow-hidden ${headerBg}`}>
-      {/* Collapsed header */}
       <button
         onClick={() => setIsOpen((v) => !v)}
         className="w-full text-left p-3 space-y-1"
@@ -152,7 +393,6 @@ function QuestionCard({
         )}
       </button>
 
-      {/* Expanded body */}
       {isOpen && (
         <div className="px-3 pb-3 space-y-2 border-t border-stone-100">
           {question.reason && (
@@ -281,6 +521,7 @@ export default function InterviewPanel({
   onAddQuestions,
   onAnswerQuestion,
   onSkipQuestion,
+  onConfirmInitial,
   onNext,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -372,10 +613,32 @@ export default function InterviewPanel({
             <p className="text-xs">{UI_TEXT.interview.timelineEmptyHint}</p>
           </div>
         ) : (
-          slots.map((slot) =>
-            slot.type === 'manual_edit' ? (
-              <ManualEditCard key={slot.id} edit={slot.data} sections={sections} />
-            ) : (
+          slots.map((slot) => {
+            if (slot.type === 'manual_edit') {
+              return <ManualEditCard key={slot.id} edit={slot.data} sections={sections} />
+            }
+            if (slot.type === 'phase_block') {
+              return (
+                <div key={slot.id} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 border-t border-blue-200" />
+                    <span className="text-xs text-blue-400 shrink-0 px-1 font-medium">
+                      {UI_TEXT.initialConfirmation.phaseLabel}
+                    </span>
+                    <div className="flex-1 border-t border-blue-200" />
+                  </div>
+                  {slot.data.questions.slice().reverse().map((q) => (
+                    <InitialConfirmationCard
+                      key={q.id}
+                      question={q}
+                      onConfirm={(markdown) => onConfirmInitial(q.id, markdown, q.sectionTitle)}
+                      onSkip={(reason, detail) => onSkipQuestion(q.id, reason, detail)}
+                    />
+                  ))}
+                </div>
+              )
+            }
+            return (
               <div key={slot.id} className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="flex-1 border-t border-stone-200" />
@@ -392,8 +655,8 @@ export default function InterviewPanel({
                   />
                 ))}
               </div>
-            ),
-          )
+            )
+          })
         )}
       </div>
     </div>

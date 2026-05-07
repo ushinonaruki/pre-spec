@@ -29,6 +29,7 @@ export const UI_TEXT = {
     relatedNoteLabel: '関連資料（任意）',
     relatedNotePlaceholder: '既存仕様・コード・メモなど',
     startButton: '開始',
+    startButtonLoading: '開始中…',
     backButton: '戻る',
     storageNote: '作業状態は自動保存されます',
     noLLMNote: 'LLMによる初期spec生成は行わず、固定テンプレートまたは下地specから開始します',
@@ -104,6 +105,18 @@ export const UI_TEXT = {
     warnSkipMarkers: 'skip marker が残っています。未決事項を含む spec.md として出力されます。',
     warnRevisitMarkers: 'revisit marker が残っています。再確認対象を含む spec.md として出力されます。',
     warnProtectedMarkers: 'protected marker が残っています。保護された内容を含む spec.md として出力されます。',
+  },
+
+  initialConfirmation: {
+    phaseLabel: 'Initial Setup',
+    typeLabel: '初期確認',
+    proposedMarkdownLabel: '提案 Markdown',
+    okButton: 'OK',
+    editAndApplyButton: '修正して反映',
+    applyEditButton: '修正して反映',
+    applyNote: 'この内容を反映します',
+    editPlaceholder: '提案 Markdown を編集…',
+    generationError: '初期確認質問の生成に失敗しました',
   },
 
   settings: {

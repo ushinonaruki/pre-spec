@@ -7,10 +7,10 @@ import { loadState, saveProject } from '@/lib/storage'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
-import { applyAnswer, applyFormattedAnswer, applySkip } from '@/lib/ldd/specPatch'
-import { addManualEdit, addSectionMarkerIfNeeded, addQuestionsToTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
+import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
-import { buildAnswerFormatPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
+import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
@@ -29,6 +29,15 @@ type RawQuestion = {
   kind?: string
   priority?: string
   aiGuess?: { value: string; rationale: string }
+}
+
+type RawInitialQuestion = {
+  sectionTitle: string
+  text: string
+  reason?: string
+  kind?: string
+  priority?: string
+  proposedMarkdown?: string
 }
 
 function downloadFile(filename: string, content: string) {
@@ -60,8 +69,10 @@ export default function Home() {
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [formattingFallback, setFormattingFallback] = useState(false)
+  const [initConfirmFailed, setInitConfirmFailed] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const initConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const state = loadState()
@@ -90,11 +101,68 @@ export default function Home() {
     [scheduleProjectSave],
   )
 
-  const handleCreate = useCallback((inputs: CreateProjectInputs) => {
+  const handleCreate = useCallback(async (inputs: CreateProjectInputs) => {
     const p = createProjectFromInputs(inputs)
-    saveProject(p)
-    setProject(p)
+    try {
+      const text = await callLLM(
+        buildInitialConfirmationQuestionsPrompt({
+          requirementMemo: inputs.requirementMemo,
+          baseSpecMarkdown: inputs.baseSpecMarkdown,
+          referenceMarkdown: p.memo,
+          sections: p.sections,
+        }),
+      )
+      const raw = extractJSON<{ questions: RawInitialQuestion[] }>(text)
+      if (!raw?.questions?.length) throw new Error('No questions')
+
+      const now = new Date().toISOString()
+      const questions: Question[] = raw.questions
+        .map((q): Question | null => {
+          const section = p.sections.find((s) => s.title === q.sectionTitle)
+          if (!section) return null
+          return {
+            id: crypto.randomUUID(),
+            type: 'question' as const,
+            questionType: 'initial_confirmation' as const,
+            sectionId: section.id,
+            sectionTitle: q.sectionTitle,
+            text: q.text,
+            reason: q.reason,
+            kind: q.kind as QuestionKind | undefined,
+            priority: q.priority as QuestionPriority | undefined,
+            proposedMarkdown: q.proposedMarkdown,
+            status: 'open' as const,
+            createdAt: now,
+          }
+        })
+        .filter((q): q is Question => q !== null)
+
+      const withPhase = addPhaseMarker(p)
+      const withQuestions = addQuestionsToTimeline(withPhase, questions)
+      saveProject(withQuestions)
+      setProject(withQuestions)
+    } catch {
+      if (initConfirmTimer.current) clearTimeout(initConfirmTimer.current)
+      setInitConfirmFailed(true)
+      initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), 5000)
+      saveProject(p)
+      setProject(p)
+    }
   }, [])
+
+  const handleConfirmInitial = useCallback(
+    (questionId: string, markdown: string, sectionTitle: string) => {
+      updateProject((prev) => {
+        const withSpec = applyProposedMarkdown(prev, { sectionTitle, markdown })
+        return answerInitialConfirmation(withSpec, {
+          questionId,
+          answerMarkdown: markdown,
+          reflectedMarkdown: markdown,
+        })
+      })
+    },
+    [updateProject],
+  )
 
   const handleOpenProject = useCallback((p: Project) => {
     saveProject(p)
@@ -239,7 +307,7 @@ export default function Home() {
   )
 
   if (!isHydrated) return <div className="h-screen bg-stone-50" />
-  if (!project) return <StartScreen onCreate={handleCreate} onOpenProject={handleOpenProject} />
+  if (!project) return <StartScreen onCreate={(inputs) => handleCreate(inputs)} onOpenProject={handleOpenProject} />
 
   const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null
 
@@ -273,6 +341,11 @@ export default function Home() {
       </header>
 
       <PreflightPanel result={preflightResult!} />
+      {initConfirmFailed && (
+        <div className="shrink-0 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
+          {UI_TEXT.initialConfirmation.generationError}
+        </div>
+      )}
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left column: spec editor + bottom tabs */}
@@ -305,6 +378,7 @@ export default function Home() {
             onAddQuestions={() => { void handleGenerateTimeline() }}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             onSkipQuestion={handleSkipQuestion}
+            onConfirmInitial={handleConfirmInitial}
             onNext={handleNext}
           />
         </div>

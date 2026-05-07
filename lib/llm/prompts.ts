@@ -1,3 +1,65 @@
+import type { Section } from '@/types'
+
+export function buildInitialConfirmationQuestionsPrompt(params: {
+  requirementMemo: string
+  baseSpecMarkdown?: string
+  referenceMarkdown: string
+  sections: Section[]
+}): string {
+  const sectionTitles = params.sections.map((s) => `- ${s.title}`).join('\n')
+  const baseSpecSection = params.baseSpecMarkdown?.trim()
+    ? `\n下地 spec.md:\n${params.baseSpecMarkdown}\n`
+    : ''
+  const refSection = params.referenceMarkdown.trim()
+    ? `\n参照.md:\n${params.referenceMarkdown}\n`
+    : ''
+
+  return `あなたは pre-spec の初期確認質問生成エンジンです。
+
+入力材料を読んで、spec.md の各セクションに「初期配置すべき候補」があれば、確認質問として列挙してください。
+
+## 入力材料
+
+要件定義メモ:
+${params.requirementMemo}
+${baseSpecSection}${refSection}
+## spec.md セクション一覧
+
+${sectionTitles}
+
+## ルール
+
+- spec.md 全文を生成しない
+- 入力材料から明確に spec.md へ初期配置すべき候補だけを質問にする
+- 1質問 = 1つの反映候補
+- sectionTitle は上記セクション一覧の title から選ぶ
+- proposedMarkdown は、そのセクションに追記できる Markdown にする（箇条書き推奨）
+- 重複質問・薄い確認・単なる言い換えは作らない
+- 実装上意味のない確認は作らない
+- 判断できないものは質問にせず省く
+- protected が必要そうな場合は [pre-spec:protected] を含める
+- revisit が必要そうな場合は [pre-spec:revisit] を含める
+- 質問数に固定上限なし（必要な数だけ、ただし過剰に作らない）
+- 質問は日本語で記述する
+
+kind 候補: decision / constraint / risk / scope / data / flow / assumption
+priority 候補: high / medium / low
+
+有効な JSON のみを返してください（マークダウンコードフェンス・説明文不要）:
+{
+  "questions": [
+    {
+      "sectionTitle": "Overview",
+      "text": "Overview に以下を置いてよいですか？",
+      "reason": "要件定義メモからプロダクト概要として読み取れるため",
+      "kind": "scope",
+      "priority": "high",
+      "proposedMarkdown": "- ..."
+    }
+  ]
+}`
+}
+
 export function buildInitialSpecPrompt(prompt: string): string {
   return `You are a software specification assistant. Based on the following feature description, generate a structured specification in Markdown.
 
