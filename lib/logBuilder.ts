@@ -38,7 +38,7 @@ export function appendSkipLog(
 
 **スキップ理由**: ${SKIP_REASON_LABELS[params.reason]}${params.detail ? ' — ' + params.detail : ''}
 
-**反映**: Open Questions に記録
+**反映**: spec.md に skip marker を記録
 `
   )
 }

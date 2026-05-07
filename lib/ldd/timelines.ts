@@ -40,11 +40,25 @@ export function answerQuestion(
 
 export function skipQuestion(
   project: Project,
-  params: { questionId: string; skipReason: SkipReason; skipDetail?: string },
+  params: {
+    questionId: string
+    skipReason: SkipReason
+    skipDetail?: string
+    reflectedMarkdown?: string
+  },
 ): Project {
+  const now = new Date().toISOString()
   const timeline = project.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
-      return { ...item, status: 'skipped' as const, skipReason: params.skipReason, skipDetail: params.skipDetail }
+      return {
+        ...item,
+        status: 'skipped' as const,
+        skipReason: params.skipReason,
+        skipDetail: params.skipDetail,
+        skippedAt: now,
+        reflectedToSpec: params.reflectedMarkdown !== undefined,
+        reflectedMarkdown: params.reflectedMarkdown,
+      }
     }
     return item
   })

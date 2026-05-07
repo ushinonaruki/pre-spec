@@ -56,6 +56,9 @@ export type Question = {
   answer?: string
   skipReason?: SkipReason
   skipDetail?: string
+  skippedAt?: string
+  reflectedToSpec?: boolean
+  reflectedMarkdown?: string
   createdAt: string
   answeredAt?: string
 }

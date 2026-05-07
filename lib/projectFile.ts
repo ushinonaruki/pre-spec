@@ -97,8 +97,13 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
         lines.push(`→ ✓ 回答済み: ${q.answer ?? ''}`)
         if (q.answeredAt) lines.push(`  *${formatTimestamp(q.answeredAt)}*`)
       } else if (q.status === 'skipped') {
-        const detail = [q.skipReason, q.skipDetail].filter(Boolean).join(' / ')
-        lines.push(`→ — スキップ${detail ? `: ${detail}` : ''}`)
+        lines.push(`→ — スキップ`)
+        if (q.skipReason) lines.push(`  - reason: ${q.skipReason}`)
+        if (q.skipDetail) lines.push(`  - detail: ${q.skipDetail}`)
+        if (q.reflectedMarkdown) {
+          lines.push(`  - reflected:`)
+          lines.push(`    ${q.reflectedMarkdown}`)
+        }
       } else {
         lines.push('→ ○ 未回答')
       }

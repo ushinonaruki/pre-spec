@@ -37,11 +37,9 @@ export const UI_TEXT = {
   bottomTabs: {
     logTab: 'タイムライン.md',
     memoTab: '参照.md',
-    openQTab: 'Open Questions',
     logEmpty: '(まだ記録がありません)',
     memoPlaceholder:
       '参照メモを自由に書いてください。\n\n例:\n## 既存サービス構成\n- manager.py は使っていない\n- Redis は一時状態のみ',
-    openQEmpty: '(スキップした質問がここに表示されます)',
   },
 
   interview: {
@@ -51,7 +49,7 @@ export const UI_TEXT = {
     addQuestionsLoading: '生成中…',
     nextSectionHint: (title: string) => `次: ${title}`,
     openQuestionsWarning:
-      '未回答の質問があります。先に回答するか、スキップして Open Questions に送ってください。',
+      '未回答の質問があります。先に回答するか、スキップして未決事項として残してください。',
     formattingFallbackWarning: '整形に失敗しました。回答をそのまま反映しました。',
     timelineEmpty: '質問タイムラインがまだ生成されていません',
     timelineEmptyHint: '「+ 質問を追加」で生成してください',
