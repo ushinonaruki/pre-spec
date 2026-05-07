@@ -80,6 +80,12 @@ export type Project = {
   questionTimelines: Record<string, QuestionTimeline>
 }
 
+export type AnswerFormatResult = {
+  specInsertionMarkdown: string
+  aggregationLogSummary: string
+  openQuestionInsertions: string[]
+}
+
 export type AppState = {
   apiKey: string | null
   project: Project | null

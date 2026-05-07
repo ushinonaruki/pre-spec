@@ -1,4 +1,4 @@
-import type { Project, SkipReason } from '@/types'
+import type { AnswerFormatResult, Project, SkipReason } from '@/types'
 import { insertUnderHeading } from '@/lib/markdown'
 import { appendAnswerLog, appendSkipLog } from '@/lib/logBuilder'
 import { buildSkipEntry } from '@/lib/openQuestions'
@@ -17,6 +17,27 @@ export function applyAnswer(
     heading: heading.title,
     question: params.question,
     answer: params.answer,
+  })
+  return { ...project, spec: newSpec, log: newLog }
+}
+
+export function applyFormattedAnswer(
+  project: Project,
+  params: { headingTitle: string; question: string; answer: string; formatResult: AnswerFormatResult },
+): Project {
+  let newSpec = insertUnderHeading(
+    project.spec,
+    params.headingTitle,
+    params.formatResult.specInsertionMarkdown,
+  )
+  for (const oq of params.formatResult.openQuestionInsertions) {
+    newSpec = insertUnderHeading(newSpec, 'Open Questions', `- ${oq}`)
+  }
+  const newLog = appendAnswerLog(project.log, {
+    heading: params.headingTitle,
+    question: params.question,
+    answer: params.answer,
+    summary: params.formatResult.aggregationLogSummary,
   })
   return { ...project, spec: newSpec, log: newLog }
 }
