@@ -2,15 +2,15 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Heading, Project, QuestionKind, QuestionPriority, QuestionTimeline, SkipReason } from '@/types'
+import type { AnswerFormatResult, Heading, Project, QuestionKind, QuestionPriority, QuestionTimeline, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
 import { extractOpenQuestions } from '@/lib/openQuestions'
 import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
 import { updateProjectSpec, selectHeading, completeCurrentHeading } from '@/lib/ldd/headings'
-import { applyAnswer, applySkip, DUMMY_QUESTION } from '@/lib/ldd/specPatch'
+import { applyAnswer, applyFormattedAnswer, applySkip, DUMMY_QUESTION } from '@/lib/ldd/specPatch'
 import { setTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
-import { buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
+import { buildAnswerFormatPrompt, buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -51,7 +51,10 @@ export default function Home() {
   const [specMode, setSpecMode] = useState<'edit' | 'preview'>('edit')
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
+  const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
+  const [formattingFallback, setFormattingFallback] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const scheduleProjectSave = useCallback((p: Project) => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -134,14 +137,47 @@ export default function Home() {
     }
   }, [project, isGeneratingTimeline, updateProject])
 
-  const handleAnswerQuestion = (questionId: string, answer: string) => {
-    updateProject((prev) => {
-      const headingId = prev.currentHeadingId ?? ''
-      const questionText = getQuestionText(prev, questionId)
-      const withSpec = applyAnswer(prev, { question: questionText, answer })
-      return answerQuestion(withSpec, { headingId, questionId, answer })
-    })
-  }
+  const handleAnswerQuestion = useCallback(async (questionId: string, answer: string) => {
+    if (!project) return
+    const heading = project.headings.find((h) => h.id === project.currentHeadingId)
+    if (!heading) return
+    const headingTitle = heading.title
+    const headingId = project.currentHeadingId ?? ''
+    const questionText = getQuestionText(project, questionId)
+
+    setFormattingQuestionId(questionId)
+    setFormattingFallback(false)
+    if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
+
+    try {
+      const text = await callLLM(
+        buildAnswerFormatPrompt({
+          currentHeading: headingTitle,
+          question: questionText,
+          answer,
+          currentSpec: project.spec,
+          referenceMemo: project.memo,
+          recentLog: project.log.slice(-1500),
+        }),
+      )
+      const formatResult = extractJSON<AnswerFormatResult>(text)
+      if (!formatResult?.specInsertionMarkdown) throw new Error('Invalid format result')
+
+      updateProject((prev) => {
+        const withSpec = applyFormattedAnswer(prev, { headingTitle, question: questionText, answer, formatResult })
+        return answerQuestion(withSpec, { headingId, questionId, answer })
+      })
+    } catch {
+      setFormattingFallback(true)
+      fallbackTimer.current = setTimeout(() => setFormattingFallback(false), 5000)
+      updateProject((prev) => {
+        const withSpec = applyAnswer(prev, { question: questionText, answer })
+        return answerQuestion(withSpec, { headingId, questionId, answer })
+      })
+    } finally {
+      setFormattingQuestionId(null)
+    }
+  }, [project, updateProject])
 
   const handleSkipQuestion = (questionId: string, reason: SkipReason, detail?: string) => {
     updateProject((prev) => {
@@ -232,8 +268,10 @@ export default function Home() {
             heading={currentHeading}
             timeline={currentTimeline}
             isGenerating={isGeneratingTimeline}
+            formattingQuestionId={formattingQuestionId}
+            formattingFallback={formattingFallback}
             onGenerateTimeline={() => void handleGenerateTimeline()}
-            onAnswerQuestion={handleAnswerQuestion}
+            onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             onSkipQuestion={handleSkipQuestion}
             onDone={handleDone}
           />

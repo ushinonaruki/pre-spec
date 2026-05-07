@@ -32,6 +32,51 @@ Generate the specification with exactly these sections (use ## for section heade
 Write concise, actionable content in each section based on the description. Return ONLY the markdown, no preamble or explanation.`
 }
 
+export function buildAnswerFormatPrompt(params: {
+  currentHeading: string
+  question: string
+  answer: string
+  currentSpec: string
+  referenceMemo: string
+  recentLog: string
+}): string {
+  const memoSection = params.referenceMemo.trim()
+    ? `\nReference memo:\n${params.referenceMemo}\n`
+    : ''
+  const logSection = params.recentLog.trim()
+    ? `\nRecent log (last entries):\n${params.recentLog}\n`
+    : ''
+  return `You are a software specification assistant.
+
+The user has answered a clarifying question about a specific section of a spec document.
+Format their answer into clean, readable Markdown to be appended under that section.
+
+Current spec:
+${params.currentSpec}
+${memoSection}${logSection}
+Current heading: ## ${params.currentHeading}
+
+Question: ${params.question}
+
+User's answer: ${params.answer}
+
+Rules:
+- Return ONLY the content to be inserted under "## ${params.currentHeading}" — do NOT rewrite the whole spec
+- Write in Japanese
+- Do not over-generalize; reflect exactly what the user said
+- Do not mix confirmed facts with speculation
+- Do not duplicate content already present in the spec
+- If the answer contains unresolved items or uncertainties, list them in "openQuestionInsertions" (plain strings, no bullet prefix)
+- Keep insertion concise and actionable (bullet points preferred)
+
+Return valid JSON only (no markdown code fences, no explanation):
+{
+  "specInsertionMarkdown": "- ...",
+  "aggregationLogSummary": "...",
+  "openQuestionInsertions": []
+}`
+}
+
 export function buildQuestionTimelinePrompt(params: {
   headingTitle: string
   spec: string

@@ -24,6 +24,8 @@ type Props = {
   heading: Heading | null
   timeline: QuestionTimeline | null
   isGenerating: boolean
+  formattingQuestionId: string | null
+  formattingFallback: boolean
   onGenerateTimeline: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
   onSkipQuestion: (questionId: string, reason: SkipReason, detail?: string) => void
@@ -32,10 +34,12 @@ type Props = {
 
 function QuestionCard({
   question,
+  isFormatting,
   onAnswer,
   onSkip,
 }: {
   question: Question
+  isFormatting: boolean
   onAnswer: (answer: string) => void
   onSkip: (reason: SkipReason, detail?: string) => void
 }) {
@@ -117,10 +121,10 @@ function QuestionCard({
                 onAnswer(answer.trim())
                 setAnswer('')
               }}
-              disabled={!answer.trim()}
+              disabled={!answer.trim() || isFormatting}
               className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              回答して反映
+              {isFormatting ? '整形中…' : '回答して反映'}
             </button>
             <button
               onClick={() => setShowSkip(true)}
@@ -183,6 +187,8 @@ export default function InterviewPanel({
   heading,
   timeline,
   isGenerating,
+  formattingQuestionId,
+  formattingFallback,
   onGenerateTimeline,
   onAnswerQuestion,
   onSkipQuestion,
@@ -204,11 +210,17 @@ export default function InterviewPanel({
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
+        {formattingFallback && (
+          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+            整形に失敗しました。回答をそのまま反映しました。
+          </div>
+        )}
         {timeline ? (
           timeline.questions.map((q) => (
             <QuestionCard
               key={q.id}
               question={q}
+              isFormatting={formattingQuestionId === q.id}
               onAnswer={(answer) => onAnswerQuestion(q.id, answer)}
               onSkip={(reason, detail) => onSkipQuestion(q.id, reason, detail)}
             />
