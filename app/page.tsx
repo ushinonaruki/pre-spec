@@ -4,12 +4,13 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
-import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
+import { createProjectFromInputs } from '@/lib/ldd/project'
+import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addSectionMarkerIfNeeded, addQuestionsToTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
-import { buildAnswerFormatPrompt, buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
+import { buildAnswerFormatPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
@@ -89,18 +90,11 @@ export default function Home() {
     [scheduleProjectSave],
   )
 
-  const handleStart = async (prompt: string) => {
-    try {
-      const specText = await callLLM(buildInitialSpecPrompt(prompt))
-      const p = createProjectWithSpec(prompt, specText)
-      saveProject(p)
-      setProject(p)
-    } catch {
-      const p = createProject(prompt)
-      saveProject(p)
-      setProject(p)
-    }
-  }
+  const handleCreate = useCallback((inputs: CreateProjectInputs) => {
+    const p = createProjectFromInputs(inputs)
+    saveProject(p)
+    setProject(p)
+  }, [])
 
   const handleOpenProject = useCallback((p: Project) => {
     saveProject(p)
@@ -245,7 +239,7 @@ export default function Home() {
   )
 
   if (!isHydrated) return <div className="h-screen bg-stone-50" />
-  if (!project) return <StartScreen onStart={handleStart} onOpenProject={handleOpenProject} />
+  if (!project) return <StartScreen onCreate={handleCreate} onOpenProject={handleOpenProject} />
 
   const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null
 
