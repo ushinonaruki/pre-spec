@@ -266,9 +266,19 @@ export default function Home() {
               onModeChange={setSpecMode}
             />
           </div>
+          <div className="shrink-0 h-48 border-t border-stone-200 overflow-hidden">
+            <BottomTabs
+              activeTab={bottomTab}
+              onTabChange={setBottomTab}
+              log={project.log}
+              memo={project.memo}
+              onMemoChange={handleMemoChange}
+              openQuestions={openQuestions}
+            />
+          </div>
         </div>
 
-        <div className="w-1/2 min-w-0 overflow-hidden">
+        <div className="flex flex-col w-1/2 min-w-0 overflow-hidden">
           <InterviewPanel
             heading={currentHeading}
             timeline={currentTimeline}
@@ -281,17 +291,6 @@ export default function Home() {
             onDone={handleDone}
           />
         </div>
-      </div>
-
-      <div className="shrink-0 h-48 border-t border-stone-200 overflow-hidden">
-        <BottomTabs
-          activeTab={bottomTab}
-          onTabChange={setBottomTab}
-          log={project.log}
-          memo={project.memo}
-          onMemoChange={handleMemoChange}
-          openQuestions={openQuestions}
-        />
       </div>
     </div>
   )
