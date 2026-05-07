@@ -1,6 +1,7 @@
 'use client'
 
 import { markdownToHtml } from '@/lib/markdown'
+import { UI_TEXT } from '@/lib/uiText'
 
 type Props = {
   value: string
@@ -13,18 +14,18 @@ export default function SpecEditor({ value, onChange, mode, onModeChange }: Prop
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-stone-200 bg-stone-50 shrink-0">
-        <span className="text-xs font-medium text-stone-500 mr-auto">spec.md</span>
+        <span className="text-xs font-medium text-stone-500 mr-auto">{UI_TEXT.specEditor.fileLabel}</span>
         <button
           onClick={() => onModeChange('edit')}
           className={`text-xs px-2 py-1 rounded ${mode === 'edit' ? 'bg-stone-800 text-white' : 'text-stone-500 hover:text-stone-800'}`}
         >
-          Edit
+          {UI_TEXT.specEditor.editMode}
         </button>
         <button
           onClick={() => onModeChange('preview')}
           className={`text-xs px-2 py-1 rounded ${mode === 'preview' ? 'bg-stone-800 text-white' : 'text-stone-500 hover:text-stone-800'}`}
         >
-          Preview
+          {UI_TEXT.specEditor.previewMode}
         </button>
       </div>
 

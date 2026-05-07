@@ -12,6 +12,7 @@ import { addSectionMarkerIfNeeded, addQuestionsToTimeline, answerQuestion, skipQ
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
+import { UI_TEXT } from '@/lib/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
 import InterviewPanel from '@/components/InterviewPanel'
@@ -137,7 +138,7 @@ export default function Home() {
         return addQuestionsToTimeline(withMarker, newQuestions)
       })
     } catch {
-      alert('質問の生成に失敗しました。APIキーを確認してください。')
+      alert(UI_TEXT.app.generateTimelineError)
     } finally {
       setIsGeneratingTimeline(false)
     }
@@ -208,9 +209,9 @@ export default function Home() {
 
   const handleDownloadAll = () => {
     if (!project) return
-    downloadFile('spec.md', project.spec)
-    setTimeout(() => downloadFile('集約ログ.md', project.log), 100)
-    setTimeout(() => downloadFile('参照メモ.md', project.memo || '# 参照メモ\n\n(空)\n'), 200)
+    downloadFile(UI_TEXT.specEditor.fileLabel, project.spec)
+    setTimeout(() => downloadFile(UI_TEXT.app.downloadLogFilename, project.log), 100)
+    setTimeout(() => downloadFile(UI_TEXT.app.downloadMemoFilename, project.memo || UI_TEXT.app.downloadMemoFallback), 200)
   }
 
   if (!isHydrated) return <div className="h-screen bg-stone-50" />
@@ -222,22 +223,22 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-stone-50">
       <header className="shrink-0 flex items-center gap-3 px-4 py-2 bg-white border-b border-stone-200">
-        <span className="font-semibold text-stone-800 text-sm">pre-spec</span>
+        <span className="font-semibold text-stone-800 text-sm">{UI_TEXT.app.name}</span>
         <span className="text-xs text-stone-400">
-          {project.sections.length} セクション
+          {UI_TEXT.app.sectionCount(project.sections.length)}
         </span>
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={handleDownloadAll}
             className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
           >
-            ↓ 3ファイルダウンロード
+            {UI_TEXT.app.downloadAll}
           </button>
           <button
             onClick={() => router.push('/settings')}
             className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
           >
-            ⚙ 設定
+            {UI_TEXT.app.settings}
           </button>
         </div>
       </header>
