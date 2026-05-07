@@ -1,4 +1,4 @@
-import type { Project } from '@/types'
+import type { Heading, Project } from '@/types'
 import { extractHeadings, mergeHeadings } from '@/lib/markdown'
 
 export function updateProjectSpec(project: Project, specMarkdown: string): Project {
@@ -14,10 +14,17 @@ export function updateProjectSpec(project: Project, specMarkdown: string): Proje
 }
 
 export function selectHeading(project: Project, headingId: string): Project {
+  return { ...project, currentHeadingId: headingId }
+}
+
+export function uncompleteHeading(project: Project, headingId: string): Project {
+  const isCurrent = project.currentHeadingId === headingId
   const headings = project.headings.map((h) =>
-    h.id === headingId && h.status === 'unvisited' ? { ...h, status: 'in_progress' as const } : h,
+    h.id === headingId
+      ? { ...h, status: (isCurrent ? 'in_progress' : 'unvisited') as Heading['status'] }
+      : h,
   )
-  return { ...project, headings, currentHeadingId: headingId }
+  return { ...project, headings, isCompleted: false }
 }
 
 export function completeCurrentHeading(project: Project): Project {

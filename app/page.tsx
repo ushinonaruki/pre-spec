@@ -1,12 +1,12 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, Heading, Project, QuestionKind, QuestionPriority, QuestionTimeline, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
 import { extractOpenQuestions } from '@/lib/openQuestions'
 import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
-import { updateProjectSpec, selectHeading, completeCurrentHeading } from '@/lib/ldd/headings'
+import { updateProjectSpec, selectHeading, completeCurrentHeading, uncompleteHeading } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applySkip, DUMMY_QUESTION } from '@/lib/ldd/specPatch'
 import { setTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
@@ -47,7 +47,8 @@ function getQuestionText(project: Project, questionId: string): string {
 
 export default function Home() {
   const router = useRouter()
-  const [project, setProject] = useState<Project | null>(() => loadState().project)
+  const [isHydrated, setIsHydrated] = useState(false)
+  const [project, setProject] = useState<Project | null>(null)
   const [specMode, setSpecMode] = useState<'edit' | 'preview'>('edit')
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
@@ -55,8 +56,10 @@ export default function Home() {
   const [formattingFallback, setFormattingFallback] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isHydratedRef = useRef(false)
 
   const scheduleProjectSave = useCallback((p: Project) => {
+    if (!isHydratedRef.current) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => saveProject(p), 400)
   }, [])
@@ -72,6 +75,14 @@ export default function Home() {
     },
     [scheduleProjectSave],
   )
+
+  useEffect(() => {
+    const state = loadState()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setProject(state.project ?? null)
+    isHydratedRef.current = true
+    setIsHydrated(true)
+  }, [])
 
   const handleStart = async (prompt: string) => {
     try {
@@ -94,7 +105,7 @@ export default function Home() {
     updateProject((prev) => selectHeading(prev, id))
   }
 
-  const handleGenerateTimeline = useCallback(async (mode: 'initial' | 'deepen' = 'initial') => {
+  const handleGenerateTimeline = useCallback(async () => {
     if (!project || !project.currentHeadingId || isGeneratingTimeline) return
     const heading = project.headings.find((h) => h.id === project.currentHeadingId)
     if (!heading) return
@@ -111,7 +122,6 @@ export default function Home() {
           memo: project.memo,
           existingQuestions,
           recentAggregationLog: project.log.slice(-1500),
-          mode,
         }),
       )
       const raw = extractJSON<{ questions: RawQuestion[] }>(text)
@@ -198,6 +208,10 @@ export default function Home() {
     updateProject((prev) => completeCurrentHeading(prev))
   }
 
+  const handleUncompleteHeading = (id: string) => {
+    updateProject((prev) => uncompleteHeading(prev, id))
+  }
+
   const handleMemoChange = (v: string) => {
     updateProject((prev) => ({ ...prev, memo: v }))
   }
@@ -208,6 +222,8 @@ export default function Home() {
     setTimeout(() => downloadFile('集約ログ.md', project.log), 100)
     setTimeout(() => downloadFile('参照メモ.md', project.memo || '# 参照メモ\n\n(空)\n'), 200)
   }
+
+  if (!isHydrated) return <div className="h-screen bg-stone-50" />
 
   if (!project) return <StartScreen onStart={handleStart} />
 
@@ -256,6 +272,7 @@ export default function Home() {
               headings={project.headings}
               currentId={project.currentHeadingId}
               onSelect={handleSelectHeading}
+              onUncomplete={handleUncompleteHeading}
             />
           </div>
           <div className="flex-1 min-h-0 overflow-hidden">
@@ -285,7 +302,7 @@ export default function Home() {
             isGenerating={isGeneratingTimeline}
             formattingQuestionId={formattingQuestionId}
             formattingFallback={formattingFallback}
-            onGenerateTimeline={(mode) => void handleGenerateTimeline(mode)}
+            onGenerateTimeline={() => void handleGenerateTimeline()}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             onSkipQuestion={handleSkipQuestion}
             onDone={handleDone}
