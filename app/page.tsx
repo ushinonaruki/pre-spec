@@ -6,7 +6,7 @@ import type { AnswerFormatResult, Heading, Project, QuestionKind, QuestionPriori
 import { loadState, saveProject } from '@/lib/storage'
 import { extractOpenQuestions } from '@/lib/openQuestions'
 import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
-import { updateProjectSpec, selectHeading, completeCurrentHeading } from '@/lib/ldd/headings'
+import { updateProjectSpec, selectHeading, completeCurrentHeading, uncompleteHeading } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applySkip, DUMMY_QUESTION } from '@/lib/ldd/specPatch'
 import { setTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
@@ -94,7 +94,7 @@ export default function Home() {
     updateProject((prev) => selectHeading(prev, id))
   }
 
-  const handleGenerateTimeline = useCallback(async (mode: 'initial' | 'deepen' = 'initial') => {
+  const handleGenerateTimeline = useCallback(async () => {
     if (!project || !project.currentHeadingId || isGeneratingTimeline) return
     const heading = project.headings.find((h) => h.id === project.currentHeadingId)
     if (!heading) return
@@ -111,7 +111,6 @@ export default function Home() {
           memo: project.memo,
           existingQuestions,
           recentAggregationLog: project.log.slice(-1500),
-          mode,
         }),
       )
       const raw = extractJSON<{ questions: RawQuestion[] }>(text)
@@ -198,6 +197,10 @@ export default function Home() {
     updateProject((prev) => completeCurrentHeading(prev))
   }
 
+  const handleUncompleteHeading = (id: string) => {
+    updateProject((prev) => uncompleteHeading(prev, id))
+  }
+
   const handleMemoChange = (v: string) => {
     updateProject((prev) => ({ ...prev, memo: v }))
   }
@@ -256,6 +259,7 @@ export default function Home() {
               headings={project.headings}
               currentId={project.currentHeadingId}
               onSelect={handleSelectHeading}
+              onUncomplete={handleUncompleteHeading}
             />
           </div>
           <div className="flex-1 min-h-0 overflow-hidden">
@@ -285,7 +289,7 @@ export default function Home() {
             isGenerating={isGeneratingTimeline}
             formattingQuestionId={formattingQuestionId}
             formattingFallback={formattingFallback}
-            onGenerateTimeline={(mode) => void handleGenerateTimeline(mode)}
+            onGenerateTimeline={() => void handleGenerateTimeline()}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             onSkipQuestion={handleSkipQuestion}
             onDone={handleDone}
