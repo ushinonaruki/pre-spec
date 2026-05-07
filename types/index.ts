@@ -21,6 +21,40 @@ export type Heading = {
   questionRound: number
 }
 
+export type QuestionKind =
+  | 'decision'
+  | 'constraint'
+  | 'risk'
+  | 'scope'
+  | 'data'
+  | 'flow'
+  | 'assumption'
+
+export type QuestionPriority = 'high' | 'medium' | 'low'
+
+export type Question = {
+  id: string
+  headingId: string
+  text: string
+  reason?: string
+  kind?: QuestionKind
+  priority?: QuestionPriority
+  aiGuess?: {
+    value: string
+    rationale: string
+  }
+  options?: string[]
+  status: 'open' | 'answered' | 'skipped'
+  answer?: string
+  createdAt: string
+}
+
+export type QuestionTimeline = {
+  headingId: string
+  generatedAt: string
+  questions: Question[]
+}
+
 export type Upload = {
   id: string
   name: string
@@ -43,6 +77,7 @@ export type Project = {
   headings: Heading[]
   currentHeadingId: string | null
   isCompleted: boolean
+  questionTimelines: Record<string, QuestionTimeline>
 }
 
 export type AppState = {

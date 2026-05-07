@@ -1,4 +1,4 @@
-import type { AppState, Project } from '@/types'
+import type { AppState, Project, QuestionTimeline } from '@/types'
 
 const KEY = 'pre-spec-v1'
 
@@ -16,7 +16,12 @@ export function loadState(): AppState {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return DEFAULT_STATE
-    return { ...DEFAULT_STATE, ...JSON.parse(raw) }
+    const state = { ...DEFAULT_STATE, ...(JSON.parse(raw) as Partial<AppState>) }
+    if (state.project && !state.project.questionTimelines) {
+      const legacy = (state.project as Project & { timelines?: Record<string, QuestionTimeline> })
+      state.project = { ...state.project, questionTimelines: legacy.timelines ?? {} }
+    }
+    return state
   } catch {
     return DEFAULT_STATE
   }
