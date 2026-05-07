@@ -5,12 +5,14 @@ export const UI_TEXT = {
     name: 'pre-spec',
     tagline: 'LDD Interview Workbench',
     sectionCount: (n: number) => `${n} セクション`,
-    downloadAll: '↓ 3ファイルダウンロード',
+    downloadAll: '↓ 成果物ダウンロード',
+    downloadProjectJson: '↓ project.json 保存',
     settings: '⚙ 設定',
     generateTimelineError: '質問の生成に失敗しました。APIキーを確認してください。',
-    downloadLogFilename: '集約ログ.md',
-    downloadMemoFilename: '参照メモ.md',
-    downloadMemoFallback: '# 参照メモ\n\n(空)\n',
+    downloadTimelineFilename: 'タイムライン.md',
+    downloadMemoFilename: '参照.md',
+    downloadMemoFallback: '# 参照\n\n(空)\n',
+    downloadProjectJsonFilename: 'pre-spec.project.json',
   },
 
   startScreen: {
@@ -20,7 +22,10 @@ export const UI_TEXT = {
     startButton: 'pre-spec を始める',
     startButtonLoading: 'AIが仕様を生成中…',
     generatingNote: 'LLMが初期仕様を生成しています。失敗時はテンプレートで開始します。',
-    storageNote: '状態は localStorage に保存されます',
+    storageNote: '作業状態は自動保存されます',
+    openProjectJson: 'project.json を開く',
+    openProjectJsonError: 'project.json の読み込みに失敗しました。ファイル形式を確認してください。',
+    openProjectJsonLoading: '読み込み中…',
   },
 
   specEditor: {
@@ -30,8 +35,8 @@ export const UI_TEXT = {
   },
 
   bottomTabs: {
-    logTab: '集約ログ.md',
-    memoTab: '参照メモ.md',
+    logTab: 'タイムライン.md',
+    memoTab: '参照.md',
     openQTab: 'Open Questions',
     logEmpty: '(まだ記録がありません)',
     memoPlaceholder:
@@ -83,7 +88,7 @@ export const UI_TEXT = {
     saveButtonSaved: '✓ 保存しました',
     resetButton: 'プロジェクトをリセット',
     resetConfirm:
-      'プロジェクトをリセットしますか？ spec.md・集約ログ・参照メモがすべて消えます。',
+      'プロジェクトをリセットしますか？ spec.md・参照・タイムラインがすべて消えます。',
     backButton: 'ワークベンチに戻る',
   },
 }

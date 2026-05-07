@@ -88,3 +88,45 @@ export type AppState = {
     activeTab: 'spec' | 'log' | 'memo'
   }
 }
+
+export type RelatedSource = {
+  id: string
+  label: string
+  kind: 'file' | 'url' | 'github_file' | 'text' | 'diff'
+  status: 'readable' | 'unreadable'
+  checkedAt: string
+  importedToReference: boolean
+  note?: string
+  error?: string
+}
+
+export type CustomMarkerDefinition = {
+  label: string
+  description?: string
+  questionInstruction?: string
+}
+
+export type PreSpecProject = {
+  version: string
+  project: {
+    id: string
+    title?: string
+    createdAt: string
+    updatedAt: string
+  }
+  inputs: {
+    requirementMemo: string
+    baseSpecSourceId?: string
+    relatedSources: RelatedSource[]
+  }
+  workspace: {
+    draftSpecMarkdown: string
+    referenceMarkdown: string
+    currentSectionId: string | null
+    sections: Section[]
+    timeline: TimelineItem[]
+  }
+  markers: {
+    custom: Record<string, CustomMarkerDefinition>
+  }
+}
