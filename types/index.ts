@@ -13,12 +13,11 @@ export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   low_priority: '重要度が低い',
 }
 
-export type Heading = {
+export type Section = {
   id: string
   title: string
   level: 2
-  status: 'unvisited' | 'in_progress' | 'done' | 'skipped'
-  questionRound: number
+  order: number
 }
 
 export type QuestionKind =
@@ -32,9 +31,19 @@ export type QuestionKind =
 
 export type QuestionPriority = 'high' | 'medium' | 'low'
 
+export type SectionMarker = {
+  id: string
+  type: 'section_marker'
+  sectionId: string
+  sectionTitle: string
+  createdAt: string
+}
+
 export type Question = {
   id: string
-  headingId: string
+  type: 'question'
+  sectionId: string
+  sectionTitle: string
   text: string
   reason?: string
   kind?: QuestionKind
@@ -43,44 +52,27 @@ export type Question = {
     value: string
     rationale: string
   }
-  options?: string[]
   status: 'open' | 'answered' | 'skipped'
   answer?: string
-  answeredAt?: string
   skipReason?: SkipReason
   skipDetail?: string
   createdAt: string
+  answeredAt?: string
 }
 
-export type QuestionTimeline = {
-  headingId: string
-  generatedAt: string
-  questions: Question[]
-}
-
-export type Upload = {
-  id: string
-  name: string
-  type: 'file' | 'url' | 'text'
-  rawContent: string
-  aiSummary?: string
-  uploadedAt: string
-  processed: boolean
-}
+export type TimelineItem = SectionMarker | Question
 
 export type Project = {
   id: string
   createdAt: string
   updatedAt: string
   initialPrompt: string
-  uploads: Upload[]
   spec: string
   log: string
   memo: string
-  headings: Heading[]
-  currentHeadingId: string | null
-  isCompleted: boolean
-  questionTimelines: Record<string, QuestionTimeline>
+  sections: Section[]
+  currentSectionId: string | null
+  timeline: TimelineItem[]
 }
 
 export type AnswerFormatResult = {
@@ -94,6 +86,5 @@ export type AppState = {
   project: Project | null
   uiState: {
     activeTab: 'spec' | 'log' | 'memo'
-    activeHeadingId: string | null
   }
 }

@@ -1,47 +1,52 @@
-import type { Project, QuestionTimeline, SkipReason } from '@/types'
+import type { Project, Question, SectionMarker, SkipReason, TimelineItem } from '@/types'
 
-function replaceTimeline(project: Project, timeline: QuestionTimeline): Project {
-  return {
-    ...project,
-    questionTimelines: { ...project.questionTimelines, [timeline.headingId]: timeline },
+export function addSectionMarkerIfNeeded(project: Project): Project {
+  const lastMarker = [...project.timeline]
+    .reverse()
+    .find((t): t is SectionMarker => t.type === 'section_marker')
+
+  if (lastMarker?.sectionId === project.currentSectionId) return project
+
+  const section = project.sections.find((s) => s.id === project.currentSectionId)
+  if (!section) return project
+
+  const marker: SectionMarker = {
+    id: crypto.randomUUID(),
+    type: 'section_marker',
+    sectionId: section.id,
+    sectionTitle: section.title,
+    createdAt: new Date().toISOString(),
   }
+  return { ...project, timeline: [...project.timeline, marker] }
 }
 
-export function setTimeline(project: Project, timeline: QuestionTimeline): Project {
-  const existing = project.questionTimelines[timeline.headingId]
-  if (!existing) return replaceTimeline(project, timeline)
-  return replaceTimeline(project, {
-    headingId: existing.headingId,
-    generatedAt: existing.generatedAt,
-    questions: [...existing.questions, ...timeline.questions],
-  })
+export function addQuestionsToTimeline(project: Project, questions: Question[]): Project {
+  return { ...project, timeline: [...project.timeline, ...questions] }
 }
 
 export function answerQuestion(
   project: Project,
-  params: { headingId: string; questionId: string; answer: string },
+  params: { questionId: string; answer: string },
 ): Project {
-  const timeline = project.questionTimelines[params.headingId]
-  if (!timeline) return project
   const now = new Date().toISOString()
-  const questions = timeline.questions.map((q) =>
-    q.id === params.questionId
-      ? { ...q, status: 'answered' as const, answer: params.answer, answeredAt: now }
-      : q,
-  )
-  return replaceTimeline(project, { ...timeline, questions })
+  const timeline = project.timeline.map((item): TimelineItem => {
+    if (item.type === 'question' && item.id === params.questionId) {
+      return { ...item, status: 'answered' as const, answer: params.answer, answeredAt: now }
+    }
+    return item
+  })
+  return { ...project, timeline }
 }
 
 export function skipQuestion(
   project: Project,
-  params: { headingId: string; questionId: string; skipReason: SkipReason; skipDetail?: string },
+  params: { questionId: string; skipReason: SkipReason; skipDetail?: string },
 ): Project {
-  const timeline = project.questionTimelines[params.headingId]
-  if (!timeline) return project
-  const questions = timeline.questions.map((q) =>
-    q.id === params.questionId
-      ? { ...q, status: 'skipped' as const, skipReason: params.skipReason, skipDetail: params.skipDetail }
-      : q,
-  )
-  return replaceTimeline(project, { ...timeline, questions })
+  const timeline = project.timeline.map((item): TimelineItem => {
+    if (item.type === 'question' && item.id === params.questionId) {
+      return { ...item, status: 'skipped' as const, skipReason: params.skipReason, skipDetail: params.skipDetail }
+    }
+    return item
+  })
+  return { ...project, timeline }
 }

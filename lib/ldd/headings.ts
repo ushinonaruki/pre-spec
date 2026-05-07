@@ -1,41 +1,38 @@
-import type { Heading, Project } from '@/types'
-import { extractHeadings, mergeHeadings } from '@/lib/markdown'
+import type { Project, SectionMarker } from '@/types'
+import { extractSections, mergeSections } from '@/lib/markdown'
 
 export function updateProjectSpec(project: Project, specMarkdown: string): Project {
-  const freshHeadings = extractHeadings(specMarkdown)
-  const merged = mergeHeadings(project.headings, freshHeadings)
-  const currentStillExists = merged.some((h) => h.id === project.currentHeadingId)
+  const freshSections = extractSections(specMarkdown)
+  const merged = mergeSections(project.sections, freshSections)
+  const currentStillExists = merged.some((s) => s.id === project.currentSectionId)
   return {
     ...project,
     spec: specMarkdown,
-    headings: merged,
-    currentHeadingId: currentStillExists ? project.currentHeadingId : (merged[0]?.id ?? null),
+    sections: merged,
+    currentSectionId: currentStillExists ? project.currentSectionId : (merged[0]?.id ?? null),
   }
 }
 
-export function selectHeading(project: Project, headingId: string): Project {
-  return { ...project, currentHeadingId: headingId }
-}
+export function advanceSection(project: Project): Project {
+  const sections = project.sections
+  if (sections.length === 0) return project
 
-export function uncompleteHeading(project: Project, headingId: string): Project {
-  const isCurrent = project.currentHeadingId === headingId
-  const headings = project.headings.map((h) =>
-    h.id === headingId
-      ? { ...h, status: (isCurrent ? 'in_progress' : 'unvisited') as Heading['status'] }
-      : h,
-  )
-  return { ...project, headings, isCompleted: false }
-}
+  const currentIdx = sections.findIndex((s) => s.id === project.currentSectionId)
+  const nextIdx = currentIdx === -1 || currentIdx === sections.length - 1 ? 0 : currentIdx + 1
+  const nextSection = sections[nextIdx]
 
-export function completeCurrentHeading(project: Project): Project {
-  const headings = project.headings.map((h) =>
-    h.id === project.currentHeadingId ? { ...h, status: 'done' as const } : h,
-  )
-  const currentIdx = headings.findIndex((h) => h.id === project.currentHeadingId)
-  const next = headings.slice(currentIdx + 1).find((h) => h.status !== 'done' && h.status !== 'skipped')
-  const nextId = next?.id ?? null
-  const headings2 = headings.map((h) =>
-    h.id === nextId && h.status === 'unvisited' ? { ...h, status: 'in_progress' as const } : h,
-  )
-  return { ...project, headings: headings2, currentHeadingId: nextId, isCompleted: !nextId }
+  const now = new Date().toISOString()
+  const marker: SectionMarker = {
+    id: crypto.randomUUID(),
+    type: 'section_marker',
+    sectionId: nextSection.id,
+    sectionTitle: nextSection.title,
+    createdAt: now,
+  }
+
+  return {
+    ...project,
+    currentSectionId: nextSection.id,
+    timeline: [...project.timeline, marker],
+  }
 }

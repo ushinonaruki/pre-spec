@@ -1,33 +1,30 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AnswerFormatResult, Heading, Project, QuestionKind, QuestionPriority, QuestionTimeline, SkipReason } from '@/types'
+import type { AnswerFormatResult, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
 import { extractOpenQuestions } from '@/lib/openQuestions'
 import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
-import { updateProjectSpec, selectHeading, completeCurrentHeading, uncompleteHeading } from '@/lib/ldd/headings'
-import { applyAnswer, applyFormattedAnswer, applySkip, DUMMY_QUESTION } from '@/lib/ldd/specPatch'
-import { setTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
+import { applyAnswer, applyFormattedAnswer, applySkip } from '@/lib/ldd/specPatch'
+import { addSectionMarkerIfNeeded, addQuestionsToTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
-import HeadingNav from '@/components/HeadingNav'
 import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
 
 type BottomTab = 'log' | 'memo' | 'openq'
 
 type RawQuestion = {
-  id: string
   text: string
   reason?: string
   kind?: string
   priority?: string
   aiGuess?: { value: string; rationale: string }
-  options?: string[]
 }
 
 function downloadFile(filename: string, content: string) {
@@ -40,14 +37,10 @@ function downloadFile(filename: string, content: string) {
   URL.revokeObjectURL(url)
 }
 
-function getQuestionText(project: Project, questionId: string): string {
-  const timeline = project.questionTimelines[project.currentHeadingId ?? '']
-  return timeline?.questions.find((q) => q.id === questionId)?.text ?? DUMMY_QUESTION
-}
-
 export default function Home() {
   const router = useRouter()
   const [isHydrated, setIsHydrated] = useState(false)
+  const isHydratedRef = useRef(false)
   const [project, setProject] = useState<Project | null>(null)
   const [specMode, setSpecMode] = useState<'edit' | 'preview'>('edit')
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
@@ -56,7 +49,15 @@ export default function Home() {
   const [formattingFallback, setFormattingFallback] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isHydratedRef = useRef(false)
+
+  useEffect(() => {
+    const state = loadState()
+    startTransition(() => {
+      setProject(state.project)
+      setIsHydrated(true)
+    })
+    isHydratedRef.current = true
+  }, [])
 
   const scheduleProjectSave = useCallback((p: Project) => {
     if (!isHydratedRef.current) return
@@ -76,14 +77,6 @@ export default function Home() {
     [scheduleProjectSave],
   )
 
-  useEffect(() => {
-    const state = loadState()
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProject(state.project ?? null)
-    isHydratedRef.current = true
-    setIsHydrated(true)
-  }, [])
-
   const handleStart = async (prompt: string) => {
     try {
       const specText = await callLLM(buildInitialSpecPrompt(prompt))
@@ -101,23 +94,20 @@ export default function Home() {
     updateProject((prev) => updateProjectSpec(prev, value))
   }
 
-  const handleSelectHeading = (id: string) => {
-    updateProject((prev) => selectHeading(prev, id))
-  }
-
   const handleGenerateTimeline = useCallback(async () => {
-    if (!project || !project.currentHeadingId || isGeneratingTimeline) return
-    const heading = project.headings.find((h) => h.id === project.currentHeadingId)
-    if (!heading) return
-    const headingId = project.currentHeadingId
-    const existingTimeline = project.questionTimelines[headingId]
-    const existingQuestions = existingTimeline?.questions.map((q) => q.text) ?? []
+    if (!project || !project.currentSectionId || isGeneratingTimeline) return
+    const section = project.sections.find((s) => s.id === project.currentSectionId)
+    if (!section) return
+
+    const existingQuestions = project.timeline
+      .filter((item): item is Question => item.type === 'question' && item.sectionId === project.currentSectionId)
+      .map((q) => q.text)
 
     setIsGeneratingTimeline(true)
     try {
       const text = await callLLM(
         buildQuestionTimelinePrompt({
-          headingTitle: heading.title,
+          sectionTitle: section.title,
           spec: project.spec,
           memo: project.memo,
           existingQuestions,
@@ -128,25 +118,26 @@ export default function Home() {
       if (!raw?.questions?.length) throw new Error('Invalid LLM response')
 
       const now = new Date().toISOString()
-      const timeline: QuestionTimeline = {
-        headingId,
-        generatedAt: now,
-        questions: raw.questions.map((q) => ({
-          id: crypto.randomUUID(),
-          headingId,
-          text: q.text,
-          reason: q.reason,
-          kind: q.kind as QuestionKind | undefined,
-          priority: q.priority as QuestionPriority | undefined,
-          aiGuess: q.aiGuess,
-          options: q.options,
-          status: 'open' as const,
-          createdAt: now,
-        })),
-      }
-      updateProject((prev) => setTimeline(prev, timeline))
+      const newQuestions: Question[] = raw.questions.map((q) => ({
+        id: crypto.randomUUID(),
+        type: 'question' as const,
+        sectionId: section.id,
+        sectionTitle: section.title,
+        text: q.text,
+        reason: q.reason,
+        kind: q.kind as QuestionKind | undefined,
+        priority: q.priority as QuestionPriority | undefined,
+        aiGuess: q.aiGuess,
+        status: 'open' as const,
+        createdAt: now,
+      }))
+
+      updateProject((prev) => {
+        const withMarker = addSectionMarkerIfNeeded(prev)
+        return addQuestionsToTimeline(withMarker, newQuestions)
+      })
     } catch {
-      alert('質問タイムラインの生成に失敗しました。APIキーを確認してください。')
+      alert('質問の生成に失敗しました。APIキーを確認してください。')
     } finally {
       setIsGeneratingTimeline(false)
     }
@@ -154,11 +145,11 @@ export default function Home() {
 
   const handleAnswerQuestion = useCallback(async (questionId: string, answer: string) => {
     if (!project) return
-    const heading = project.headings.find((h) => h.id === project.currentHeadingId)
-    if (!heading) return
-    const headingTitle = heading.title
-    const headingId = project.currentHeadingId ?? ''
-    const questionText = getQuestionText(project, questionId)
+    const questionItem = project.timeline.find(
+      (item): item is Question => item.type === 'question' && item.id === questionId,
+    )
+    if (!questionItem) return
+    const { sectionTitle, text: questionText } = questionItem
 
     setFormattingQuestionId(questionId)
     setFormattingFallback(false)
@@ -167,7 +158,7 @@ export default function Home() {
     try {
       const text = await callLLM(
         buildAnswerFormatPrompt({
-          currentHeading: headingTitle,
+          currentHeading: sectionTitle,
           question: questionText,
           answer,
           currentSpec: project.spec,
@@ -179,15 +170,15 @@ export default function Home() {
       if (!formatResult?.specInsertionMarkdown) throw new Error('Invalid format result')
 
       updateProject((prev) => {
-        const withSpec = applyFormattedAnswer(prev, { headingTitle, question: questionText, answer, formatResult })
-        return answerQuestion(withSpec, { headingId, questionId, answer })
+        const withSpec = applyFormattedAnswer(prev, { sectionTitle, question: questionText, answer, formatResult })
+        return answerQuestion(withSpec, { questionId, answer })
       })
     } catch {
       setFormattingFallback(true)
       fallbackTimer.current = setTimeout(() => setFormattingFallback(false), 5000)
       updateProject((prev) => {
-        const withSpec = applyAnswer(prev, { question: questionText, answer })
-        return answerQuestion(withSpec, { headingId, questionId, answer })
+        const withSpec = applyAnswer(prev, { sectionTitle, question: questionText, answer })
+        return answerQuestion(withSpec, { questionId, answer })
       })
     } finally {
       setFormattingQuestionId(null)
@@ -196,20 +187,19 @@ export default function Home() {
 
   const handleSkipQuestion = (questionId: string, reason: SkipReason, detail?: string) => {
     updateProject((prev) => {
-      const headingId = prev.currentHeadingId ?? ''
-      const questionText = getQuestionText(prev, questionId)
-      const withSpec = applySkip(prev, { question: questionText, reason, detail })
-      return skipQuestion(withSpec, { headingId, questionId, skipReason: reason, skipDetail: detail })
+      const questionItem = prev.timeline.find(
+        (item): item is Question => item.type === 'question' && item.id === questionId,
+      )
+      if (!questionItem) return prev
+      const { sectionTitle, text: questionText } = questionItem
+      const withSpec = applySkip(prev, { sectionTitle, question: questionText, reason, detail })
+      return skipQuestion(withSpec, { questionId, skipReason: reason, skipDetail: detail })
     })
     setBottomTab('openq')
   }
 
-  const handleDone = () => {
-    updateProject((prev) => completeCurrentHeading(prev))
-  }
-
-  const handleUncompleteHeading = (id: string) => {
-    updateProject((prev) => uncompleteHeading(prev, id))
+  const handleNext = () => {
+    updateProject((prev) => advanceSection(prev))
   }
 
   const handleMemoChange = (v: string) => {
@@ -224,31 +214,18 @@ export default function Home() {
   }
 
   if (!isHydrated) return <div className="h-screen bg-stone-50" />
-
   if (!project) return <StartScreen onStart={handleStart} />
 
-  const currentHeading: Heading | null =
-    project.headings.find((h) => h.id === project.currentHeadingId) ?? null
-
-  const currentTimeline: QuestionTimeline | null =
-    project.currentHeadingId ? (project.questionTimelines[project.currentHeadingId] ?? null) : null
-
+  const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null
   const openQuestions = extractOpenQuestions(project.spec)
-  const doneCount = project.headings.filter((h) => h.status === 'done').length
-  const totalCount = project.headings.length
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-stone-50">
       <header className="shrink-0 flex items-center gap-3 px-4 py-2 bg-white border-b border-stone-200">
         <span className="font-semibold text-stone-800 text-sm">pre-spec</span>
         <span className="text-xs text-stone-400">
-          {doneCount}/{totalCount} 見出し完了
+          {project.sections.length} セクション
         </span>
-        {project.isCompleted && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-            ✓ 全見出し完了
-          </span>
-        )}
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={handleDownloadAll}
@@ -266,15 +243,8 @@ export default function Home() {
       </header>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Left column: spec editor + bottom tabs */}
         <div className="flex flex-col w-1/2 min-w-0 border-r border-stone-200">
-          <div className="shrink-0 border-b border-stone-200 bg-stone-50 max-h-40 overflow-y-auto">
-            <HeadingNav
-              headings={project.headings}
-              currentId={project.currentHeadingId}
-              onSelect={handleSelectHeading}
-              onUncomplete={handleUncompleteHeading}
-            />
-          </div>
           <div className="flex-1 min-h-0 overflow-hidden">
             <SpecEditor
               value={project.spec}
@@ -295,17 +265,19 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Right column: interview panel */}
         <div className="flex flex-col w-1/2 min-w-0 overflow-hidden">
           <InterviewPanel
-            heading={currentHeading}
-            timeline={currentTimeline}
+            currentSection={currentSection}
+            sections={project.sections}
+            timeline={project.timeline}
             isGenerating={isGeneratingTimeline}
             formattingQuestionId={formattingQuestionId}
             formattingFallback={formattingFallback}
-            onGenerateTimeline={() => void handleGenerateTimeline()}
+            onAddQuestions={() => { void handleGenerateTimeline() }}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             onSkipQuestion={handleSkipQuestion}
-            onDone={handleDone}
+            onNext={handleNext}
           />
         </div>
       </div>

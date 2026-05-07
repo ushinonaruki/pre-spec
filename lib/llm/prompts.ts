@@ -41,35 +41,36 @@ export function buildAnswerFormatPrompt(params: {
   recentLog: string
 }): string {
   const memoSection = params.referenceMemo.trim()
-    ? `\nReference memo:\n${params.referenceMemo}\n`
+    ? `\n参照メモ:\n${params.referenceMemo}\n`
     : ''
   const logSection = params.recentLog.trim()
-    ? `\nRecent log (last entries):\n${params.recentLog}\n`
+    ? `\n直近ログ (末尾):\n${params.recentLog}\n`
     : ''
-  return `You are a software specification assistant.
+  return `あなたは pre-spec の回答整形エンジンです。
 
-The user has answered a clarifying question about a specific section of a spec document.
-Format their answer into clean, readable Markdown to be appended under that section.
+ユーザーの回答を、対象セクション配下へ追記するための Markdown に整形してください。
 
-Current spec:
+現在の spec.md:
 ${params.currentSpec}
 ${memoSection}${logSection}
-Current heading: ## ${params.currentHeading}
+対象セクション: ## ${params.currentHeading}
 
-Question: ${params.question}
+質問: ${params.question}
 
-User's answer: ${params.answer}
+ユーザーの回答: ${params.answer}
 
-Rules:
-- Return ONLY the content to be inserted under "## ${params.currentHeading}" — do NOT rewrite the whole spec
-- Write in Japanese
-- Do not over-generalize; reflect exactly what the user said
-- Do not mix confirmed facts with speculation
-- Do not duplicate content already present in the spec
-- If the answer contains unresolved items or uncertainties, list them in "openQuestionInsertions" (plain strings, no bullet prefix)
-- Keep insertion concise and actionable (bullet points preferred)
+ルール:
+- spec.md 全体を書き換えない
+- "## ${params.currentHeading}" に追記するコンテンツだけを返す
+- 回答を過度に一般化しない
+- ユーザーが言ったことを正確に反映する
+- 確定事項と推測を混在させない
+- 既存コンテンツと重複しないようにする
+- 未解決事項・不確実な内容が含まれる場合は "openQuestionInsertions" に入れる (プレフィックスなしの文字列)
+- 日本語で記述する
+- 追記内容は簡潔・アクション可能に (箇条書き推奨)
 
-Return valid JSON only (no markdown code fences, no explanation):
+有効な JSON のみを返してください (マークダウンコードフェンス・説明文不要):
 {
   "specInsertionMarkdown": "- ...",
   "aggregationLogSummary": "...",
@@ -78,53 +79,61 @@ Return valid JSON only (no markdown code fences, no explanation):
 }
 
 export function buildQuestionTimelinePrompt(params: {
-  headingTitle: string
+  sectionTitle: string
   spec: string
   memo: string
   existingQuestions: string[]
   recentAggregationLog: string
 }): string {
   const memoSection = params.memo.trim()
-    ? `\nMemo/Reference notes:\n${params.memo}\n`
+    ? `\n参照メモ:\n${params.memo}\n`
     : ''
   const logSection = params.recentAggregationLog.trim()
-    ? `\nRecent aggregation log:\n${params.recentAggregationLog}\n`
+    ? `\n直近集約ログ:\n${params.recentAggregationLog}\n`
     : ''
   const existingSection = params.existingQuestions.length
-    ? `\nAlready asked questions (do NOT repeat or closely paraphrase these):\n${params.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n`
+    ? `\n既出質問 (重複・類似禁止):\n${params.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n`
     : ''
 
-  return `You are a software specification assistant helping to elaborate a feature spec.
+  return `あなたは pre-spec の質問生成エンジンです。
 
-Current specification:
+現在の spec.md・現在セクション・参照メモ・直近ログ・既出質問をもとに、
+現在セクションに関する質問を 1〜5 問生成してください。
+
+現在セクション: ## ${params.sectionTitle}
+
+spec.md:
 ${params.spec}
-${memoSection}${logSection}${existingSection}Generate 1 to 5 questions to clarify the "## ${params.headingTitle}" section.
+${memoSection}${logSection}${existingSection}
+ルール:
+- 他のセクションへ飛ばない
+- 既出質問と重複・類似しない
+- 既に決まっていることを再質問しない
+- 参照メモから推定できる場合は aiGuess を付ける
+- aiGuess には value (推定値) と rationale (根拠) を含める
+- ユーザーが採用・修正しやすい推定を出す
+- 質問には kind と priority を付ける
+- priority high の質問を先に並べる
+- 質問数は 1〜5 問
+- 無理に 5 問出さない
+- 本当に聞くべき質問だけを出す
+- 質問は日本語で記述する
 
-Rules:
-- Questions must focus ONLY on "${params.headingTitle}"
-- Do not ask about other sections
-- Do not re-ask things already decided in the spec
-- Do not repeat or closely paraphrase already-asked questions listed above
-- Only ask questions that are genuinely unclear or unresolved — if the section is already well-defined, 1 or 2 questions is fine
-- Do not force 5 questions; quality over quantity
-- If you can infer an answer from the spec or memo, include aiGuess
-- Write questions in Japanese
-- Keep questions non-mandatory (user can skip any)
-- Assign each question a "kind" from: decision, constraint, risk, scope, data, flow, assumption
-- Assign each question a "priority" from: high, medium, low
-- Sort questions with "priority": "high" first
+kind 候補: decision / constraint / risk / scope / data / flow / assumption
+priority 候補: high / medium / low
 
-Return valid JSON only (no markdown code fences, no explanation):
+有効な JSON のみを返してください (マークダウンコードフェンス・説明文不要):
 {
   "questions": [
     {
-      "id": "q_1",
       "text": "...",
       "reason": "...",
       "kind": "scope",
       "priority": "high",
-      "aiGuess": { "value": "...", "rationale": "..." },
-      "options": ["推定でOK", "別の方針を入力"]
+      "aiGuess": {
+        "value": "...",
+        "rationale": "..."
+      }
     }
   ]
 }`
