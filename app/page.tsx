@@ -12,11 +12,13 @@ import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown } from '@/lib/projectFile'
+import { runPreflightCheck } from '@/lib/preflight'
 import { UI_TEXT } from '@/lib/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
 import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
+import PreflightPanel from '@/components/PreflightPanel'
 
 type BottomTab = 'log' | 'memo'
 
@@ -234,6 +236,11 @@ export default function Home() {
     downloadJson(UI_TEXT.app.downloadProjectJsonFilename, JSON.stringify(preSpecProject, null, 2))
   }
 
+  const preflightResult = useMemo(
+    () => (project ? runPreflightCheck(project) : null),
+    [project],
+  )
+
   if (!isHydrated) return <div className="h-screen bg-stone-50" />
   if (!project) return <StartScreen onStart={handleStart} onOpenProject={handleOpenProject} />
 
@@ -267,6 +274,8 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      <PreflightPanel result={preflightResult!} />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left column: spec editor + bottom tabs */}
