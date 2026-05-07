@@ -6,7 +6,7 @@ services:
     ports:
       - "${NODE_PORT_HOST}:${NODE_PORT_CONTAINER}"
     env_file:
-      - path: .env.local
+      - path: .env
         required: false
     volumes:
       # Source directories (hot reload)

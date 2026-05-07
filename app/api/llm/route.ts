@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     return Response.json(
-      { error: 'ANTHROPIC_API_KEY is not set. Add it to .env.local.' },
+      { error: 'ANTHROPIC_API_KEY is not set. Set it in .env (symlink to .env.local or .env.prod).' },
       { status: 500 },
     )
   }
