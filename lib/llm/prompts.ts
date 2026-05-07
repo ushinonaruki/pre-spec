@@ -81,21 +81,37 @@ export function buildQuestionTimelinePrompt(params: {
   headingTitle: string
   spec: string
   memo: string
+  existingQuestions: string[]
+  recentAggregationLog: string
+  mode: 'initial' | 'deepen'
 }): string {
   const memoSection = params.memo.trim()
     ? `\nMemo/Reference notes:\n${params.memo}\n`
     : ''
+  const logSection = params.recentAggregationLog.trim()
+    ? `\nRecent aggregation log:\n${params.recentAggregationLog}\n`
+    : ''
+  const existingSection = params.existingQuestions.length
+    ? `\nAlready asked questions (do NOT repeat or closely paraphrase these):\n${params.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n`
+    : ''
+  const modeInstruction =
+    params.mode === 'deepen'
+      ? `Mode: deep-dive — focus on unresolved ambiguities, edge cases, failure modes, implicit assumptions, and dependencies not yet surfaced by the existing questions.`
+      : `Mode: initial — focus on the most important clarifying questions, key decisions, and major constraints to establish for this section.`
+
   return `You are a software specification assistant helping to elaborate a feature spec.
 
 Current specification:
 ${params.spec}
-${memoSection}
-Generate 3 to 7 questions to clarify the "## ${params.headingTitle}" section.
+${memoSection}${logSection}${existingSection}Generate 3 to 7 questions to clarify the "## ${params.headingTitle}" section.
+
+${modeInstruction}
 
 Rules:
 - Questions must focus ONLY on "${params.headingTitle}"
 - Do not ask about other sections
 - Do not re-ask things already decided in the spec
+- Do not repeat or closely paraphrase already-asked questions listed above
 - If you can infer an answer from the spec or memo, include aiGuess
 - Write questions in Japanese
 - Keep questions non-mandatory (user can skip any)
