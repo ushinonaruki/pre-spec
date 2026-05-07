@@ -1,4 +1,4 @@
-import type { PreSpecProject, Project, Question, SectionMarker, TimelineItem } from '@/types'
+import type { ManualEdit, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
 
 const CURRENT_VERSION = '1'
@@ -76,7 +76,7 @@ function formatTimestamp(iso: string): string {
   }
 }
 
-export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
+export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Section[] = []): string {
   if (timeline.length === 0) return '# タイムライン\n\n(まだ記録がありません)\n'
 
   const lines: string[] = ['# タイムライン', '']
@@ -107,6 +107,21 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       } else {
         lines.push('→ ○ 未回答')
       }
+      lines.push('')
+    } else if (item.type === 'manual_edit') {
+      const me = item as ManualEdit
+      lines.push(`\n## Manual Edit`)
+      lines.push('')
+      lines.push(`- createdAt: ${formatTimestamp(me.createdAt)}`)
+      if (me.memo) lines.push(`- memo: ${me.memo}`)
+      if (me.affectedSectionIds.length > 0) {
+        const titles = me.affectedSectionIds
+          .map((id) => sections.find((s) => s.id === id)?.title ?? id)
+          .join(', ')
+        lines.push(`- affected: ${titles}`)
+      }
+      lines.push(`- beforeHash: ${me.beforeHash}`)
+      lines.push(`- afterHash: ${me.afterHash}`)
       lines.push('')
     }
   }

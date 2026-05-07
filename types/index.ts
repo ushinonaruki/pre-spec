@@ -39,6 +39,16 @@ export type SectionMarker = {
   createdAt: string
 }
 
+export type ManualEdit = {
+  id: string
+  type: 'manual_edit'
+  createdAt: string
+  memo?: string
+  beforeHash: string
+  afterHash: string
+  affectedSectionIds: string[]
+}
+
 export type Question = {
   id: string
   type: 'question'
@@ -63,7 +73,7 @@ export type Question = {
   answeredAt?: string
 }
 
-export type TimelineItem = SectionMarker | Question
+export type TimelineItem = SectionMarker | Question | ManualEdit
 
 export type Project = {
   id: string

@@ -7,7 +7,7 @@ import { loadState, saveProject } from '@/lib/storage'
 import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applySkip } from '@/lib/ldd/specPatch'
-import { addSectionMarkerIfNeeded, addQuestionsToTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { addManualEdit, addSectionMarkerIfNeeded, addQuestionsToTimeline, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialSpecPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
@@ -55,7 +55,6 @@ export default function Home() {
   const [isHydrated, setIsHydrated] = useState(false)
   const isHydratedRef = useRef(false)
   const [project, setProject] = useState<Project | null>(null)
-  const [specMode, setSpecMode] = useState<'edit' | 'preview'>('edit')
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
@@ -108,9 +107,13 @@ export default function Home() {
     setProject(p)
   }, [])
 
-  const handleSpecChange = (value: string) => {
-    updateProject((prev) => updateProjectSpec(prev, value))
-  }
+  const handleSpecSave = useCallback((newSpec: string, memo?: string) => {
+    updateProject((prev) => {
+      const beforeMarkdown = prev.spec
+      const withUpdatedSpec = updateProjectSpec(prev, newSpec)
+      return addManualEdit(withUpdatedSpec, { beforeMarkdown, afterMarkdown: newSpec, memo })
+    })
+  }, [updateProject])
 
   const handleGenerateTimeline = useCallback(async () => {
     if (!project || !project.currentSectionId || isGeneratingTimeline) return
@@ -227,7 +230,7 @@ export default function Home() {
     if (!project) return
     downloadFile(UI_TEXT.specEditor.fileLabel, project.spec)
     setTimeout(() => downloadFile(UI_TEXT.app.downloadMemoFilename, project.memo || UI_TEXT.app.downloadMemoFallback), 100)
-    setTimeout(() => downloadFile(UI_TEXT.app.downloadTimelineFilename, generateTimelineMarkdown(project.timeline)), 200)
+    setTimeout(() => downloadFile(UI_TEXT.app.downloadTimelineFilename, generateTimelineMarkdown(project.timeline, project.sections)), 200)
   }
 
   const handleDownloadProjectJson = () => {
@@ -283,9 +286,7 @@ export default function Home() {
           <div className="flex-1 min-h-0 overflow-hidden">
             <SpecEditor
               value={project.spec}
-              onChange={handleSpecChange}
-              mode={specMode}
-              onModeChange={setSpecMode}
+              onSave={handleSpecSave}
             />
           </div>
           <div className="shrink-0 h-48 border-t border-stone-200 overflow-hidden">
@@ -330,8 +331,8 @@ function TimelineBottomTabs({
   onMemoChange: (v: string) => void
 }) {
   const timelineMarkdown = useMemo(
-    () => generateTimelineMarkdown(project.timeline),
-    [project.timeline],
+    () => generateTimelineMarkdown(project.timeline, project.sections),
+    [project.timeline, project.sections],
   )
   return (
     <BottomTabs

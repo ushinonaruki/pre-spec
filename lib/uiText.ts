@@ -30,8 +30,18 @@ export const UI_TEXT = {
 
   specEditor: {
     fileLabel: 'spec.md',
-    editMode: 'Edit',
-    previewMode: 'Preview',
+    editButton: 'Edit',
+    saveButton: '保存して戻る',
+    cancelButton: 'キャンセル',
+    editModeNote:
+      '直接編集モードです。この編集は質問への回答ではなく、manual_edit としてタイムラインに記録されます。',
+    memoPlaceholder: '編集メモ (任意)',
+  },
+
+  manualEdit: {
+    label: 'spec.md を手動編集しました',
+    affected: 'affected',
+    memo: 'memo',
   },
 
   bottomTabs: {
