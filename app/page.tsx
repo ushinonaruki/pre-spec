@@ -4,7 +4,6 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState } fr
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
 import { loadState, saveProject } from '@/lib/storage'
-import { extractOpenQuestions } from '@/lib/openQuestions'
 import { createProject, createProjectWithSpec } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applySkip } from '@/lib/ldd/specPatch'
@@ -19,7 +18,7 @@ import SpecEditor from '@/components/SpecEditor'
 import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
 
-type BottomTab = 'log' | 'memo' | 'openq'
+type BottomTab = 'log' | 'memo'
 
 type RawQuestion = {
   text: string
@@ -209,10 +208,9 @@ export default function Home() {
       )
       if (!questionItem) return prev
       const { sectionTitle, text: questionText } = questionItem
-      const withSpec = applySkip(prev, { sectionTitle, question: questionText, reason, detail })
-      return skipQuestion(withSpec, { questionId, skipReason: reason, skipDetail: detail })
+      const { project: withSpec, reflectedMarkdown } = applySkip(prev, { sectionTitle, question: questionText, reason, detail })
+      return skipQuestion(withSpec, { questionId, skipReason: reason, skipDetail: detail, reflectedMarkdown })
     })
-    setBottomTab('openq')
   }
 
   const handleNext = () => {
@@ -240,7 +238,6 @@ export default function Home() {
   if (!project) return <StartScreen onStart={handleStart} onOpenProject={handleOpenProject} />
 
   const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null
-  const openQuestions = extractOpenQuestions(project.spec)
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-stone-50">
@@ -287,7 +284,6 @@ export default function Home() {
               project={project}
               bottomTab={bottomTab}
               setBottomTab={setBottomTab}
-              openQuestions={openQuestions}
               onMemoChange={handleMemoChange}
             />
           </div>
@@ -317,13 +313,11 @@ function TimelineBottomTabs({
   project,
   bottomTab,
   setBottomTab,
-  openQuestions,
   onMemoChange,
 }: {
   project: Project
   bottomTab: BottomTab
   setBottomTab: (t: BottomTab) => void
-  openQuestions: string
   onMemoChange: (v: string) => void
 }) {
   const timelineMarkdown = useMemo(
@@ -337,7 +331,6 @@ function TimelineBottomTabs({
       log={timelineMarkdown}
       memo={project.memo}
       onMemoChange={onMemoChange}
-      openQuestions={openQuestions}
     />
   )
 }

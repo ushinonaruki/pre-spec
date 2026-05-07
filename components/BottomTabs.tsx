@@ -2,7 +2,7 @@
 
 import { UI_TEXT } from '@/lib/uiText'
 
-type Tab = 'log' | 'memo' | 'openq'
+type Tab = 'log' | 'memo'
 
 type Props = {
   activeTab: Tab
@@ -10,7 +10,6 @@ type Props = {
   log: string
   memo: string
   onMemoChange: (v: string) => void
-  openQuestions: string
 }
 
 export default function BottomTabs({
@@ -19,12 +18,10 @@ export default function BottomTabs({
   log,
   memo,
   onMemoChange,
-  openQuestions,
 }: Props) {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'log', label: UI_TEXT.bottomTabs.logTab },
     { id: 'memo', label: UI_TEXT.bottomTabs.memoTab },
-    { id: 'openq', label: UI_TEXT.bottomTabs.openQTab },
   ]
 
   return (
@@ -58,13 +55,6 @@ export default function BottomTabs({
             onChange={(e) => onMemoChange(e.target.value)}
             placeholder={UI_TEXT.bottomTabs.memoPlaceholder}
             className="w-full h-full resize-none p-3 text-xs font-mono text-stone-700 bg-white focus:outline-none"
-          />
-        )}
-        {activeTab === 'openq' && (
-          <textarea
-            readOnly
-            value={openQuestions || UI_TEXT.bottomTabs.openQEmpty}
-            className="w-full h-full resize-none p-3 text-xs font-mono text-stone-600 bg-white focus:outline-none"
           />
         )}
       </div>

@@ -135,6 +135,24 @@ function QuestionCard({
             <p className="text-xs text-stone-600 bg-green-50 rounded p-2">{question.answer}</p>
           )}
 
+          {question.status === 'skipped' && (
+            <div className="space-y-1 pt-2">
+              {question.skipReason && (
+                <p className="text-xs text-stone-500">
+                  {UI_TEXT.interview.skipReasonLabel}: {SKIP_REASON_LABELS[question.skipReason]}
+                </p>
+              )}
+              {question.skipDetail && (
+                <p className="text-xs text-stone-500 italic">{question.skipDetail}</p>
+              )}
+              {question.reflectedMarkdown && (
+                <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
+                  {question.reflectedMarkdown}
+                </p>
+              )}
+            </div>
+          )}
+
           {question.status === 'open' && (
             <>
               {!showSkip ? (
