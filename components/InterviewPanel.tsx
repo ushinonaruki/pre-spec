@@ -590,7 +590,7 @@ export default function InterviewPanel({
       </div>
 
       {/* Timeline */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-4" ref={scrollRef}>
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-4 bg-stone-50 border border-stone-200 rounded-lg p-3" ref={scrollRef}>
         {slots.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-stone-400">
             <p className="text-sm">{UI_TEXT.interview.timelineEmpty}</p>
