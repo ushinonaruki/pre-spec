@@ -1,28 +1,28 @@
 import type { Section } from '@/types'
 
-export const SPEC_TEMPLATE = `# Feature Specification
+export const SPEC_TEMPLATE = `# Feature Specification: [FEATURE NAME]
 
-## Overview
+## User Scenarios & Testing
 
-## Goals
+### User Story 1 - [Brief Title] (Priority: P1)
 
-## Non-Goals
+### User Story 2 - [Brief Title] (Priority: P2)
 
-## Current Context
+### User Story 3 - [Brief Title] (Priority: P3)
 
-## User Flow
+### Edge Cases
 
 ## Requirements
 
-## Data / State
+### Functional Requirements
 
-## External References
+### Key Entities
 
-## Confirmed Decisions
+## Success Criteria
+
+### Measurable Outcomes
 
 ## Assumptions
-
-## Open Questions
 `
 
 export function extractSections(markdown: string): Section[] {

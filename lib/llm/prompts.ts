@@ -11,12 +11,12 @@ export function buildInitialConfirmationQuestionsPrompt(params: {
     ? `\n下地 spec.md:\n${params.baseSpecMarkdown}\n`
     : ''
   const refSection = params.referenceMarkdown.trim()
-    ? `\n参照.md:\n${params.referenceMarkdown}\n`
+    ? `\nReferences:\n${params.referenceMarkdown}\n`
     : ''
 
-  return `あなたは pre-spec の初期確認質問生成エンジンです。
+  return `あなたは pre-spec の初期反映質問生成エンジンです。
 
-入力材料を読んで、spec.md の各セクションに「初期配置すべき候補」があれば、確認質問として列挙してください。
+入力材料を読んで、spec.md の各セクションに「初期配置すべき候補」があれば、反映質問として列挙してください。
 
 ## 入力材料
 
@@ -49,9 +49,9 @@ priority 候補: high / medium / low
 {
   "questions": [
     {
-      "sectionTitle": "Overview",
-      "text": "Overview に以下を置いてよいですか？",
-      "reason": "要件定義メモからプロダクト概要として読み取れるため",
+      "sectionTitle": "User Scenarios & Testing",
+      "text": "User Scenarios & Testing に以下を置いてよいですか？",
+      "reason": "要件定義メモからユーザーシナリオとして読み取れるため",
       "kind": "scope",
       "priority": "high",
       "proposedMarkdown": "- ..."
@@ -67,29 +67,29 @@ Feature: ${prompt}
 
 Generate the specification with exactly these sections (use ## for section headers):
 
-# Feature Specification
+# Feature Specification: [FEATURE NAME]
 
-## Overview
+## User Scenarios & Testing
 
-## Goals
+### User Story 1 - [Brief Title] (Priority: P1)
 
-## Non-Goals
+### User Story 2 - [Brief Title] (Priority: P2)
 
-## Current Context
+### User Story 3 - [Brief Title] (Priority: P3)
 
-## User Flow
+### Edge Cases
 
 ## Requirements
 
-## Data / State
+### Functional Requirements
 
-## External References
+### Key Entities
 
-## Confirmed Decisions
+## Success Criteria
+
+### Measurable Outcomes
 
 ## Assumptions
-
-## Open Questions
 
 Write concise, actionable content in each section based on the description. Return ONLY the markdown, no preamble or explanation.`
 }
@@ -103,7 +103,7 @@ export function buildAnswerFormatPrompt(params: {
   recentLog: string
 }): string {
   const memoSection = params.referenceMemo.trim()
-    ? `\n参照メモ:\n${params.referenceMemo}\n`
+    ? `\nReferences:\n${params.referenceMemo}\n`
     : ''
   const logSection = params.recentLog.trim()
     ? `\n直近ログ (末尾):\n${params.recentLog}\n`
@@ -148,7 +148,7 @@ export function buildQuestionTimelinePrompt(params: {
   recentAggregationLog: string
 }): string {
   const memoSection = params.memo.trim()
-    ? `\n参照メモ:\n${params.memo}\n`
+    ? `\nReferences:\n${params.memo}\n`
     : ''
   const logSection = params.recentAggregationLog.trim()
     ? `\n直近集約ログ:\n${params.recentAggregationLog}\n`
