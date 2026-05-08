@@ -1,6 +1,6 @@
 'use client'
 
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 type Tab = 'log' | 'memo'
 

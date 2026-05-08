@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ManualEdit, PhaseMarker, Question, QuestionPriority, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
 import { SKIP_REASON_LABELS } from '@/types'
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 const PRIORITY_COLORS: Record<QuestionPriority, string> = {
   high: 'bg-red-100 text-red-700',

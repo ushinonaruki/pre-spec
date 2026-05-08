@@ -5,7 +5,7 @@ import type { Project } from '@/types'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 const WORK_FILE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*\.pre-spec\.json$/
 

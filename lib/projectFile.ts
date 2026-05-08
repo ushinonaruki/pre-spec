@@ -1,6 +1,6 @@
 import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
-import { TIMELINE_TEXT } from '@/lib/timelineText'
+import { TIMELINE_TEXT } from '@/lib/text/timelineText'
 
 const CURRENT_VERSION = '1'
 

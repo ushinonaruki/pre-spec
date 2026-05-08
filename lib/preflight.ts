@@ -1,5 +1,5 @@
 import type { Project, Question } from '@/types'
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 export type PreflightWarning = {
   type: 'open_questions' | 'skip_markers' | 'revisit_markers' | 'protected_markers'

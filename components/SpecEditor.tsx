@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { markdownToHtml } from '@/lib/markdown'
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 type Props = {
   value: string
