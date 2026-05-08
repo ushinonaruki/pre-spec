@@ -5,6 +5,8 @@ import type { Project } from '@/types'
 import type { CreateProjectInputs, InitialRelatedSource } from '@/lib/ldd/project'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
+import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
+import { pickOpenTarget } from '@/lib/storage/fsaSaveTarget'
 import { UI_TEXT } from '@/lib/text/uiText'
 
 const WORK_FILE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*\.pre-spec\.json$/
@@ -28,7 +30,7 @@ function emptyEntry(): RelatedEntry {
 
 type Props = {
   onCreate: (inputs: CreateProjectInputs) => Promise<void>
-  onOpenProject: (project: Project) => void
+  onOpenProject: (project: Project, saveTarget: ProjectSaveTarget) => void
 }
 
 export default function StartScreen({ onCreate, onOpenProject }: Props) {
@@ -43,32 +45,27 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
   const [isCreating, setIsCreating] = useState(false)
   const [isOpeningFile, setIsOpeningFile] = useState(false)
 
-  const jsonInputRef = useRef<HTMLInputElement>(null)
   const requirementMemoFileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleJsonFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    e.target.value = ''
+  const handleOpenFile = async () => {
     setOpenError(null)
-
-    if (!WORK_FILE_PATTERN.test(file.name)) {
-      setOpenError(UI_TEXT.startScreen.openWorkFileNameError)
-      return
-    }
-
     setIsOpeningFile(true)
     try {
-      const text = await file.text()
-      const raw = JSON.parse(text) as unknown
+      const result = await pickOpenTarget()
+      if (!WORK_FILE_PATTERN.test(result.fileName)) {
+        setOpenError(UI_TEXT.startScreen.openWorkFileNameError)
+        return
+      }
+      const raw = JSON.parse(result.text) as unknown
       if (!validatePreSpecProject(raw)) {
         setOpenError(UI_TEXT.startScreen.openWorkFileError)
         return
       }
-      const filenameSlug = file.name.replace(/\.pre-spec\.json$/, '')
+      const filenameSlug = result.fileName.replace(/\.pre-spec\.json$/, '')
       const project = { ...preSpecProjectToProject(raw), slug: filenameSlug }
-      onOpenProject(project)
-    } catch {
+      onOpenProject(project, result.saveTarget)
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       setOpenError(UI_TEXT.startScreen.openWorkFileError)
     } finally {
       setIsOpeningFile(false)
@@ -151,15 +148,8 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
           </div>
 
           <div className="space-y-3">
-            <input
-              ref={jsonInputRef}
-              type="file"
-              accept=".json"
-              onChange={(e) => { void handleJsonFileChange(e) }}
-              className="hidden"
-            />
             <button
-              onClick={() => jsonInputRef.current?.click()}
+              onClick={() => { void handleOpenFile() }}
               disabled={isOpeningFile}
               className="w-full py-2.5 border border-stone-300 text-stone-700 text-sm font-medium rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
