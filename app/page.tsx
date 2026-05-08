@@ -87,6 +87,23 @@ function downloadJson(filename: string, content: string) {
   URL.revokeObjectURL(url)
 }
 
+async function runRelatedSourceReview(
+  kind: RelatedSourceKind,
+  rawName: string,
+  content: string,
+  note?: string,
+): Promise<RelatedSourceReviewResult | null> {
+  try {
+    const text = await callLLM(
+      buildRelatedSourceReviewPrompt({ name: rawName, kind, content, note }),
+      kind === 'url' ? { url: content } : undefined,
+    )
+    return extractJSON<RelatedSourceReviewResult>(text)
+  } catch {
+    return null
+  }
+}
+
 export default function Home() {
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
@@ -128,6 +145,8 @@ export default function Home() {
 
   const handleCreate = useCallback(async (inputs: CreateProjectInputs) => {
     const p = createProjectFromInputs(inputs)
+
+    let baseProject: Project = p
     try {
       const text = await callLLM(
         buildInitialConfirmationQuestionsPrompt({
@@ -163,14 +182,37 @@ export default function Home() {
         .filter((q): q is Question => q !== null)
 
       const withPhase = addPhaseMarker(p)
-      const withQuestions = addQuestionsToTimeline(withPhase, questions)
-      setProject(withQuestions)
+      baseProject = addQuestionsToTimeline(withPhase, questions)
     } catch {
       if (initConfirmTimer.current) clearTimeout(initConfirmTimer.current)
       setInitConfirmFailed(true)
       initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), ERROR_BANNER_MS)
-      setProject(p)
     }
+
+    if (inputs.relatedMarkdown?.trim()) {
+      const kind: RelatedSourceKind = inputs.relatedFilename ? 'file' : 'text'
+      const rawName = inputs.relatedFilename ?? 'related-input'
+      const result = await runRelatedSourceReview(kind, rawName, inputs.relatedMarkdown)
+      if (result?.status === 'ok' && result.content) {
+        const now = new Date().toISOString()
+        const existingNames = baseProject.relatedSources.map((s) => s.name)
+        const name = resolveSourceName(existingNames, rawName)
+        const newSource: RelatedSource = {
+          id: crypto.randomUUID(),
+          kind,
+          name,
+          addedAt: now,
+        }
+        const block = buildRelatedSourceBlock({ kind, name, content: result.content }, now)
+        baseProject = {
+          ...baseProject,
+          memo: baseProject.memo.replace(/\n+$/, '') + '\n\n' + block + '\n',
+          relatedSources: [...baseProject.relatedSources, newSource],
+        }
+      }
+    }
+
+    setProject(baseProject)
   }, [])
 
   const handleConfirmInitial = useCallback(
@@ -310,41 +352,33 @@ export default function Home() {
 
   const handleAddReference = useCallback(
     async (kind: RelatedSourceKind, rawName: string, content: string, note?: string): Promise<{ ok: boolean; reason?: string }> => {
-      try {
-        const text = await callLLM(
-          buildRelatedSourceReviewPrompt({ name: rawName, kind, content, note }),
-          kind === 'url' ? { url: content } : undefined,
-        )
-        const result = extractJSON<RelatedSourceReviewResult>(text)
-        if (!result) return { ok: false }
-        if (result.status === 'unreadable') return { ok: false, reason: result.reason }
-        const aiContent = result.content
-        if (!aiContent) return { ok: false }
+      const result = await runRelatedSourceReview(kind, rawName, content, note)
+      if (!result) return { ok: false }
+      if (result.status === 'unreadable') return { ok: false, reason: result.reason }
+      const aiContent = result.content
+      if (!aiContent) return { ok: false }
 
-        updateProject((prev: Project) => {
-          const now = new Date().toISOString()
-          const existingNames = prev.relatedSources.map((s) => s.name)
-          const name = resolveSourceName(existingNames, rawName)
-          const newSource: RelatedSource = {
-            id: crypto.randomUUID(),
-            kind,
-            name,
-            note,
-            ...(kind === 'url' ? { url: content } : {}),
-            addedAt: now,
-          }
-          const block = buildRelatedSourceBlock({ kind, name, content: aiContent, note }, now)
-          const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
-          return {
-            ...prev,
-            memo: newMemo,
-            relatedSources: [...prev.relatedSources, newSource],
-          }
-        })
-        return { ok: true }
-      } catch {
-        return { ok: false }
-      }
+      updateProject((prev: Project) => {
+        const now = new Date().toISOString()
+        const existingNames = prev.relatedSources.map((s) => s.name)
+        const name = resolveSourceName(existingNames, rawName)
+        const newSource: RelatedSource = {
+          id: crypto.randomUUID(),
+          kind,
+          name,
+          note,
+          ...(kind === 'url' ? { url: content } : {}),
+          addedAt: now,
+        }
+        const block = buildRelatedSourceBlock({ kind, name, content: aiContent, note }, now)
+        const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
+        return {
+          ...prev,
+          memo: newMemo,
+          relatedSources: [...prev.relatedSources, newSource],
+        }
+      })
+      return { ok: true }
     },
     [updateProject],
   )
