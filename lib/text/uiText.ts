@@ -127,11 +127,8 @@ export const UI_TEXT = {
     phaseLabel: 'Initial Setup',
     typeLabel: '初期反映',
     proposedMarkdownLabel: '提案 Markdown',
-    okButton: 'OK',
-    editAndApplyButton: '修正して反映',
-    applyEditButton: '修正して反映',
+    answerPlaceholder: 'OK / このままでよい / 以下のように修正…',
     applyNote: 'この内容を反映します',
-    editPlaceholder: '提案 Markdown を編集…',
     generationError: '初期反映質問の生成に失敗しました',
   },
 

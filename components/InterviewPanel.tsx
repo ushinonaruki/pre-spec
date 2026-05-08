@@ -99,16 +99,18 @@ function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Sectio
 
 function InitialConfirmationCard({
   question,
+  isFormatting,
   onConfirm,
   onSkip,
 }: {
   question: Question
-  onConfirm: (markdown: string) => void
+  isFormatting: boolean
+  onConfirm: (answer: string) => void
   onSkip: (reason: SkipReason, detail?: string) => void
 }) {
   const [isOpen, setIsOpen] = useState(question.status === 'open')
-  const [mode, setMode] = useState<'default' | 'edit' | 'skip'>('default')
-  const [editedMarkdown, setEditedMarkdown] = useState(question.proposedMarkdown ?? '')
+  const [answer, setAnswer] = useState('')
+  const [showSkip, setShowSkip] = useState(false)
   const [skipReason, setSkipReason] = useState<SkipReason>('thinking')
   const [skipDetail, setSkipDetail] = useState('')
 
@@ -206,58 +208,33 @@ function InitialConfirmationCard({
 
           {question.status === 'open' && (
             <>
-              {mode === 'default' && (
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => { if (question.proposedMarkdown) onConfirm(question.proposedMarkdown) }}
-                    disabled={!question.proposedMarkdown}
-                    className="py-1.5 px-3 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {UI_TEXT.initialConfirmation.okButton}
-                  </button>
-                  <button
-                    onClick={() => { setEditedMarkdown(question.proposedMarkdown ?? ''); setMode('edit') }}
-                    className="py-1.5 px-3 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
-                  >
-                    {UI_TEXT.initialConfirmation.editAndApplyButton}
-                  </button>
-                  <button
-                    onClick={() => setMode('skip')}
-                    className="py-1.5 px-3 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
-                  >
-                    {UI_TEXT.interview.skipButton}
-                  </button>
-                </div>
-              )}
-
-              {mode === 'edit' && (
-                <div className="space-y-2">
+              {!showSkip ? (
+                <>
                   <textarea
-                    value={editedMarkdown}
-                    onChange={(e) => setEditedMarkdown(e.target.value)}
-                    placeholder={UI_TEXT.initialConfirmation.editPlaceholder}
-                    rows={4}
-                    className="w-full resize-none border border-stone-300 rounded p-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    placeholder={UI_TEXT.initialConfirmation.answerPlaceholder}
+                    disabled={isFormatting}
+                    className="w-full resize-none border border-stone-300 rounded p-2 text-sm h-16 focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
                   />
                   <div className="flex gap-2">
                     <button
-                      onClick={() => { if (editedMarkdown.trim()) { onConfirm(editedMarkdown.trim()); setMode('default') } }}
-                      disabled={!editedMarkdown.trim()}
+                      onClick={() => { if (answer.trim()) onConfirm(answer.trim()) }}
+                      disabled={!answer.trim() || isFormatting}
                       className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
-                      {UI_TEXT.initialConfirmation.applyEditButton}
+                      {isFormatting ? UI_TEXT.interview.answerButtonFormatting : UI_TEXT.interview.answerButton}
                     </button>
                     <button
-                      onClick={() => setMode('default')}
-                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                      onClick={() => setShowSkip(true)}
+                      disabled={isFormatting}
+                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
-                      {UI_TEXT.interview.skipCancelButton}
+                      {UI_TEXT.interview.skipButton}
                     </button>
                   </div>
-                </div>
-              )}
-
-              {mode === 'skip' && (
+                </>
+              ) : (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-stone-600">{UI_TEXT.interview.skipReasonLabel}</p>
                   <div className="space-y-1">
@@ -285,7 +262,7 @@ function InitialConfirmationCard({
                     <button
                       onClick={() => {
                         onSkip(skipReason, skipDetail.trim() || undefined)
-                        setMode('default')
+                        setShowSkip(false)
                         setSkipDetail('')
                         setSkipReason('thinking')
                       }}
@@ -294,7 +271,7 @@ function InitialConfirmationCard({
                       {UI_TEXT.interview.skipConfirmButton}
                     </button>
                     <button
-                      onClick={() => setMode('default')}
+                      onClick={() => setShowSkip(false)}
                       className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
                     >
                       {UI_TEXT.interview.skipCancelButton}
@@ -320,7 +297,7 @@ type Props = {
   onAddQuestions: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
   onSkipQuestion: (questionId: string, reason: SkipReason, detail?: string) => void
-  onConfirmInitial: (questionId: string, markdown: string, sectionTitle: string) => void
+  onConfirmInitial: (questionId: string, answer: string, sectionTitle: string) => void
   onNext: () => void
 }
 
@@ -615,7 +592,8 @@ export default function InterviewPanel({
                     <InitialConfirmationCard
                       key={q.id}
                       question={q}
-                      onConfirm={(markdown) => onConfirmInitial(q.id, markdown, q.sectionTitle)}
+                      isFormatting={formattingQuestionId === q.id}
+                      onConfirm={(answer) => { void onConfirmInitial(q.id, answer, q.sectionTitle) }}
                       onSkip={(reason, detail) => onSkipQuestion(q.id, reason, detail)}
                     />
                   ))}
