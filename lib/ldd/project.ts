@@ -1,8 +1,8 @@
-import type { Project, SectionMarker } from '@/types'
+import type { Project, RelatedSource, SectionMarker } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import { buildInitialRequirementMemoBlock, buildImportedBlock } from '@/lib/references'
-import { relatedSourceToBlockParams } from '@/lib/relatedSources'
+import { buildRelatedSourceBlock, type RelatedSourceInput } from '@/lib/relatedSources'
 
 export type CreateProjectInputs = {
   projectName: string
@@ -25,11 +25,13 @@ export function createProjectFromInputs({
   const sections = extractSections(spec)
   const firstSection = sections[0] ?? null
 
+  const relatedSources: RelatedSource[] = []
   const memoParts: string[] = [
     '# References',
     '',
     buildInitialRequirementMemoBlock(requirementMemo, now),
   ]
+
   if (baseSpecMarkdown) {
     memoParts.push('', buildImportedBlock({
       name: 'initial-base-spec',
@@ -39,13 +41,21 @@ export function createProjectFromInputs({
       content: baseSpecMarkdown,
     }))
   }
+
   if (relatedMarkdown) {
-    memoParts.push('', buildImportedBlock(relatedSourceToBlockParams({
-      kind: relatedFilename ? 'file' : 'text',
-      name: relatedFilename ?? 'related-note',
-      content: relatedMarkdown,
-    }, now)))
+    const sourceKind = relatedFilename ? 'file' : 'text'
+    const sourceName = relatedFilename ?? 'related-input'
+    const source: RelatedSource = {
+      id: crypto.randomUUID(),
+      kind: sourceKind,
+      name: sourceName,
+      addedAt: now,
+    }
+    relatedSources.push(source)
+    const input: RelatedSourceInput = { kind: source.kind, name: source.name, content: relatedMarkdown }
+    memoParts.push('', buildRelatedSourceBlock(input, now))
   }
+
   memoParts.push('')
   const memo = memoParts.join('\n')
 
@@ -67,6 +77,7 @@ export function createProjectFromInputs({
     initialPrompt: requirementMemo,
     spec,
     memo,
+    relatedSources,
     sections,
     currentSectionId: firstSection?.id ?? null,
     timeline: initialMarker ? [initialMarker] : [],
