@@ -1,0 +1,15 @@
+export const TIMELINE_TEXT = {
+  heading: '# タイムライン',
+  empty: '(まだ記録がありません)',
+  questionPrefixInitial: '**[初期反映]**',
+  questionPrefix: '**Q**',
+  metaSeparator: '・',
+  reasonLabel: '理由',
+  aiGuessLabel: 'AI推定',
+  proposedLabel: '提案',
+  statusAnswered: '→ ✓ 反映済み',
+  statusSkipped: '→ — スキップ',
+  statusOpen: '→ ○ 未回答',
+  sectionMarker: (title: string, timestamp: string) => `\n─── ${title} ─── *${timestamp}*`,
+  manualEditHeading: '## Manual Edit',
+}

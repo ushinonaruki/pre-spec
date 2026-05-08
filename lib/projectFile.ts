@@ -1,5 +1,6 @@
 import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
+import { TIMELINE_TEXT } from '@/lib/text/timelineText'
 
 const CURRENT_VERSION = '1'
 
@@ -89,9 +90,9 @@ function formatTimestamp(iso: string): string {
 }
 
 export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Section[] = []): string {
-  if (timeline.length === 0) return '# タイムライン\n\n(まだ記録がありません)\n'
+  if (timeline.length === 0) return `${TIMELINE_TEXT.heading}\n\n${TIMELINE_TEXT.empty}\n`
 
-  const lines: string[] = ['# タイムライン', '']
+  const lines: string[] = [TIMELINE_TEXT.heading, '']
 
   for (const item of timeline) {
     if (item.type === 'phase_marker') {
@@ -100,23 +101,23 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
       lines.push('')
     } else if (item.type === 'section_marker') {
       const marker = item as SectionMarker
-      lines.push(`\n─── ${marker.sectionTitle} ─── *${formatTimestamp(marker.createdAt)}*`)
+      lines.push(TIMELINE_TEXT.sectionMarker(marker.sectionTitle, formatTimestamp(marker.createdAt)))
       lines.push('')
     } else if (item.type === 'question') {
       const q = item as Question
-      const meta = [q.kind, q.priority].filter(Boolean).join('・')
-      const prefix = q.questionType === 'initial_confirmation' ? '**[初期反映]**' : '**Q**'
+      const meta = [q.kind, q.priority].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
+      const prefix = q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
       lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
-      if (q.reason) lines.push(`*理由: ${q.reason}*`)
-      if (q.aiGuess) lines.push(`*AI推定: ${q.aiGuess.value}*`)
-      if (q.proposedMarkdown) lines.push(`*提案: ${q.proposedMarkdown}*`)
+      if (q.reason) lines.push(`*${TIMELINE_TEXT.reasonLabel}: ${q.reason}*`)
+      if (q.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${q.aiGuess.value}*`)
+      if (q.proposedMarkdown) lines.push(`*${TIMELINE_TEXT.proposedLabel}: ${q.proposedMarkdown}*`)
 
       if (q.status === 'answered') {
-        lines.push(`→ ✓ 反映済み`)
+        lines.push(TIMELINE_TEXT.statusAnswered)
         if (q.reflectedMarkdown) lines.push(`  ${q.reflectedMarkdown}`)
         if (q.answeredAt) lines.push(`  *${formatTimestamp(q.answeredAt)}*`)
       } else if (q.status === 'skipped') {
-        lines.push(`→ — スキップ`)
+        lines.push(TIMELINE_TEXT.statusSkipped)
         if (q.skipReason) lines.push(`  - reason: ${q.skipReason}`)
         if (q.skipDetail) lines.push(`  - detail: ${q.skipDetail}`)
         if (q.reflectedMarkdown) {
@@ -124,12 +125,12 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
           lines.push(`    ${q.reflectedMarkdown}`)
         }
       } else {
-        lines.push('→ ○ 未回答')
+        lines.push(TIMELINE_TEXT.statusOpen)
       }
       lines.push('')
     } else if (item.type === 'manual_edit') {
       const me = item as ManualEdit
-      lines.push(`\n## Manual Edit`)
+      lines.push(`\n${TIMELINE_TEXT.manualEditHeading}`)
       lines.push('')
       lines.push(`- createdAt: ${formatTimestamp(me.createdAt)}`)
       if (me.memo) lines.push(`- memo: ${me.memo}`)

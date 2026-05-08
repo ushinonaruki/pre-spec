@@ -1,7 +1,7 @@
 'use client'
 
 import type { PreflightCheckResult } from '@/lib/preflight'
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 type Props = { result: PreflightCheckResult }
 

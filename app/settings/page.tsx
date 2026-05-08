@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 export default function SettingsPage() {
   const router = useRouter()

@@ -13,7 +13,7 @@ import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, build
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
-import { UI_TEXT } from '@/lib/uiText'
+import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
 import InterviewPanel from '@/components/InterviewPanel'
