@@ -58,6 +58,8 @@ export const UI_TEXT = {
     addRefButton: '+ 参照',
     addRefText: 'テキスト',
     addRefFile: 'ファイル',
+    addRefUrl: 'URL',
+    addRefUrlPlaceholder: 'https://',
     addRefTextPlaceholder: '本文を入力…',
     addRefNotePlaceholder: 'note',
     addRefFileButton: 'ファイルを選ぶ (.md / .txt)',
