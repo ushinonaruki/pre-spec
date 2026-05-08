@@ -1,4 +1,5 @@
 import type { MarkerContext, RelatedSourceKind, Section } from '@/types'
+import { KIND_CANDIDATES, PRIORITY_CANDIDATES } from '@/lib/config/questionTaxonomy'
 
 export function buildInitialConfirmationQuestionsPrompt(params: {
   requirementMemo: string
@@ -42,8 +43,8 @@ ${sectionTitles}
 - 質問数に固定上限なし（必要な数だけ、ただし過剰に作らない）
 - 質問は日本語で記述する
 
-kind 候補: decision / constraint / risk / scope / data / flow / assumption
-priority 候補: high / medium / low
+kind 候補: ${KIND_CANDIDATES}
+priority 候補: ${PRIORITY_CANDIDATES}
 
 有効な JSON のみを返してください（マークダウンコードフェンス・説明文不要）:
 {
@@ -282,8 +283,8 @@ ${memoSection}${logSection}${existingSection}${markerSection}
 - 本当に聞くべき質問だけを出す
 - 質問は日本語で記述する
 
-kind 候補: decision / constraint / risk / scope / data / flow / assumption
-priority 候補: high / medium / low
+kind 候補: ${KIND_CANDIDATES}
+priority 候補: ${PRIORITY_CANDIDATES}
 
 有効な JSON のみを返してください (マークダウンコードフェンス・説明文不要):
 {

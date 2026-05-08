@@ -1,5 +1,3 @@
-import type { QuestionKind } from '@/types'
-
 export const UI_TEXT = {
   app: {
     name: 'pre-spec',
@@ -97,16 +95,6 @@ export const UI_TEXT = {
     statusSkipped: '—',
     statusOpen: '○',
   },
-
-  questionKind: {
-    decision: '意思決定',
-    constraint: '制約',
-    risk: 'リスク',
-    scope: 'スコープ',
-    data: 'データ',
-    flow: 'フロー',
-    assumption: '前提',
-  } as Record<QuestionKind, string>,
 
   preflight: {
     title: '出力前チェック',

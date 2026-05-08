@@ -1,16 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { ManualEdit, PhaseMarker, Question, QuestionPriority, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
+import type { ManualEdit, PhaseMarker, Question, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
 import { SKIP_REASON_LABELS } from '@/types'
+import { QUESTION_KIND_LABELS, QUESTION_PRIORITY_COLORS, QUESTION_PRIORITY_LABELS } from '@/lib/config/questionTaxonomy'
 import { UI_TEXT } from '@/lib/text/uiText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
-
-const PRIORITY_COLORS: Record<QuestionPriority, string> = {
-  high: 'bg-red-100 text-red-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-stone-100 text-stone-500',
-}
 
 type SectionBlock = {
   marker: SectionMarker
@@ -135,12 +130,12 @@ function InitialConfirmationCard({
       <div className="flex gap-1 flex-wrap">
         {question.kind && (
           <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
-            {UI_TEXT.questionKind[question.kind]}
+            {QUESTION_KIND_LABELS[question.kind]}
           </span>
         )}
         {question.priority && (
-          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${PRIORITY_COLORS[question.priority]}`}>
-            {question.priority}
+          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${QUESTION_PRIORITY_COLORS[question.priority]}`}>
+            {QUESTION_PRIORITY_LABELS[question.priority]}
           </span>
         )}
       </div>
@@ -322,12 +317,12 @@ function QuestionCard({
       <div className="flex gap-1 flex-wrap">
         {question.kind && (
           <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
-            {UI_TEXT.questionKind[question.kind]}
+            {QUESTION_KIND_LABELS[question.kind]}
           </span>
         )}
         {question.priority && (
-          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${PRIORITY_COLORS[question.priority]}`}>
-            {question.priority}
+          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${QUESTION_PRIORITY_COLORS[question.priority]}`}>
+            {QUESTION_PRIORITY_LABELS[question.priority]}
           </span>
         )}
       </div>
