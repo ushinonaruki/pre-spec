@@ -1,6 +1,5 @@
 import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
-import { generateProjectSlug } from '@/lib/ldd/slug'
 
 const CURRENT_VERSION = '1'
 
@@ -42,7 +41,7 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
 export function preSpecProjectToProject(file: PreSpecProject): Project {
   const ws = file.workspace
   const sections = ws.sections.length > 0 ? ws.sections : extractSections(ws.draftSpecMarkdown)
-  const slug = file.project.slug || generateProjectSlug(file.inputs?.requirementMemo?.split('\n')[0] ?? '') || 'untitled-project'
+  const slug = file.project.slug || 'untitled-project'
   return {
     id: file.project.id,
     slug,

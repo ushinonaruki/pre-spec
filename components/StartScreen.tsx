@@ -50,7 +50,8 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         setOpenError(UI_TEXT.startScreen.openWorkFileError)
         return
       }
-      const project = preSpecProjectToProject(raw)
+      const filenameSlug = file.name.replace(/\.pre-spec\.json$/, '')
+      const project = { ...preSpecProjectToProject(raw), slug: filenameSlug }
       onOpenProject(project)
     } catch {
       setOpenError(UI_TEXT.startScreen.openWorkFileError)
