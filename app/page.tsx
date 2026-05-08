@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReason } from '@/types'
+import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReason, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
-import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt } from '@/lib/llm/prompts'
+import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt } from '@/lib/llm/prompts'
 import type { RelatedSourceReviewResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
@@ -215,17 +215,57 @@ export default function Home() {
   }, [])
 
   const handleConfirmInitial = useCallback(
-    (questionId: string, markdown: string, sectionTitle: string) => {
-      updateProject((prev) => {
-        const withSpec = applyProposedMarkdown(prev, { sectionTitle, markdown })
-        return answerInitialConfirmation(withSpec, {
-          questionId,
-          answerMarkdown: markdown,
-          reflectedMarkdown: markdown,
+    async (questionId: string, answer: string, sectionTitle: string) => {
+      if (!project) return
+      const questionItem = project.timeline.find(
+        (item: TimelineItem): item is Question => item.type === 'question' && item.id === questionId,
+      )
+      if (!questionItem) return
+
+      setFormattingQuestionId(questionId)
+      setFormattingFallback(false)
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
+
+      try {
+        const text = await callLLM(
+          buildInitialConfirmationAnswerFormatPrompt({
+            sectionTitle,
+            questionText: questionItem.text,
+            proposedMarkdown: questionItem.proposedMarkdown ?? '',
+            answer,
+            currentSpec: project.spec,
+            referenceMemo: project.memo,
+          }),
+        )
+        const formatResult = extractJSON<AnswerFormatResult>(text)
+        if (!formatResult) throw new Error('Invalid format result')
+
+        updateProject((prev: Project) => {
+          const reflectedMarkdown = formatResult.specInsertionMarkdown ?? ''
+          const withSpec = reflectedMarkdown
+            ? applyProposedMarkdown(prev, { sectionTitle, markdown: reflectedMarkdown })
+            : prev
+          return answerInitialConfirmation(withSpec, {
+            questionId,
+            answerMarkdown: answer,
+            reflectedMarkdown,
+          })
         })
-      })
+      } catch {
+        setFormattingFallback(true)
+        fallbackTimer.current = setTimeout(() => setFormattingFallback(false), ERROR_BANNER_MS)
+        updateProject((prev: Project) =>
+          answerInitialConfirmation(prev, {
+            questionId,
+            answerMarkdown: answer,
+            reflectedMarkdown: '',
+          }),
+        )
+      } finally {
+        setFormattingQuestionId(null)
+      }
     },
-    [updateProject],
+    [project, updateProject],
   )
 
   const handleOpenProject = useCallback((p: Project) => {

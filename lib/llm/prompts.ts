@@ -140,6 +140,49 @@ function buildMarkerContextSection(contexts: MarkerContext[]): string {
   return lines.join('\n') + '\n'
 }
 
+export function buildInitialConfirmationAnswerFormatPrompt(params: {
+  sectionTitle: string
+  questionText: string
+  proposedMarkdown: string
+  answer: string
+  currentSpec: string
+  referenceMemo: string
+}): string {
+  const memoSection = params.referenceMemo.trim()
+    ? `\nReferences:\n${params.referenceMemo}\n`
+    : ''
+  const proposedSection = params.proposedMarkdown.trim()
+    ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
+    : ''
+  return `あなたは pre-spec の初期反映回答整形エンジンです。
+
+初期反映の提案に対するユーザーの回答を受けて、spec.md への反映内容を決定してください。
+
+現在の spec.md:
+${params.currentSpec}${memoSection}
+対象セクション: ## ${params.sectionTitle}
+
+質問: ${params.questionText}
+${proposedSection}
+ユーザーの回答: ${params.answer}
+
+ルール:
+- ユーザーが承認 / OK / このままでよい の場合は提案 Markdown をそのまま specInsertionMarkdown にする
+- ユーザーが修正を指示した場合は指示を反映して修正した内容を specInsertionMarkdown にする
+- ユーザーが採用しない・不要と判断した場合は specInsertionMarkdown を空文字にする
+- spec.md 全体を書き換えない
+- "## ${params.sectionTitle}" に追記するコンテンツだけを返す
+- 既存コンテンツと重複しないようにする
+- 日本語で記述する
+
+有効な JSON のみを返してください (マークダウンコードフェンス・説明文不要):
+{
+  "specInsertionMarkdown": "- ...",
+  "aggregationLogSummary": "...",
+  "openQuestionInsertions": []
+}`
+}
+
 export type RelatedSourceReviewResult = {
   status: 'ok' | 'unreadable'
   content?: string
