@@ -12,12 +12,15 @@ type Props = {
   onTabChange: (t: Tab) => void
   log: string
   memo: string
-  onAddReference: (kind: RelatedSourceKind, name: string, content: string) => void
+  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => void
 }
 
 export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddReference }: Props) {
   const [addMode, setAddMode] = useState<AddMode | null>(null)
   const [textInput, setTextInput] = useState('')
+  const [noteInput, setNoteInput] = useState('')
+  const [fileContent, setFileContent] = useState<string | null>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const tabs: { id: Tab; label: string }[] = [
@@ -28,16 +31,28 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
   function openAddForm() {
     setAddMode('text')
     setTextInput('')
+    setNoteInput('')
+    setFileContent(null)
+    setFileName(null)
   }
 
   function closeAddForm() {
     setAddMode(null)
     setTextInput('')
+    setNoteInput('')
+    setFileContent(null)
+    setFileName(null)
   }
 
   function handleAddText() {
     if (!textInput.trim()) return
-    onAddReference('text', 'related-input', textInput.trim())
+    onAddReference('text', 'related-input', textInput.trim(), noteInput.trim() || undefined)
+    closeAddForm()
+  }
+
+  function handleAddFile() {
+    if (!fileContent || !fileName) return
+    onAddReference('file', fileName, fileContent, noteInput.trim() || undefined)
     closeAddForm()
   }
 
@@ -48,12 +63,24 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
     try {
       const content = await file.text()
       if (!content.trim()) return
-      onAddReference('file', file.name, content)
-      closeAddForm()
+      setFileContent(content)
+      setFileName(file.name)
     } catch {
       // ignore read errors
     }
   }
+
+  const noteRow = (
+    <div className="flex items-center gap-2 px-2 py-1.5 border-t border-stone-100 shrink-0">
+      <input
+        type="text"
+        value={noteInput}
+        onChange={(e) => setNoteInput(e.target.value)}
+        placeholder={UI_TEXT.bottomTabs.addRefNotePlaceholder}
+        className="flex-1 text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400"
+      />
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-full">
@@ -114,6 +141,7 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
                   placeholder={UI_TEXT.bottomTabs.addRefTextPlaceholder}
                   className="flex-1 min-h-0 resize-none p-2 text-xs font-mono text-stone-700 bg-white focus:outline-none"
                 />
+                {noteRow}
                 <div className="shrink-0 px-2 py-1.5 border-t border-stone-100">
                   <button
                     onClick={handleAddText}
@@ -127,21 +155,36 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
             )}
 
             {addMode === 'file' && (
-              <div className="flex flex-1 items-center justify-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".md,.txt"
-                  onChange={(e) => { void handleFileChange(e) }}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
-                >
-                  {UI_TEXT.bottomTabs.addRefFileButton}
-                </button>
-              </div>
+              fileContent !== null ? (
+                <div className="flex flex-col flex-1 min-h-0 justify-end">
+                  <div className="px-2 py-1.5 text-xs font-mono text-stone-500 shrink-0">{fileName}</div>
+                  {noteRow}
+                  <div className="shrink-0 px-2 py-1.5 border-t border-stone-100">
+                    <button
+                      onClick={handleAddFile}
+                      className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 transition-colors"
+                    >
+                      {UI_TEXT.bottomTabs.addRefAddButton}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-1 items-center justify-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".md,.txt"
+                    onChange={(e) => { void handleFileChange(e) }}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+                  >
+                    {UI_TEXT.bottomTabs.addRefFileButton}
+                  </button>
+                </div>
+              )
             )}
           </div>
         ) : (
