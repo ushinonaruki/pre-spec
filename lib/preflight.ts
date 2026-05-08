@@ -65,7 +65,7 @@ export function runPreflightCheck(
     for (const [name, def] of Object.entries(markerDefinitions.markers)) {
       const count = markerCounts[name] ?? 0
       if (count > 0) {
-        warnings.push({ type: name, count, message: `[pre-spec:${name}] が ${count} 件残っています。（${def.label}）` })
+        warnings.push({ type: name, count, message: UI_TEXT.preflight.warnCustomMarker(name, count, def.label) })
       }
     }
   }
