@@ -120,10 +120,8 @@ export const UI_TEXT = {
 
   settings: {
     title: '設定',
-    apiKeyLabel: 'Anthropic API キー',
-    apiKeyNote: 'Stage 2 (LLM統合) で使用します。今は未設定でも動作します。',
-    saveButton: '保存',
-    saveButtonSaved: '✓ 保存しました',
+    apiKeyLabel: 'LLM API キー',
+    apiKeyNote: 'Claude API キーはサーバー側の ANTHROPIC_API_KEY 環境変数で設定します。この画面では API キーを入力・保存しません。',
     resetButton: 'プロジェクトをリセット',
     resetConfirm:
       'プロジェクトをリセットしますか？ spec.md・参照・タイムラインがすべて消えます。',
