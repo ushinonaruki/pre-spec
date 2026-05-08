@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReason, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
+import { generateProjectSlug } from '@/lib/ldd/slug'
+import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
+import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, skipQuestion } from '@/lib/ldd/timelines'
@@ -12,7 +15,7 @@ import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt } from '@/lib/llm/prompts'
 import type { RelatedSourceReviewResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
-import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
+import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
 import { EXTENSIBLE_MARKERS, extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
@@ -75,15 +78,6 @@ function downloadFile(filename: string, content: string) {
   URL.revokeObjectURL(url)
 }
 
-function downloadJson(filename: string, content: string) {
-  const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
 
 async function runRelatedSourceReview(
   kind: RelatedSourceKind,
@@ -110,8 +104,10 @@ export default function Home() {
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [formattingFallback, setFormattingFallback] = useState(false)
   const [initConfirmFailed, setInitConfirmFailed] = useState(false)
+  const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     fetch('/pre-spec.markers.json')
@@ -130,6 +126,17 @@ export default function Home() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    if (!project || !saveTarget) return
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      void saveTarget.write(project)
+    }, 500)
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [project, saveTarget])
+
   const updateProject = useCallback(
     (updater: (prev: Project) => Project) => {
       setProject((prev) => {
@@ -141,6 +148,10 @@ export default function Home() {
   )
 
   const handleCreate = useCallback(async (inputs: CreateProjectInputs) => {
+    const slug = generateProjectSlug(inputs.projectName)
+    const target = await pickSaveTarget(`${slug}.pre-spec.json`)
+    setSaveTarget(target)
+
     const p = createProjectFromInputs(inputs)
 
     let baseProject: Project = p
@@ -268,8 +279,9 @@ export default function Home() {
     [project, updateProject],
   )
 
-  const handleOpenProject = useCallback((p: Project) => {
+  const handleOpenProject = useCallback((p: Project, target: ProjectSaveTarget) => {
     setProject(p)
+    setSaveTarget(target)
   }, [])
 
   const handleSpecSave = useCallback((newSpec: string, memo?: string) => {
@@ -434,12 +446,6 @@ export default function Home() {
     setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
   }
 
-  const handleDownloadProjectJson = () => {
-    if (!project) return
-    const preSpecProject = projectToPreSpecProject(project)
-    downloadJson(getProjectFilenames(project.slug).project, JSON.stringify(preSpecProject, null, 2))
-  }
-
   const preflightResult = useMemo(
     () => (project ? runPreflightCheck(project, markerDefinitions) : null),
     [project, markerDefinitions],
@@ -467,12 +473,6 @@ export default function Home() {
             className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
           >
             {UI_TEXT.app.downloadAll}
-          </button>
-          <button
-            onClick={handleDownloadProjectJson}
-            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
-          >
-            {UI_TEXT.app.downloadProjectJson}
           </button>
           <button
             onClick={() => router.push('/settings')}
