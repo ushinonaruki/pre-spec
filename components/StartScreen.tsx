@@ -3,8 +3,11 @@
 import { useRef, useState } from 'react'
 import type { Project } from '@/types'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
+import { generateProjectSlug } from '@/lib/ldd/slug'
 import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
 import { UI_TEXT } from '@/lib/uiText'
+
+const WORK_FILE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*\.pre-spec\.json$/
 
 type View = 'landing' | 'new_project'
 
@@ -15,65 +18,85 @@ type Props = {
 
 export default function StartScreen({ onCreate, onOpenProject }: Props) {
   const [view, setView] = useState<View>('landing')
+  const [projectName, setProjectName] = useState('')
   const [requirementMemo, setRequirementMemo] = useState('')
-  const [baseSpecMarkdown, setBaseSpecMarkdown] = useState<string | undefined>(undefined)
-  const [baseSpecFilename, setBaseSpecFilename] = useState<string | undefined>(undefined)
-  const [relatedNote, setRelatedNote] = useState('')
+  const [relatedMarkdown, setRelatedMarkdown] = useState<string | undefined>(undefined)
+  const [relatedFilename, setRelatedFilename] = useState<string | undefined>(undefined)
+  const [nameError, setNameError] = useState<string | null>(null)
   const [memoError, setMemoError] = useState<string | null>(null)
   const [openError, setOpenError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isOpeningFile, setIsOpeningFile] = useState(false)
 
   const jsonInputRef = useRef<HTMLInputElement>(null)
-  const baseSpecInputRef = useRef<HTMLInputElement>(null)
+  const relatedFileInputRef = useRef<HTMLInputElement>(null)
 
   const handleJsonFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
     setOpenError(null)
+
+    if (!WORK_FILE_PATTERN.test(file.name)) {
+      setOpenError(UI_TEXT.startScreen.openWorkFileNameError)
+      return
+    }
+
     setIsOpeningFile(true)
     try {
       const text = await file.text()
       const raw = JSON.parse(text) as unknown
       if (!validatePreSpecProject(raw)) {
-        setOpenError(UI_TEXT.startScreen.openProjectJsonError)
+        setOpenError(UI_TEXT.startScreen.openWorkFileError)
         return
       }
       const project = preSpecProjectToProject(raw)
       onOpenProject(project)
     } catch {
-      setOpenError(UI_TEXT.startScreen.openProjectJsonError)
+      setOpenError(UI_TEXT.startScreen.openWorkFileError)
     } finally {
       setIsOpeningFile(false)
     }
   }
 
-  const handleBaseSpecFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRelatedFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
     try {
       const text = await file.text()
-      setBaseSpecMarkdown(text)
-      setBaseSpecFilename(file.name)
+      setRelatedMarkdown(text)
+      setRelatedFilename(file.name)
     } catch {
       // ignore read errors
     }
   }
 
   const handleCreate = async () => {
+    const trimmedName = projectName.trim()
+    const slug = generateProjectSlug(trimmedName)
+
+    if (!trimmedName) {
+      setNameError(UI_TEXT.startScreen.projectNameRequired)
+      return
+    }
+    if (!slug) {
+      setNameError(UI_TEXT.startScreen.projectNameInvalid)
+      return
+    }
     if (!requirementMemo.trim()) {
       setMemoError(UI_TEXT.startScreen.requirementMemoRequired)
       return
     }
+
+    setNameError(null)
     setMemoError(null)
     setIsCreating(true)
     try {
       await onCreate({
+        projectName: trimmedName,
         requirementMemo: requirementMemo.trim(),
-        baseSpecMarkdown: baseSpecMarkdown || undefined,
-        relatedMarkdown: relatedNote.trim() || undefined,
+        relatedMarkdown: relatedMarkdown || undefined,
       })
     } finally {
       setIsCreating(false)
@@ -102,7 +125,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
               disabled={isOpeningFile}
               className="w-full py-2.5 border border-stone-300 text-stone-700 text-sm font-medium rounded hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              {isOpeningFile ? UI_TEXT.startScreen.openProjectJsonLoading : UI_TEXT.startScreen.openProjectJson}
+              {isOpeningFile ? UI_TEXT.startScreen.openWorkFileLoading : UI_TEXT.startScreen.openWorkFile}
             </button>
 
             {openError && (
@@ -129,6 +152,27 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         <h1 className="text-2xl font-bold text-stone-800">{UI_TEXT.app.name}</h1>
 
         <div className="bg-white border border-stone-200 rounded-lg p-6 space-y-5">
+          {/* プロジェクト名 */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-stone-700">
+              {UI_TEXT.startScreen.projectNameLabel}
+            </label>
+            <input
+              type="text"
+              value={projectName}
+              onChange={(e) => { setProjectName(e.target.value); setNameError(null) }}
+              placeholder={UI_TEXT.startScreen.projectNamePlaceholder}
+              className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
+            />
+            {nameError && <p className="text-xs text-red-600">{nameError}</p>}
+            {projectName.trim() && generateProjectSlug(projectName.trim()) && (
+              <p className="text-xs text-stone-400">
+                ファイル名: {generateProjectSlug(projectName.trim())}.pre-spec.json
+              </p>
+            )}
+          </div>
+
+          {/* 要件メモ */}
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-stone-700">
               {UI_TEXT.startScreen.requirementMemoLabel}
@@ -143,42 +187,35 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
             {memoError && <p className="text-xs text-red-600">{memoError}</p>}
           </div>
 
+          {/* 関連資料 */}
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-stone-700">
-              {UI_TEXT.startScreen.baseSpecLabel}
+              {UI_TEXT.startScreen.relatedLabel}
             </label>
             <input
-              ref={baseSpecInputRef}
+              ref={relatedFileInputRef}
               type="file"
               accept=".md,.txt"
-              onChange={(e) => { void handleBaseSpecFileChange(e) }}
+              onChange={(e) => { void handleRelatedFileChange(e) }}
               className="hidden"
             />
             <button
-              onClick={() => baseSpecInputRef.current?.click()}
+              onClick={() => relatedFileInputRef.current?.click()}
               className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
             >
-              {UI_TEXT.startScreen.baseSpecButton}
+              {UI_TEXT.startScreen.relatedFileButton}
             </button>
-            {baseSpecFilename && (
-              <p className="text-xs text-stone-500">{UI_TEXT.startScreen.baseSpecSelected(baseSpecFilename)}</p>
+            {relatedFilename && (
+              <p className="text-xs text-stone-500">{UI_TEXT.startScreen.relatedFileSelected(relatedFilename)}</p>
             )}
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-stone-700">
-              {UI_TEXT.startScreen.relatedNoteLabel}
-            </label>
             <textarea
-              value={relatedNote}
-              onChange={(e) => setRelatedNote(e.target.value)}
+              value={relatedMarkdown ?? ''}
+              onChange={(e) => setRelatedMarkdown(e.target.value || undefined)}
               placeholder={UI_TEXT.startScreen.relatedNotePlaceholder}
               rows={3}
               className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
             />
           </div>
-
-          <p className="text-xs text-stone-400">{UI_TEXT.startScreen.noLLMNote}</p>
 
           <div className="flex gap-2">
             <button

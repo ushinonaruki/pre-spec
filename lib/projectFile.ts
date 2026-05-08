@@ -1,13 +1,24 @@
 import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
+import { generateProjectSlug } from '@/lib/ldd/slug'
 
 const CURRENT_VERSION = '1'
+
+export function getProjectFilenames(slug: string) {
+  return {
+    spec: `${slug}.spec.md`,
+    references: `${slug}.references.md`,
+    timeline: `${slug}.timeline.md`,
+    project: `${slug}.pre-spec.json`,
+  }
+}
 
 export function projectToPreSpecProject(project: Project): PreSpecProject {
   return {
     version: CURRENT_VERSION,
     project: {
       id: project.id,
+      slug: project.slug,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     },
@@ -31,8 +42,10 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
 export function preSpecProjectToProject(file: PreSpecProject): Project {
   const ws = file.workspace
   const sections = ws.sections.length > 0 ? ws.sections : extractSections(ws.draftSpecMarkdown)
+  const slug = file.project.slug || generateProjectSlug(file.inputs?.requirementMemo?.split('\n')[0] ?? '') || 'untitled-project'
   return {
     id: file.project.id,
+    slug,
     createdAt: file.project.createdAt,
     updatedAt: file.project.updatedAt,
     initialPrompt: file.inputs?.requirementMemo ?? '',

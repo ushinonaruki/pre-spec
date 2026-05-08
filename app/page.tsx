@@ -12,7 +12,7 @@ import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarker
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
-import { projectToPreSpecProject, generateTimelineMarkdown } from '@/lib/projectFile'
+import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
 import { UI_TEXT } from '@/lib/uiText'
 import StartScreen from '@/components/StartScreen'
@@ -290,15 +290,16 @@ export default function Home() {
 
   const handleDownloadAll = () => {
     if (!project) return
-    downloadFile(UI_TEXT.specEditor.fileLabel, project.spec)
-    setTimeout(() => downloadFile(UI_TEXT.app.downloadMemoFilename, project.memo || UI_TEXT.app.downloadMemoFallback), 100)
-    setTimeout(() => downloadFile(UI_TEXT.app.downloadTimelineFilename, generateTimelineMarkdown(project.timeline, project.sections)), 200)
+    const filenames = getProjectFilenames(project.slug)
+    downloadFile(filenames.spec, project.spec)
+    setTimeout(() => downloadFile(filenames.references, project.memo || '# References\n\n(empty)\n'), 100)
+    setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), 200)
   }
 
   const handleDownloadProjectJson = () => {
     if (!project) return
     const preSpecProject = projectToPreSpecProject(project)
-    downloadJson(UI_TEXT.app.downloadProjectJsonFilename, JSON.stringify(preSpecProject, null, 2))
+    downloadJson(getProjectFilenames(project.slug).project, JSON.stringify(preSpecProject, null, 2))
   }
 
   const preflightResult = useMemo(

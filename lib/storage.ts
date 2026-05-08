@@ -1,5 +1,6 @@
 import type { AppState, Project, Question, QuestionKind, QuestionPriority, SectionMarker, SkipReason, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
+import { generateProjectSlug } from '@/lib/ldd/slug'
 
 const KEY = 'pre-spec-v1'
 
@@ -11,10 +12,18 @@ const DEFAULT_STATE: AppState = {
   },
 }
 
+function deriveSlug(raw: Record<string, unknown>): string {
+  if (typeof raw.slug === 'string' && raw.slug) return raw.slug
+  const prompt = (raw.initialPrompt as string) ?? ''
+  return generateProjectSlug(prompt.split('\n')[0].trim()) || 'untitled-project'
+}
+
 function migrateProject(raw: Record<string, unknown>): Project {
-  // Already new format
+  const slug = deriveSlug(raw)
+
+  // Already new format — only inject slug if missing
   if (Array.isArray(raw.sections) && Array.isArray(raw.timeline)) {
-    return raw as unknown as Project
+    return { ...(raw as unknown as Project), slug }
   }
 
   const spec = (raw.spec as string) ?? ''
@@ -108,6 +117,7 @@ function migrateProject(raw: Record<string, unknown>): Project {
 
   return {
     id: (raw.id as string) ?? crypto.randomUUID(),
+    slug,
     createdAt: (raw.createdAt as string) ?? new Date().toISOString(),
     updatedAt: (raw.updatedAt as string) ?? new Date().toISOString(),
     initialPrompt: (raw.initialPrompt as string) ?? '',
