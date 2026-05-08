@@ -107,14 +107,14 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
   }
 
   const noteRow = (
-    <div className="flex items-center gap-2 px-2 py-1.5 border-t border-stone-100 shrink-0">
-      <input
-        type="text"
+    <div className="px-2 py-1.5 border-t border-stone-100 shrink-0">
+      <textarea
         value={noteInput}
         onChange={(e) => setNoteInput(e.target.value)}
         placeholder={UI_TEXT.bottomTabs.addRefNotePlaceholder}
         disabled={isReviewing}
-        className="flex-1 text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 disabled:opacity-50"
+        rows={2}
+        className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 disabled:opacity-50 resize-none"
       />
     </div>
   )
