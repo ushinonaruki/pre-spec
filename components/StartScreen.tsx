@@ -98,6 +98,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         projectName: trimmedName,
         requirementMemo: requirementMemo.trim(),
         relatedMarkdown: relatedMarkdown || undefined,
+        relatedFilename: relatedFilename || undefined,
       })
     } finally {
       setIsCreating(false)

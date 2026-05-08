@@ -1,12 +1,15 @@
 import type { Project, SectionMarker } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { generateProjectSlug } from '@/lib/ldd/slug'
+import { buildInitialRequirementMemoBlock, buildImportedBlock } from '@/lib/references'
+import { relatedSourceToBlockParams } from '@/lib/relatedSources'
 
 export type CreateProjectInputs = {
   projectName: string
   requirementMemo: string
   baseSpecMarkdown?: string
   relatedMarkdown?: string
+  relatedFilename?: string
 }
 
 export function createProjectFromInputs({
@@ -14,6 +17,7 @@ export function createProjectFromInputs({
   requirementMemo,
   baseSpecMarkdown,
   relatedMarkdown,
+  relatedFilename,
 }: CreateProjectInputs): Project {
   const now = new Date().toISOString()
   const slug = generateProjectSlug(projectName)
@@ -24,18 +28,23 @@ export function createProjectFromInputs({
   const memoParts: string[] = [
     '# References',
     '',
-    '## Initial Requirement Memo',
-    '',
-    'source: user input',
-    `checkedAt: ${now}`,
-    '',
-    requirementMemo,
+    buildInitialRequirementMemoBlock(requirementMemo, now),
   ]
   if (baseSpecMarkdown) {
-    memoParts.push('', '## Initial Base Spec', '', 'source: user provided base spec', `checkedAt: ${now}`, '', baseSpecMarkdown)
+    memoParts.push('', buildImportedBlock({
+      name: 'initial-base-spec',
+      source: 'user provided base spec',
+      kind: 'file',
+      checkedAt: now,
+      content: baseSpecMarkdown,
+    }))
   }
   if (relatedMarkdown) {
-    memoParts.push('', '## Imported: related-note', '', 'source: user input', `checkedAt: ${now}`, '', relatedMarkdown)
+    memoParts.push('', buildImportedBlock(relatedSourceToBlockParams({
+      kind: relatedFilename ? 'file' : 'text',
+      name: relatedFilename ?? 'related-note',
+      content: relatedMarkdown,
+    }, now)))
   }
   memoParts.push('')
   const memo = memoParts.join('\n')
