@@ -4,18 +4,14 @@ import { useRef, useState } from 'react'
 import type { RelatedSourceKind } from '@/types'
 import { UI_TEXT } from '@/lib/text/uiText'
 
-type Tab = 'log' | 'memo'
 type AddMode = 'text' | 'file' | 'url'
 
 type Props = {
-  activeTab: Tab
-  onTabChange: (t: Tab) => void
-  log: string
   memo: string
   onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
 }
 
-export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddReference }: Props) {
+export default function BottomTabs({ memo, onAddReference }: Props) {
   const [addMode, setAddMode] = useState<AddMode | null>(null)
   const [textInput, setTextInput] = useState('')
   const [urlInput, setUrlInput] = useState('')
@@ -25,11 +21,6 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
   const [isReviewing, setIsReviewing] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const tabs: { id: Tab; label: string }[] = [
-    { id: 'log', label: UI_TEXT.bottomTabs.logTab },
-    { id: 'memo', label: UI_TEXT.bottomTabs.memoTab },
-  ]
 
   function openAddForm() {
     setAddMode('text')
@@ -121,25 +112,12 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center border-b border-stone-200 bg-stone-50 shrink-0">
-        <div className="flex">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => { onTabChange(t.id); closeAddForm() }}
-              className={`px-4 py-2 text-xs transition-colors border-r border-stone-200 last:border-r-0
-                ${activeTab === t.id
-                  ? 'bg-white text-stone-800 font-medium -mb-px border-b-2 border-b-white'
-                  : 'text-stone-500 hover:text-stone-700'}`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        {activeTab === 'memo' && addMode === null && (
+      <div className="flex items-center border-b border-stone-200 bg-stone-50 shrink-0 px-2">
+        <span className="text-xs text-stone-500 py-2">references.md</span>
+        {addMode === null && (
           <button
             onClick={openAddForm}
-            className="ml-auto mr-2 text-xs text-stone-500 hover:text-stone-800 transition-colors"
+            className="ml-auto text-xs text-stone-500 hover:text-stone-800 transition-colors"
           >
             {UI_TEXT.bottomTabs.addRefButton}
           </button>
@@ -271,22 +249,11 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
             )}
           </div>
         ) : (
-          <>
-            {activeTab === 'log' && (
-              <textarea
-                readOnly
-                value={log || UI_TEXT.bottomTabs.logEmpty}
-                className="w-full h-full resize-none p-3 text-xs font-mono text-stone-600 bg-white focus:outline-none"
-              />
-            )}
-            {activeTab === 'memo' && (
-              <textarea
-                readOnly
-                value={memo}
-                className="w-full h-full resize-none p-3 text-xs font-mono text-stone-700 bg-white focus:outline-none"
-              />
-            )}
-          </>
+          <textarea
+            readOnly
+            value={memo}
+            className="w-full h-full resize-none p-3 text-xs font-mono text-stone-700 bg-white focus:outline-none"
+          />
         )}
       </div>
     </div>

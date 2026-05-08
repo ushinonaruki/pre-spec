@@ -28,8 +28,6 @@ const LOG_TAIL_CHARS = 1500
 const ERROR_BANNER_MS = 5000
 const DOWNLOAD_STAGGER_MS = 100
 
-type BottomTab = 'log' | 'memo'
-
 type RawQuestion = {
   text: string
   reason?: string
@@ -108,7 +106,6 @@ export default function Home() {
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [markerDefinitions, setMarkerDefinitions] = useState<MarkerDefinitionFile | null>(null)
-  const [bottomTab, setBottomTab] = useState<BottomTab>('log')
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [formattingFallback, setFormattingFallback] = useState(false)
@@ -465,8 +462,6 @@ export default function Home() {
           <div className="shrink-0 h-48 border-t border-stone-200 overflow-hidden">
             <TimelineBottomTabs
               project={project}
-              bottomTab={bottomTab}
-              setBottomTab={setBottomTab}
               onAddReference={handleAddReference}
             />
           </div>
@@ -495,24 +490,13 @@ export default function Home() {
 
 function TimelineBottomTabs({
   project,
-  bottomTab,
-  setBottomTab,
   onAddReference,
 }: {
   project: Project
-  bottomTab: BottomTab
-  setBottomTab: (t: BottomTab) => void
   onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
 }) {
-  const timelineMarkdown = useMemo(
-    () => generateTimelineMarkdown(project.timeline, project.sections),
-    [project.timeline, project.sections],
-  )
   return (
     <BottomTabs
-      activeTab={bottomTab}
-      onTabChange={setBottomTab}
-      log={timelineMarkdown}
       memo={project.memo}
       onAddReference={onAddReference}
     />
