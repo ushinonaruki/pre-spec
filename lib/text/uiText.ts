@@ -37,11 +37,12 @@ export const UI_TEXT = {
     startButton: '開始',
     startButtonLoading: '開始中…',
     backButton: '戻る',
-    storageNote: '作業状態は自動保存されます',
   },
 
   specEditor: {
     fileLabel: 'spec.md',
+    previewButton: 'Preview',
+    sourceButton: 'Source',
     editButton: 'Edit',
     saveButton: '保存して戻る',
     cancelButton: 'キャンセル',
@@ -111,6 +112,7 @@ export const UI_TEXT = {
     downloadConfirmSkipMarkers: (n: number) => `skip marker: ${n}件`,
     downloadConfirmMarkerCount: (label: string, n: number) => `${label}: ${n}件`,
     downloadConfirmPrompt: 'この状態で spec.md を出力しますか？',
+    warnCustomMarker: (name: string, count: number, label: string) => `[pre-spec:${name}] が ${count} 件残っています。（${label}）`,
   },
 
   initialConfirmation: {
