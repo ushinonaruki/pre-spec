@@ -93,7 +93,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
     } else if (item.type === 'question') {
       const q = item as Question
       const meta = [q.kind, q.priority].filter(Boolean).join('・')
-      const prefix = q.questionType === 'initial_confirmation' ? '**[初期確認]**' : '**Q**'
+      const prefix = q.questionType === 'initial_confirmation' ? '**[初期反映]**' : '**Q**'
       lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
       if (q.reason) lines.push(`*理由: ${q.reason}*`)
       if (q.aiGuess) lines.push(`*AI推定: ${q.aiGuess.value}*`)

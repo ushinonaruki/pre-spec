@@ -19,9 +19,18 @@ export function createProjectFromInputs({
   const firstSection = sections[0] ?? null
   const log = appendStartLog('', { prompt: requirementMemo })
 
-  const memoParts: string[] = ['# 参照.md', '', '## Requirement Memo', '', requirementMemo]
+  const memoParts: string[] = [
+    '# References',
+    '',
+    '## Initial Requirement Memo',
+    '',
+    'source: user input',
+    `checkedAt: ${now}`,
+    '',
+    requirementMemo,
+  ]
   if (baseSpecMarkdown) {
-    memoParts.push('', '## Initial Base Spec', '', 'source: user provided base spec', '', baseSpecMarkdown)
+    memoParts.push('', '## Initial Base Spec', '', 'source: user provided base spec', `checkedAt: ${now}`, '', baseSpecMarkdown)
   }
   if (relatedMarkdown) {
     memoParts.push('', '## Imported: related-note', '', 'source: user input', `checkedAt: ${now}`, '', relatedMarkdown)

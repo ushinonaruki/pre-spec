@@ -109,14 +109,14 @@ export const UI_TEXT = {
 
   initialConfirmation: {
     phaseLabel: 'Initial Setup',
-    typeLabel: '初期確認',
+    typeLabel: '初期反映',
     proposedMarkdownLabel: '提案 Markdown',
     okButton: 'OK',
     editAndApplyButton: '修正して反映',
     applyEditButton: '修正して反映',
     applyNote: 'この内容を反映します',
     editPlaceholder: '提案 Markdown を編集…',
-    generationError: '初期確認質問の生成に失敗しました',
+    generationError: '初期反映質問の生成に失敗しました',
   },
 
   settings: {
