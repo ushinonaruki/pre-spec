@@ -1,9 +1,8 @@
 'use client'
 
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
-import { loadState, saveProject } from '@/lib/storage'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
@@ -62,43 +61,23 @@ function downloadJson(filename: string, content: string) {
 
 export default function Home() {
   const router = useRouter()
-  const [isHydrated, setIsHydrated] = useState(false)
-  const isHydratedRef = useRef(false)
   const [project, setProject] = useState<Project | null>(null)
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [formattingFallback, setFormattingFallback] = useState(false)
   const [initConfirmFailed, setInitConfirmFailed] = useState(false)
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    const state = loadState()
-    startTransition(() => {
-      setProject(state.project)
-      setIsHydrated(true)
-    })
-    isHydratedRef.current = true
-  }, [])
-
-  const scheduleProjectSave = useCallback((p: Project) => {
-    if (!isHydratedRef.current) return
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => saveProject(p), 400)
-  }, [])
 
   const updateProject = useCallback(
     (updater: (prev: Project) => Project) => {
       setProject((prev) => {
         if (!prev) return prev
-        const next = updater(prev)
-        scheduleProjectSave(next)
-        return next
+        return updater(prev)
       })
     },
-    [scheduleProjectSave],
+    [],
   )
 
   const handleCreate = useCallback(async (inputs: CreateProjectInputs) => {
@@ -139,13 +118,11 @@ export default function Home() {
 
       const withPhase = addPhaseMarker(p)
       const withQuestions = addQuestionsToTimeline(withPhase, questions)
-      saveProject(withQuestions)
       setProject(withQuestions)
     } catch {
       if (initConfirmTimer.current) clearTimeout(initConfirmTimer.current)
       setInitConfirmFailed(true)
       initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), 5000)
-      saveProject(p)
       setProject(p)
     }
   }, [])
@@ -165,7 +142,6 @@ export default function Home() {
   )
 
   const handleOpenProject = useCallback((p: Project) => {
-    saveProject(p)
     setProject(p)
   }, [])
 
@@ -307,7 +283,6 @@ export default function Home() {
     [project],
   )
 
-  if (!isHydrated) return <div className="h-screen bg-stone-50" />
   if (!project) return <StartScreen onCreate={(inputs) => handleCreate(inputs)} onOpenProject={handleOpenProject} />
 
   const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null

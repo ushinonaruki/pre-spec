@@ -2,23 +2,20 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { loadState, resetProject, saveApiKey } from '@/lib/storage'
 import { UI_TEXT } from '@/lib/uiText'
 
 export default function SettingsPage() {
   const router = useRouter()
-  const [apiKey, setApiKey] = useState(() => loadState().apiKey ?? '')
+  const [apiKey, setApiKey] = useState('')
   const [saved, setSaved] = useState(false)
 
   const handleSave = () => {
-    saveApiKey(apiKey.trim())
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
   const handleReset = () => {
     if (!confirm(UI_TEXT.settings.resetConfirm)) return
-    resetProject()
     router.push('/')
   }
 

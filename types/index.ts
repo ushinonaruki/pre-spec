@@ -104,14 +104,6 @@ export type AnswerFormatResult = {
   openQuestionInsertions: string[]
 }
 
-export type AppState = {
-  apiKey: string | null
-  project: Project | null
-  uiState: {
-    activeTab: 'spec' | 'log' | 'memo'
-  }
-}
-
 export type RelatedSource = {
   id: string
   label: string
