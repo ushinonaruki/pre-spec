@@ -104,13 +104,14 @@ export type AnswerFormatResult = {
   openQuestionInsertions: string[]
 }
 
-export type RelatedSourceKind = 'file' | 'text'
+export type RelatedSourceKind = 'file' | 'text' | 'url'
 
 export type RelatedSource = {
   id: string
   kind: RelatedSourceKind
   name: string
   note?: string
+  url?: string
   addedAt: string
 }
 

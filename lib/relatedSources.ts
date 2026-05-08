@@ -9,7 +9,9 @@ export type RelatedSourceInput = {
 }
 
 function sourceLabel(kind: RelatedSourceKind): string {
-  return kind === 'file' ? 'user upload' : 'user input'
+  if (kind === 'file') return 'user upload'
+  if (kind === 'url') return 'url'
+  return 'user input'
 }
 
 export function relatedSourceToBlockParams(input: RelatedSourceInput, checkedAt: string): ImportedBlockParams {
