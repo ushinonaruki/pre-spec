@@ -2,7 +2,6 @@ import type { Project, RelatedSource, SectionMarker } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import { buildInitialRequirementMemoBlock, buildImportedBlock } from '@/lib/references'
-import { buildRelatedSourceBlock, type RelatedSourceInput } from '@/lib/relatedSources'
 
 export type CreateProjectInputs = {
   projectName: string
@@ -16,8 +15,6 @@ export function createProjectFromInputs({
   projectName,
   requirementMemo,
   baseSpecMarkdown,
-  relatedMarkdown,
-  relatedFilename,
 }: CreateProjectInputs): Project {
   const now = new Date().toISOString()
   const slug = generateProjectSlug(projectName)
@@ -40,20 +37,6 @@ export function createProjectFromInputs({
       checkedAt: now,
       content: baseSpecMarkdown,
     }))
-  }
-
-  if (relatedMarkdown) {
-    const sourceKind = relatedFilename ? 'file' : 'text'
-    const sourceName = relatedFilename ?? 'related-input'
-    const source: RelatedSource = {
-      id: crypto.randomUUID(),
-      kind: sourceKind,
-      name: sourceName,
-      addedAt: now,
-    }
-    relatedSources.push(source)
-    const input: RelatedSourceInput = { kind: source.kind, name: source.name, content: relatedMarkdown }
-    memoParts.push('', buildRelatedSourceBlock(input, now))
   }
 
   memoParts.push('')
