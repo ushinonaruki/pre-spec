@@ -106,6 +106,11 @@ export const UI_TEXT = {
     skipMarkers: 'skip marker',
     warnOpenQuestions: '未回答の質問が残っています。',
     warnSkipMarkers: 'skip marker が残っています。未決事項を含む spec.md として出力されます。',
+    downloadConfirmTitle: '出力前チェック',
+    downloadConfirmOpenQuestions: (n: number) => `open 質問: ${n}件`,
+    downloadConfirmSkipMarkers: (n: number) => `skip marker: ${n}件`,
+    downloadConfirmMarkerCount: (label: string, n: number) => `${label}: ${n}件`,
+    downloadConfirmPrompt: 'この状態で spec.md を出力しますか？',
   },
 
   initialConfirmation: {

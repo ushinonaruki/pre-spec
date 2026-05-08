@@ -13,6 +13,8 @@ import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, build
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
+import type { PreflightCheckResult } from '@/lib/preflight'
+import { EXTENSIBLE_MARKERS } from '@/lib/markers'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -41,6 +43,26 @@ type RawInitialQuestion = {
   kind?: string
   priority?: string
   proposedMarkdown?: string
+}
+
+function buildDownloadConfirmMessage(
+  result: PreflightCheckResult,
+  markerDefinitions: MarkerDefinitionFile | null,
+): string {
+  const lines: string[] = [UI_TEXT.preflight.downloadConfirmTitle, '']
+  lines.push(UI_TEXT.preflight.downloadConfirmOpenQuestions(result.openQuestions))
+  lines.push(UI_TEXT.preflight.downloadConfirmSkipMarkers(result.skipMarkers))
+  for (const marker of EXTENSIBLE_MARKERS) {
+    lines.push(UI_TEXT.preflight.downloadConfirmMarkerCount(marker.label, result.markerCounts[marker.id] ?? 0))
+  }
+  if (markerDefinitions) {
+    for (const [name, def] of Object.entries(markerDefinitions.markers)) {
+      lines.push(UI_TEXT.preflight.downloadConfirmMarkerCount(def.label, result.markerCounts[name] ?? 0))
+    }
+  }
+  lines.push('')
+  lines.push(UI_TEXT.preflight.downloadConfirmPrompt)
+  return lines.join('\n')
 }
 
 function downloadFile(filename: string, content: string) {
@@ -271,6 +293,10 @@ export default function Home() {
 
   const handleDownloadAll = () => {
     if (!project) return
+    const result = runPreflightCheck(project, markerDefinitions)
+    if (result.warnings.length > 0) {
+      if (!window.confirm(buildDownloadConfirmMessage(result, markerDefinitions))) return
+    }
     const filenames = getProjectFilenames(project.slug)
     downloadFile(filenames.spec, project.spec)
     setTimeout(() => downloadFile(filenames.references, project.memo || '# References\n\n(empty)\n'), DOWNLOAD_STAGGER_MS)
