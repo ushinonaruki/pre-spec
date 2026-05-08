@@ -152,12 +152,11 @@ function InitialConfirmationCard({
         <div className="flex items-start gap-2">
           {statusIcon}
           <div className="flex-1 min-w-0 space-y-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">
-                {UI_TEXT.initialConfirmation.typeLabel}
-              </span>
-              {kindPriorityLabels}
-            </div>
+            {kindPriorityLabels && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {kindPriorityLabels}
+              </div>
+            )}
             <p className={`text-sm ${question.status === 'skipped' ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
               {question.text}
             </p>

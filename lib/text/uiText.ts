@@ -125,7 +125,6 @@ export const UI_TEXT = {
 
   initialConfirmation: {
     phaseLabel: 'Initial Setup',
-    typeLabel: '初期反映',
     proposedMarkdownLabel: '提案 Markdown',
     answerPlaceholder: 'OK / このままでよい / 以下のように修正…',
     applyNote: 'この内容を反映します',
