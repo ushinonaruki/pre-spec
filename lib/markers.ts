@@ -25,8 +25,6 @@ export const EXTENSIBLE_MARKERS: ExtensibleMarkerDef[] = [
   },
 ]
 
-export const MARKERS_FILENAME = 'pre-spec.markers.json'
-
 export function validateMarkerDefinitionFile(value: unknown): MarkerDefinitionFile {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Invalid marker definition file: root must be an object')
