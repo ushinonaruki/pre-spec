@@ -1,8 +1,9 @@
 import type { Project, Question } from '@/types'
 import { UI_TEXT } from '@/lib/text/uiText'
+import { EXTENSIBLE_MARKERS } from '@/lib/markers'
 
 export type PreflightWarning = {
-  type: 'open_questions' | 'skip_markers' | 'revisit_markers' | 'protected_markers'
+  type: string
   count: number
   message: string
 }
@@ -10,10 +11,7 @@ export type PreflightWarning = {
 export type PreflightCheckResult = {
   openQuestions: number
   skipMarkers: number
-  revisitMarkers: number
-  revisitRangeMarkers: number
-  protectedMarkers: number
-  protectedRangeMarkers: number
+  markerCounts: Record<string, number>
   warnings: PreflightWarning[]
 }
 
@@ -29,49 +27,28 @@ export function runPreflightCheck(project: Project): PreflightCheckResult {
   ).length
 
   const skipMarkers = countPattern(spec, /\[pre-spec:skip:[a-z_-]+\]/g)
-  const revisitMarkers = countPattern(spec, /\[pre-spec:revisit\]/g)
-  const revisitRangeMarkers = countPattern(spec, /<!--\s*pre-spec:revisit:start\s*-->/g)
-  const protectedMarkers = countPattern(spec, /\[pre-spec:protected\]/g)
-  const protectedRangeMarkers = countPattern(spec, /<!--\s*pre-spec:protected:start\s*-->/g)
+
+  const markerCounts: Record<string, number> = {}
+  for (const marker of EXTENSIBLE_MARKERS) {
+    const inline = countPattern(spec, marker.inlinePattern)
+    const range = marker.rangePattern ? countPattern(spec, marker.rangePattern) : 0
+    markerCounts[marker.id] = inline + range
+  }
 
   const warnings: PreflightWarning[] = []
 
   if (openQuestions > 0) {
-    warnings.push({
-      type: 'open_questions',
-      count: openQuestions,
-      message: UI_TEXT.preflight.warnOpenQuestions,
-    })
+    warnings.push({ type: 'open_questions', count: openQuestions, message: UI_TEXT.preflight.warnOpenQuestions })
   }
   if (skipMarkers > 0) {
-    warnings.push({
-      type: 'skip_markers',
-      count: skipMarkers,
-      message: UI_TEXT.preflight.warnSkipMarkers,
-    })
+    warnings.push({ type: 'skip_markers', count: skipMarkers, message: UI_TEXT.preflight.warnSkipMarkers })
   }
-  if (revisitMarkers + revisitRangeMarkers > 0) {
-    warnings.push({
-      type: 'revisit_markers',
-      count: revisitMarkers + revisitRangeMarkers,
-      message: UI_TEXT.preflight.warnRevisitMarkers,
-    })
-  }
-  if (protectedMarkers + protectedRangeMarkers > 0) {
-    warnings.push({
-      type: 'protected_markers',
-      count: protectedMarkers + protectedRangeMarkers,
-      message: UI_TEXT.preflight.warnProtectedMarkers,
-    })
+  for (const marker of EXTENSIBLE_MARKERS) {
+    const count = markerCounts[marker.id]
+    if (count > 0) {
+      warnings.push({ type: marker.id, count, message: marker.warningMessage })
+    }
   }
 
-  return {
-    openQuestions,
-    skipMarkers,
-    revisitMarkers,
-    revisitRangeMarkers,
-    protectedMarkers,
-    protectedRangeMarkers,
-    warnings,
-  }
+  return { openQuestions, skipMarkers, markerCounts, warnings }
 }
