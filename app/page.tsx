@@ -7,7 +7,7 @@ import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
-import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
@@ -198,7 +198,7 @@ export default function Home() {
           spec: project.spec,
           memo: project.memo,
           existingQuestions,
-          recentAggregationLog: project.log.slice(-LOG_TAIL_CHARS),
+          recentAggregationLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
           markerContexts,
         }),
       )
@@ -251,7 +251,7 @@ export default function Home() {
           answer,
           currentSpec: project.spec,
           referenceMemo: project.memo,
-          recentLog: project.log.slice(-LOG_TAIL_CHARS),
+          recentLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
         }),
       )
       const formatResult = extractJSON<AnswerFormatResult>(text)

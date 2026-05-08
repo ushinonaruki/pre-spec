@@ -91,7 +91,6 @@ export type Project = {
   updatedAt: string
   initialPrompt: string
   spec: string
-  log: string
   memo: string
   sections: Section[]
   currentSectionId: string | null
@@ -160,7 +159,7 @@ export type PreSpecProject = {
   }
   workspace: {
     draftSpecMarkdown: string
-    referenceMarkdown: string
+    referencesMarkdown: string
     currentSectionId: string | null
     sections: Section[]
     timeline: TimelineItem[]
