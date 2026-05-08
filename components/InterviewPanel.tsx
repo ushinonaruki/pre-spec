@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ManualEdit, PhaseMarker, Question, QuestionPriority, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
 import { SKIP_REASON_LABELS } from '@/types'
 import { UI_TEXT } from '@/lib/text/uiText'
+import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 const PRIORITY_COLORS: Record<QuestionPriority, string> = {
   high: 'bg-red-100 text-red-700',
@@ -90,7 +91,7 @@ function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Sectio
         </p>
       )}
       <p className="text-xs text-stone-300">
-        {new Date(edit.createdAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
+        {new Date(edit.createdAt).toLocaleString(APP_LOCALE, { timeZone: APP_TIMEZONE })}
       </p>
     </div>
   )

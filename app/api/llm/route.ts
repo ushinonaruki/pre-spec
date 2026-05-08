@@ -1,7 +1,9 @@
 import type { LlmProvider } from '@/lib/llm/providers'
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
-const ANTHROPIC_MODEL = 'claude-haiku-4-5-20251001'
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001'
+const ANTHROPIC_API_VERSION = process.env.ANTHROPIC_API_VERSION ?? '2023-06-01'
+const ANTHROPIC_MAX_TOKENS = parseInt(process.env.ANTHROPIC_MAX_TOKENS ?? '2048', 10)
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { prompt?: string; provider?: LlmProvider }
@@ -28,12 +30,12 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': ANTHROPIC_API_VERSION,
         'content-type': 'application/json',
       },
       body: JSON.stringify({
         model: ANTHROPIC_MODEL,
-        max_tokens: 2048,
+        max_tokens: ANTHROPIC_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
