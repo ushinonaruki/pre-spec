@@ -3,12 +3,15 @@ import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import { buildInitialRequirementMemoBlock, buildImportedBlock } from '@/lib/references'
 
+export type InitialRelatedSource =
+  | { kind: 'file'; filename: string; content: string; note?: string }
+  | { kind: 'url'; url: string; note?: string }
+
 export type CreateProjectInputs = {
   projectName: string
   requirementMemo: string
   baseSpecMarkdown?: string
-  relatedMarkdown?: string
-  relatedFilename?: string
+  relatedSources?: InitialRelatedSource[]
 }
 
 export function createProjectFromInputs({

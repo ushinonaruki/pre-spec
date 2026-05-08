@@ -189,21 +189,23 @@ export default function Home() {
       initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), ERROR_BANNER_MS)
     }
 
-    if (inputs.relatedMarkdown?.trim()) {
-      const kind: RelatedSourceKind = inputs.relatedFilename ? 'file' : 'text'
-      const rawName = inputs.relatedFilename ?? 'related-input'
-      const result = await runRelatedSourceReview(kind, rawName, inputs.relatedMarkdown)
+    for (const src of inputs.relatedSources ?? []) {
+      const rawName = src.kind === 'file' ? src.filename : 'url-source'
+      const content = src.kind === 'file' ? src.content : src.url
+      const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
       if (result?.status === 'ok' && result.content) {
         const now = new Date().toISOString()
         const existingNames = baseProject.relatedSources.map((s) => s.name)
         const name = resolveSourceName(existingNames, rawName)
         const newSource: RelatedSource = {
           id: crypto.randomUUID(),
-          kind,
+          kind: src.kind,
           name,
+          note: src.note,
+          ...(src.kind === 'url' ? { url: src.url } : {}),
           addedAt: now,
         }
-        const block = buildRelatedSourceBlock({ kind, name, content: result.content }, now)
+        const block = buildRelatedSourceBlock({ kind: src.kind, name, content: result.content, note: src.note }, now)
         baseProject = {
           ...baseProject,
           memo: baseProject.memo.replace(/\n+$/, '') + '\n\n' + block + '\n',
