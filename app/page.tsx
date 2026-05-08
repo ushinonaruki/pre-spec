@@ -9,7 +9,8 @@ import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
-import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt } from '@/lib/llm/prompts'
+import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt } from '@/lib/llm/prompts'
+import type { RelatedSourceReviewResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
@@ -308,26 +309,40 @@ export default function Home() {
   }
 
   const handleAddReference = useCallback(
-    (kind: RelatedSourceKind, rawName: string, content: string, note?: string) => {
-      updateProject((prev) => {
-        const now = new Date().toISOString()
-        const existingNames = prev.relatedSources.map((s) => s.name)
-        const name = resolveSourceName(existingNames, rawName)
-        const newSource: RelatedSource = {
-          id: crypto.randomUUID(),
-          kind,
-          name,
-          note,
-          addedAt: now,
-        }
-        const block = buildRelatedSourceBlock({ kind, name, content, note }, now)
-        const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
-        return {
-          ...prev,
-          memo: newMemo,
-          relatedSources: [...prev.relatedSources, newSource],
-        }
-      })
+    async (kind: RelatedSourceKind, rawName: string, content: string, note?: string): Promise<{ ok: boolean; reason?: string }> => {
+      try {
+        const text = await callLLM(
+          buildRelatedSourceReviewPrompt({ name: rawName, kind, content, note }),
+        )
+        const result = extractJSON<RelatedSourceReviewResult>(text)
+        if (!result) return { ok: false }
+        if (result.status === 'unreadable') return { ok: false, reason: result.reason }
+        const aiContent = result.content
+        if (!aiContent) return { ok: false }
+
+        updateProject((prev: Project) => {
+          const now = new Date().toISOString()
+          const existingNames = prev.relatedSources.map((s) => s.name)
+          const name = resolveSourceName(existingNames, rawName)
+          const newSource: RelatedSource = {
+            id: crypto.randomUUID(),
+            kind,
+            name,
+            note,
+            addedAt: now,
+          }
+          const block = buildRelatedSourceBlock({ kind, name, content: aiContent, note }, now)
+          const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
+          return {
+            ...prev,
+            memo: newMemo,
+            relatedSources: [...prev.relatedSources, newSource],
+          }
+        })
+        return { ok: true }
+      } catch {
+        return { ok: false }
+      }
     },
     [updateProject],
   )
@@ -449,7 +464,7 @@ function TimelineBottomTabs({
   project: Project
   bottomTab: BottomTab
   setBottomTab: (t: BottomTab) => void
-  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => void
+  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
 }) {
   const timelineMarkdown = useMemo(
     () => generateTimelineMarkdown(project.timeline, project.sections),
