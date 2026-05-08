@@ -361,12 +361,12 @@ function RelatedEntryRow({
         />
       )}
 
-      <input
-        type="text"
+      <textarea
         value={entry.note}
         onChange={(e) => onChange(entry.id, { note: e.target.value })}
         placeholder={UI_TEXT.startScreen.relatedNotePlaceholder}
-        className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400"
+        rows={2}
+        className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 resize-none"
       />
     </div>
   )
