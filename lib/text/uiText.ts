@@ -59,6 +59,7 @@ export const UI_TEXT = {
     addRefText: 'テキスト',
     addRefFile: 'ファイル',
     addRefTextPlaceholder: '本文を入力…',
+    addRefNotePlaceholder: 'note',
     addRefFileButton: 'ファイルを選ぶ (.md / .txt)',
     addRefAddButton: '追加',
   },
