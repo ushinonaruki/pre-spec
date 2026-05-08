@@ -1,11 +1,10 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import type { MarkerDefinitionFile, Project } from '@/types'
+import type { Project } from '@/types'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
-import { MARKERS_FILENAME, validateMarkerDefinitionFile } from '@/lib/markers'
 import { UI_TEXT } from '@/lib/text/uiText'
 
 const WORK_FILE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*\.pre-spec\.json$/
@@ -15,17 +14,14 @@ type View = 'landing' | 'new_project'
 type Props = {
   onCreate: (inputs: CreateProjectInputs) => Promise<void>
   onOpenProject: (project: Project) => void
-  onMarkersLoaded: (defs: MarkerDefinitionFile | null) => void
 }
 
-export default function StartScreen({ onCreate, onOpenProject, onMarkersLoaded }: Props) {
+export default function StartScreen({ onCreate, onOpenProject }: Props) {
   const [view, setView] = useState<View>('landing')
   const [projectName, setProjectName] = useState('')
   const [requirementMemo, setRequirementMemo] = useState('')
   const [relatedMarkdown, setRelatedMarkdown] = useState<string | undefined>(undefined)
   const [relatedFilename, setRelatedFilename] = useState<string | undefined>(undefined)
-  const [markersFilename, setMarkersFilename] = useState<string | undefined>(undefined)
-  const [markersError, setMarkersError] = useState<string | null>(null)
   const [nameError, setNameError] = useState<string | null>(null)
   const [memoError, setMemoError] = useState<string | null>(null)
   const [openError, setOpenError] = useState<string | null>(null)
@@ -34,30 +30,6 @@ export default function StartScreen({ onCreate, onOpenProject, onMarkersLoaded }
 
   const jsonInputRef = useRef<HTMLInputElement>(null)
   const relatedFileInputRef = useRef<HTMLInputElement>(null)
-  const markersFileInputRef = useRef<HTMLInputElement>(null)
-  const markersFileInputLandingRef = useRef<HTMLInputElement>(null)
-
-  const handleMarkersFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    e.target.value = ''
-    setMarkersError(null)
-
-    if (file.name !== MARKERS_FILENAME) {
-      setMarkersError(UI_TEXT.startScreen.markersFileNameError)
-      return
-    }
-
-    try {
-      const text = await file.text()
-      const raw = JSON.parse(text) as unknown
-      const defs = validateMarkerDefinitionFile(raw)
-      setMarkersFilename(file.name)
-      onMarkersLoaded(defs)
-    } catch {
-      setMarkersError(UI_TEXT.startScreen.markersFileError)
-    }
-  }
 
   const handleJsonFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -132,32 +104,6 @@ export default function StartScreen({ onCreate, onOpenProject, onMarkersLoaded }
     }
   }
 
-  const markersSection = (inputRef: React.RefObject<HTMLInputElement | null>) => (
-    <div className="space-y-1.5">
-      <p className="text-sm font-medium text-stone-700">{UI_TEXT.startScreen.markersLabel}</p>
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".json"
-        onChange={(e) => { void handleMarkersFileChange(e) }}
-        className="hidden"
-      />
-      <button
-        onClick={() => inputRef.current?.click()}
-        className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
-      >
-        {UI_TEXT.startScreen.markersFileButton}
-      </button>
-      {markersFilename && (
-        <p className="text-xs text-stone-500">{UI_TEXT.startScreen.markersFileSelected(markersFilename)}</p>
-      )}
-      {markersError && <p className="text-xs text-red-600">{markersError}</p>}
-      {!markersFilename && !markersError && (
-        <p className="text-xs text-stone-400">{UI_TEXT.startScreen.markersFileHint}</p>
-      )}
-    </div>
-  )
-
   if (view === 'landing') {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6">
@@ -194,11 +140,6 @@ export default function StartScreen({ onCreate, onOpenProject, onMarkersLoaded }
               {UI_TEXT.startScreen.newProject}
             </button>
           </div>
-
-          <div className="border-t border-stone-200 pt-4">
-            {markersSection(markersFileInputLandingRef)}
-          </div>
-
         </div>
       </div>
     )
@@ -274,9 +215,6 @@ export default function StartScreen({ onCreate, onOpenProject, onMarkersLoaded }
               className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 resize-none"
             />
           </div>
-
-          {/* marker 定義ファイル */}
-          {markersSection(markersFileInputRef)}
 
           <div className="flex gap-2">
             <button

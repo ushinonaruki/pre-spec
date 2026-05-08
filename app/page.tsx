@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
@@ -14,7 +14,7 @@ import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
-import { EXTENSIBLE_MARKERS, extractMarkerContexts } from '@/lib/markers'
+import { EXTENSIBLE_MARKERS, extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -96,6 +96,23 @@ export default function Home() {
   const [initConfirmFailed, setInitConfirmFailed] = useState(false)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    fetch('/pre-spec.markers.json')
+      .then((res) => {
+        if (!res.ok) return
+        return res.json() as Promise<unknown>
+      })
+      .then((raw) => {
+        if (!raw) return
+        try {
+          setMarkerDefinitions(validateMarkerDefinitionFile(raw))
+        } catch {
+          // invalid file — ignore silently
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const updateProject = useCallback(
     (updater: (prev: Project) => Project) => {
@@ -320,7 +337,6 @@ export default function Home() {
     <StartScreen
       onCreate={(inputs) => handleCreate(inputs)}
       onOpenProject={handleOpenProject}
-      onMarkersLoaded={setMarkerDefinitions}
     />
   )
 
