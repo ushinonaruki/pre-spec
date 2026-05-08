@@ -62,6 +62,9 @@ export const UI_TEXT = {
     addRefNotePlaceholder: 'note',
     addRefFileButton: 'ファイルを選ぶ (.md / .txt)',
     addRefAddButton: '追加',
+    addRefReviewing: '確認中…',
+    addRefUnreadable: (reason: string) => `読み込み不可: ${reason}`,
+    addRefError: '確認に失敗しました',
   },
 
   interview: {

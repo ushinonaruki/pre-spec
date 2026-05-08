@@ -12,7 +12,7 @@ type Props = {
   onTabChange: (t: Tab) => void
   log: string
   memo: string
-  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => void
+  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
 }
 
 export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddReference }: Props) {
@@ -21,6 +21,8 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
   const [noteInput, setNoteInput] = useState('')
   const [fileContent, setFileContent] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
+  const [isReviewing, setIsReviewing] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const tabs: { id: Tab; label: string }[] = [
@@ -34,6 +36,8 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
     setNoteInput('')
     setFileContent(null)
     setFileName(null)
+    setIsReviewing(false)
+    setReviewError(null)
   }
 
   function closeAddForm() {
@@ -42,18 +46,34 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
     setNoteInput('')
     setFileContent(null)
     setFileName(null)
+    setIsReviewing(false)
+    setReviewError(null)
   }
 
-  function handleAddText() {
+  async function handleAddText() {
     if (!textInput.trim()) return
-    onAddReference('text', 'related-input', textInput.trim(), noteInput.trim() || undefined)
-    closeAddForm()
+    setIsReviewing(true)
+    setReviewError(null)
+    const result = await onAddReference('text', 'related-input', textInput.trim(), noteInput.trim() || undefined)
+    setIsReviewing(false)
+    if (result.ok) {
+      closeAddForm()
+    } else {
+      setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+    }
   }
 
-  function handleAddFile() {
+  async function handleAddFile() {
     if (!fileContent || !fileName) return
-    onAddReference('file', fileName, fileContent, noteInput.trim() || undefined)
-    closeAddForm()
+    setIsReviewing(true)
+    setReviewError(null)
+    const result = await onAddReference('file', fileName, fileContent, noteInput.trim() || undefined)
+    setIsReviewing(false)
+    if (result.ok) {
+      closeAddForm()
+    } else {
+      setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+    }
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -77,7 +97,8 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
         value={noteInput}
         onChange={(e) => setNoteInput(e.target.value)}
         placeholder={UI_TEXT.bottomTabs.addRefNotePlaceholder}
-        className="flex-1 text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400"
+        disabled={isReviewing}
+        className="flex-1 text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 disabled:opacity-50"
       />
     </div>
   )
@@ -114,20 +135,23 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
           <div className="flex flex-col h-full">
             <div className="flex items-center gap-1 px-2 py-1.5 border-b border-stone-100 bg-stone-50 shrink-0">
               <button
-                onClick={() => setAddMode('text')}
-                className={`text-xs px-2 py-0.5 rounded transition-colors ${addMode === 'text' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+                onClick={() => { setAddMode('text'); setReviewError(null) }}
+                disabled={isReviewing}
+                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 ${addMode === 'text' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 {UI_TEXT.bottomTabs.addRefText}
               </button>
               <button
-                onClick={() => setAddMode('file')}
-                className={`text-xs px-2 py-0.5 rounded transition-colors ${addMode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+                onClick={() => { setAddMode('file'); setReviewError(null) }}
+                disabled={isReviewing}
+                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 ${addMode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 {UI_TEXT.bottomTabs.addRefFile}
               </button>
               <button
                 onClick={closeAddForm}
-                className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors"
+                disabled={isReviewing}
+                className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 ✕
               </button>
@@ -139,17 +163,21 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
                   placeholder={UI_TEXT.bottomTabs.addRefTextPlaceholder}
-                  className="flex-1 min-h-0 resize-none p-2 text-xs font-mono text-stone-700 bg-white focus:outline-none"
+                  disabled={isReviewing}
+                  className="flex-1 min-h-0 resize-none p-2 text-xs font-mono text-stone-700 bg-white focus:outline-none disabled:opacity-50"
                 />
                 {noteRow}
-                <div className="shrink-0 px-2 py-1.5 border-t border-stone-100">
+                <div className="shrink-0 px-2 py-1.5 border-t border-stone-100 flex items-center gap-2">
                   <button
-                    onClick={handleAddText}
-                    disabled={!textInput.trim()}
+                    onClick={() => { void handleAddText() }}
+                    disabled={!textInput.trim() || isReviewing}
                     className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    {UI_TEXT.bottomTabs.addRefAddButton}
+                    {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
                   </button>
+                  {reviewError !== null && (
+                    <span className="text-xs text-red-600">{reviewError}</span>
+                  )}
                 </div>
               </div>
             )}
@@ -159,13 +187,17 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
                 <div className="flex flex-col flex-1 min-h-0 justify-end">
                   <div className="px-2 py-1.5 text-xs font-mono text-stone-500 shrink-0">{fileName}</div>
                   {noteRow}
-                  <div className="shrink-0 px-2 py-1.5 border-t border-stone-100">
+                  <div className="shrink-0 px-2 py-1.5 border-t border-stone-100 flex items-center gap-2">
                     <button
-                      onClick={handleAddFile}
-                      className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 transition-colors"
+                      onClick={() => { void handleAddFile() }}
+                      disabled={isReviewing}
+                      className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
-                      {UI_TEXT.bottomTabs.addRefAddButton}
+                      {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
                     </button>
+                    {reviewError !== null && (
+                      <span className="text-xs text-red-600">{reviewError}</span>
+                    )}
                   </div>
                 </div>
               ) : (
