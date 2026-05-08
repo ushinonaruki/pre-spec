@@ -49,49 +49,15 @@ priority 候補: high / medium / low
 {
   "questions": [
     {
-      "sectionTitle": "User Scenarios & Testing",
-      "text": "User Scenarios & Testing に以下を置いてよいですか？",
-      "reason": "要件定義メモからユーザーシナリオとして読み取れるため",
+      "sectionTitle": "(セクション名)",
+      "text": "(セクション名) に以下を置いてよいですか？",
+      "reason": "要件定義メモから読み取れるため",
       "kind": "scope",
       "priority": "high",
       "proposedMarkdown": "- ..."
     }
   ]
 }`
-}
-
-export function buildInitialSpecPrompt(prompt: string): string {
-  return `You are a software specification assistant. Based on the following feature description, generate a structured specification in Markdown.
-
-Feature: ${prompt}
-
-Generate the specification with exactly these sections (use ## for section headers):
-
-# Feature Specification: [FEATURE NAME]
-
-## User Scenarios & Testing
-
-### User Story 1 - [Brief Title] (Priority: P1)
-
-### User Story 2 - [Brief Title] (Priority: P2)
-
-### User Story 3 - [Brief Title] (Priority: P3)
-
-### Edge Cases
-
-## Requirements
-
-### Functional Requirements
-
-### Key Entities
-
-## Success Criteria
-
-### Measurable Outcomes
-
-## Assumptions
-
-Write concise, actionable content in each section based on the description. Return ONLY the markdown, no preamble or explanation.`
 }
 
 export function buildAnswerFormatPrompt(params: {
