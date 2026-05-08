@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
+import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReason } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
@@ -15,6 +15,7 @@ import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames 
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
 import { EXTENSIBLE_MARKERS, extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
+import { buildRelatedSourceBlock, resolveSourceName } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -306,9 +307,29 @@ export default function Home() {
     updateProject((prev) => advanceSection(prev))
   }
 
-  const handleMemoChange = (v: string) => {
-    updateProject((prev) => ({ ...prev, memo: v }))
-  }
+  const handleAddReference = useCallback(
+    (kind: RelatedSourceKind, rawName: string, content: string) => {
+      updateProject((prev) => {
+        const now = new Date().toISOString()
+        const existingNames = prev.relatedSources.map((s) => s.name)
+        const name = resolveSourceName(existingNames, rawName)
+        const newSource: RelatedSource = {
+          id: crypto.randomUUID(),
+          kind,
+          name,
+          addedAt: now,
+        }
+        const block = buildRelatedSourceBlock({ kind, name, content }, now)
+        const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
+        return {
+          ...prev,
+          memo: newMemo,
+          relatedSources: [...prev.relatedSources, newSource],
+        }
+      })
+    },
+    [updateProject],
+  )
 
   const handleDownloadAll = () => {
     if (!project) return
@@ -392,7 +413,7 @@ export default function Home() {
               project={project}
               bottomTab={bottomTab}
               setBottomTab={setBottomTab}
-              onMemoChange={handleMemoChange}
+              onAddReference={handleAddReference}
             />
           </div>
         </div>
@@ -422,12 +443,12 @@ function TimelineBottomTabs({
   project,
   bottomTab,
   setBottomTab,
-  onMemoChange,
+  onAddReference,
 }: {
   project: Project
   bottomTab: BottomTab
   setBottomTab: (t: BottomTab) => void
-  onMemoChange: (v: string) => void
+  onAddReference: (kind: RelatedSourceKind, name: string, content: string) => void
 }) {
   const timelineMarkdown = useMemo(
     () => generateTimelineMarkdown(project.timeline, project.sections),
@@ -439,7 +460,7 @@ function TimelineBottomTabs({
       onTabChange={setBottomTab}
       log={timelineMarkdown}
       memo={project.memo}
-      onMemoChange={onMemoChange}
+      onAddReference={onAddReference}
     />
   )
 }
