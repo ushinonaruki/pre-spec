@@ -1,6 +1,5 @@
+import type { RelatedSourceKind } from '@/types'
 import { buildImportedBlock, type ImportedBlockParams } from '@/lib/references'
-
-export type RelatedSourceKind = 'file' | 'text'
 
 export type RelatedSourceInput = {
   kind: RelatedSourceKind

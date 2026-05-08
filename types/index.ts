@@ -92,6 +92,7 @@ export type Project = {
   initialPrompt: string
   spec: string
   memo: string
+  relatedSources: RelatedSource[]
   sections: Section[]
   currentSectionId: string | null
   timeline: TimelineItem[]
@@ -103,15 +104,14 @@ export type AnswerFormatResult = {
   openQuestionInsertions: string[]
 }
 
+export type RelatedSourceKind = 'file' | 'text'
+
 export type RelatedSource = {
   id: string
-  label: string
-  kind: 'file' | 'url' | 'github_file' | 'text' | 'diff'
-  status: 'readable' | 'unreadable'
-  checkedAt: string
-  importedToReference: boolean
+  kind: RelatedSourceKind
+  name: string
   note?: string
-  error?: string
+  addedAt: string
 }
 
 export type CustomMarkerDefinition = {
