@@ -76,11 +76,9 @@ export const UI_TEXT = {
   },
 
   interview: {
-    currentSectionLabel: '現在セクション',
     nextButton: '次へ →',
     addQuestionsButton: '+ 質問を追加',
     addQuestionsLoading: '生成中…',
-    nextSectionHint: (title: string) => `次: ${title}`,
     openQuestionsWarning:
       '未回答の質問があります。先に回答するか、スキップして未決事項として残してください。',
     formattingFallbackWarning: '整形に失敗しました。回答をそのまま反映しました。',

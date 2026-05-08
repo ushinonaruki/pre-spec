@@ -541,12 +541,6 @@ export default function InterviewPanel({
 
   const slots = buildTimelineSlots(timeline)
 
-  const currentIdx = sections.findIndex((s) => s.id === currentSection?.id)
-  const nextSection =
-    sections.length > 0
-      ? sections[currentIdx === -1 || currentIdx === sections.length - 1 ? 0 : currentIdx + 1]
-      : null
-
   const disabledTitle =
     openCount > 0 ? UI_TEXT.interview.openQuestionsWarning : undefined
 
@@ -564,7 +558,6 @@ export default function InterviewPanel({
       <div className="shrink-0 space-y-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-stone-400 mb-0.5">{UI_TEXT.interview.currentSectionLabel}</p>
             <p className="text-sm font-semibold text-stone-800 truncate">## {currentSection.title}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -588,16 +581,6 @@ export default function InterviewPanel({
             </span>
           </div>
         </div>
-
-        {nextSection && (
-          <p className="text-xs text-stone-400">{UI_TEXT.interview.nextSectionHint(nextSection.title)}</p>
-        )}
-
-        {openCount > 0 && (
-          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-            {UI_TEXT.interview.openQuestionsWarning}
-          </div>
-        )}
 
         {formattingFallback && (
           <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
