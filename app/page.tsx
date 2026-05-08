@@ -20,6 +20,10 @@ import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
 import PreflightPanel from '@/components/PreflightPanel'
 
+const LOG_TAIL_CHARS = 1500
+const ERROR_BANNER_MS = 5000
+const DOWNLOAD_STAGGER_MS = 100
+
 type BottomTab = 'log' | 'memo'
 
 type RawQuestion = {
@@ -122,7 +126,7 @@ export default function Home() {
     } catch {
       if (initConfirmTimer.current) clearTimeout(initConfirmTimer.current)
       setInitConfirmFailed(true)
-      initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), 5000)
+      initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), ERROR_BANNER_MS)
       setProject(p)
     }
   }, [])
@@ -170,7 +174,7 @@ export default function Home() {
           spec: project.spec,
           memo: project.memo,
           existingQuestions,
-          recentAggregationLog: project.log.slice(-1500),
+          recentAggregationLog: project.log.slice(-LOG_TAIL_CHARS),
         }),
       )
       const raw = extractJSON<{ questions: RawQuestion[] }>(text)
@@ -222,7 +226,7 @@ export default function Home() {
           answer,
           currentSpec: project.spec,
           referenceMemo: project.memo,
-          recentLog: project.log.slice(-1500),
+          recentLog: project.log.slice(-LOG_TAIL_CHARS),
         }),
       )
       const formatResult = extractJSON<AnswerFormatResult>(text)
@@ -234,7 +238,7 @@ export default function Home() {
       })
     } catch {
       setFormattingFallback(true)
-      fallbackTimer.current = setTimeout(() => setFormattingFallback(false), 5000)
+      fallbackTimer.current = setTimeout(() => setFormattingFallback(false), ERROR_BANNER_MS)
       updateProject((prev) => {
         const withSpec = applyAnswer(prev, { sectionTitle, question: questionText, answer })
         return answerQuestion(withSpec, { questionId, answer })
@@ -268,8 +272,8 @@ export default function Home() {
     if (!project) return
     const filenames = getProjectFilenames(project.slug)
     downloadFile(filenames.spec, project.spec)
-    setTimeout(() => downloadFile(filenames.references, project.memo || '# References\n\n(empty)\n'), 100)
-    setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), 200)
+    setTimeout(() => downloadFile(filenames.references, project.memo || '# References\n\n(empty)\n'), DOWNLOAD_STAGGER_MS)
+    setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
   }
 
   const handleDownloadProjectJson = () => {

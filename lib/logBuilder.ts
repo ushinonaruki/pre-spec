@@ -1,8 +1,9 @@
 import type { SkipReason } from '@/types'
 import { SKIP_REASON_LABELS } from '@/types'
+import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 function formatTime(d: Date): string {
-  return d.toLocaleString('ja-JP', {
+  return d.toLocaleString(APP_LOCALE, { timeZone: APP_TIMEZONE,
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   })

@@ -1,6 +1,7 @@
 import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
 import { extractSections } from '@/lib/markdown'
 import { TIMELINE_TEXT } from '@/lib/text/timelineText'
+import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 const CURRENT_VERSION = '1'
 
@@ -83,7 +84,7 @@ export function validatePreSpecProject(raw: unknown): raw is PreSpecProject {
 
 function formatTimestamp(iso: string): string {
   try {
-    return new Date(iso).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
+    return new Date(iso).toLocaleString(APP_LOCALE, { timeZone: APP_TIMEZONE })
   } catch {
     return iso
   }
