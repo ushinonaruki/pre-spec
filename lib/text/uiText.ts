@@ -98,12 +98,8 @@ export const UI_TEXT = {
     title: '出力前チェック',
     openQuestions: 'open 質問',
     skipMarkers: 'skip marker',
-    revisitMarkers: 'revisit marker',
-    protectedMarkers: 'protected marker',
     warnOpenQuestions: '未回答の質問が残っています。',
     warnSkipMarkers: 'skip marker が残っています。未決事項を含む spec.md として出力されます。',
-    warnRevisitMarkers: 'revisit marker が残っています。再確認対象を含む spec.md として出力されます。',
-    warnProtectedMarkers: 'protected marker が残っています。保護された内容を含む spec.md として出力されます。',
   },
 
   initialConfirmation: {
