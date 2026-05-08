@@ -5,7 +5,7 @@ import type { RelatedSourceKind } from '@/types'
 import { UI_TEXT } from '@/lib/text/uiText'
 
 type Tab = 'log' | 'memo'
-type AddMode = 'text' | 'file'
+type AddMode = 'text' | 'file' | 'url'
 
 type Props = {
   activeTab: Tab
@@ -18,6 +18,7 @@ type Props = {
 export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddReference }: Props) {
   const [addMode, setAddMode] = useState<AddMode | null>(null)
   const [textInput, setTextInput] = useState('')
+  const [urlInput, setUrlInput] = useState('')
   const [noteInput, setNoteInput] = useState('')
   const [fileContent, setFileContent] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
@@ -33,6 +34,7 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
   function openAddForm() {
     setAddMode('text')
     setTextInput('')
+    setUrlInput('')
     setNoteInput('')
     setFileContent(null)
     setFileName(null)
@@ -43,6 +45,7 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
   function closeAddForm() {
     setAddMode(null)
     setTextInput('')
+    setUrlInput('')
     setNoteInput('')
     setFileContent(null)
     setFileName(null)
@@ -68,6 +71,19 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
     setIsReviewing(true)
     setReviewError(null)
     const result = await onAddReference('file', fileName, fileContent, noteInput.trim() || undefined)
+    setIsReviewing(false)
+    if (result.ok) {
+      closeAddForm()
+    } else {
+      setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+    }
+  }
+
+  async function handleAddUrl() {
+    if (!urlInput.trim()) return
+    setIsReviewing(true)
+    setReviewError(null)
+    const result = await onAddReference('url', 'url-source', urlInput.trim(), noteInput.trim() || undefined)
     setIsReviewing(false)
     if (result.ok) {
       closeAddForm()
@@ -149,6 +165,13 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
                 {UI_TEXT.bottomTabs.addRefFile}
               </button>
               <button
+                onClick={() => { setAddMode('url'); setReviewError(null) }}
+                disabled={isReviewing}
+                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 ${addMode === 'url' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+              >
+                {UI_TEXT.bottomTabs.addRefUrl}
+              </button>
+              <button
                 onClick={closeAddForm}
                 disabled={isReviewing}
                 className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -217,6 +240,34 @@ export default function BottomTabs({ activeTab, onTabChange, log, memo, onAddRef
                   </button>
                 </div>
               )
+            )}
+
+            {addMode === 'url' && (
+              <div className="flex flex-col flex-1 min-h-0">
+                <div className="px-2 py-1.5 shrink-0">
+                  <input
+                    type="text"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    placeholder={UI_TEXT.bottomTabs.addRefUrlPlaceholder}
+                    disabled={isReviewing}
+                    className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 disabled:opacity-50 font-mono"
+                  />
+                </div>
+                {noteRow}
+                <div className="shrink-0 px-2 py-1.5 border-t border-stone-100 flex items-center gap-2">
+                  <button
+                    onClick={() => { void handleAddUrl() }}
+                    disabled={!urlInput.trim() || isReviewing}
+                    className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
+                  </button>
+                  {reviewError !== null && (
+                    <span className="text-xs text-red-600">{reviewError}</span>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         ) : (

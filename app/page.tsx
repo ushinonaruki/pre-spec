@@ -313,6 +313,7 @@ export default function Home() {
       try {
         const text = await callLLM(
           buildRelatedSourceReviewPrompt({ name: rawName, kind, content, note }),
+          kind === 'url' ? { url: content } : undefined,
         )
         const result = extractJSON<RelatedSourceReviewResult>(text)
         if (!result) return { ok: false }
@@ -329,6 +330,7 @@ export default function Home() {
             kind,
             name,
             note,
+            ...(kind === 'url' ? { url: content } : {}),
             addedAt: now,
           }
           const block = buildRelatedSourceBlock({ kind, name, content: aiContent, note }, now)
