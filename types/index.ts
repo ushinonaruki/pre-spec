@@ -20,16 +20,8 @@ export type Section = {
   order: number
 }
 
-export type QuestionKind =
-  | 'decision'
-  | 'constraint'
-  | 'risk'
-  | 'scope'
-  | 'data'
-  | 'flow'
-  | 'assumption'
-
-export type QuestionPriority = 'high' | 'medium' | 'low'
+import type { QuestionKind, QuestionPriority } from '@/lib/config/questionTaxonomy'
+export type { QuestionKind, QuestionPriority }
 
 export type PhaseMarker = {
   id: string
