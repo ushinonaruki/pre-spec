@@ -131,6 +131,19 @@ export type MarkerDefinitionFile = {
   markers: Record<string, MarkerDefinition>
 }
 
+export type MarkerTarget = {
+  markerType: 'inline' | 'range'
+  text: string
+}
+
+export type MarkerContext = {
+  name: string
+  label: string
+  description: string
+  questionInstruction?: string
+  targets: MarkerTarget[]
+}
+
 export type PreSpecProject = {
   version: string
   project: {

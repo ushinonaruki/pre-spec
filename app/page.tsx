@@ -14,7 +14,7 @@ import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
-import { EXTENSIBLE_MARKERS } from '@/lib/markers'
+import { EXTENSIBLE_MARKERS, extractMarkerContexts } from '@/lib/markers'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -191,6 +191,7 @@ export default function Home() {
 
     setIsGeneratingTimeline(true)
     try {
+      const markerContexts = extractMarkerContexts(project.spec, markerDefinitions)
       const text = await callLLM(
         buildQuestionTimelinePrompt({
           sectionTitle: section.title,
@@ -198,6 +199,7 @@ export default function Home() {
           memo: project.memo,
           existingQuestions,
           recentAggregationLog: project.log.slice(-LOG_TAIL_CHARS),
+          markerContexts,
         }),
       )
       const raw = extractJSON<{ questions: RawQuestion[] }>(text)
@@ -227,7 +229,7 @@ export default function Home() {
     } finally {
       setIsGeneratingTimeline(false)
     }
-  }, [project, isGeneratingTimeline, updateProject])
+  }, [project, isGeneratingTimeline, updateProject, markerDefinitions])
 
   const handleAnswerQuestion = useCallback(async (questionId: string, answer: string) => {
     if (!project) return

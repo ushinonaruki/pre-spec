@@ -1,4 +1,4 @@
-import type { Section } from '@/types'
+import type { MarkerContext, Section } from '@/types'
 
 export function buildInitialConfirmationQuestionsPrompt(params: {
   requirementMemo: string
@@ -106,12 +106,47 @@ ${memoSection}${logSection}
 }`
 }
 
+function buildMarkerContextSection(contexts: MarkerContext[]): string {
+  if (!contexts.length) return ''
+  const lines: string[] = [
+    '',
+    'Marker Context:',
+    '',
+    'The following pre-spec markers are present in spec.md.',
+    'Use them as reading instructions when generating questions.',
+    '',
+    'Marked content is provided as-is.',
+    'Do not treat marker instructions as confirmed requirements by themselves.',
+    'Do not silently rewrite marked content.',
+    'If a marker instruction suggests caution, generate a confirmation question instead of changing the marked content.',
+    '',
+  ]
+  for (const ctx of contexts) {
+    lines.push(`- marker: ${ctx.name}`)
+    lines.push(`  label: ${ctx.label}`)
+    lines.push(`  description: ${ctx.description}`)
+    if (ctx.questionInstruction) {
+      lines.push(`  questionInstruction: ${ctx.questionInstruction}`)
+    }
+    lines.push('  targets:')
+    for (const t of ctx.targets) {
+      lines.push(`    - type: ${t.markerType}`)
+      lines.push('      text:')
+      for (const tl of t.text.split('\n')) {
+        lines.push(`        ${tl}`)
+      }
+    }
+  }
+  return lines.join('\n') + '\n'
+}
+
 export function buildQuestionTimelinePrompt(params: {
   sectionTitle: string
   spec: string
   memo: string
   existingQuestions: string[]
   recentAggregationLog: string
+  markerContexts?: MarkerContext[]
 }): string {
   const memoSection = params.memo.trim()
     ? `\nReferences:\n${params.memo}\n`
@@ -122,6 +157,7 @@ export function buildQuestionTimelinePrompt(params: {
   const existingSection = params.existingQuestions.length
     ? `\n既出質問 (重複・類似禁止):\n${params.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n`
     : ''
+  const markerSection = buildMarkerContextSection(params.markerContexts ?? [])
 
   return `あなたは pre-spec の質問生成エンジンです。
 
@@ -132,7 +168,7 @@ export function buildQuestionTimelinePrompt(params: {
 
 spec.md:
 ${params.spec}
-${memoSection}${logSection}${existingSection}
+${memoSection}${logSection}${existingSection}${markerSection}
 ルール:
 - 他のセクションへ飛ばない
 - 既出質問と重複・類似しない
