@@ -6,7 +6,6 @@ export const UI_TEXT = {
     tagline: 'LDD Interview Workbench',
     sectionCount: (n: number) => `${n} セクション`,
     downloadAll: '↓ 成果物ダウンロード',
-    downloadProjectJson: '↓ 作業ファイルを保存',
     settings: '⚙ 設定',
     generateTimelineError: '質問の生成に失敗しました。APIキーを確認してください。',
   },
