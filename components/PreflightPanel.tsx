@@ -1,12 +1,16 @@
 'use client'
 
 import type { PreflightCheckResult } from '@/lib/preflight'
+import type { MarkerDefinitionFile } from '@/types'
 import { EXTENSIBLE_MARKERS } from '@/lib/markers'
 import { UI_TEXT } from '@/lib/text/uiText'
 
-type Props = { result: PreflightCheckResult }
+type Props = {
+  result: PreflightCheckResult
+  markerDefinitions?: MarkerDefinitionFile | null
+}
 
-export default function PreflightPanel({ result }: Props) {
+export default function PreflightPanel({ result, markerDefinitions }: Props) {
   const { openQuestions, skipMarkers, markerCounts, warnings } = result
 
   return (
@@ -17,6 +21,9 @@ export default function PreflightPanel({ result }: Props) {
         <span>{UI_TEXT.preflight.skipMarkers}: {skipMarkers}</span>
         {EXTENSIBLE_MARKERS.map((marker) => (
           <span key={marker.id}>{marker.label}: {markerCounts[marker.id] ?? 0}</span>
+        ))}
+        {markerDefinitions && Object.entries(markerDefinitions.markers).map(([name, def]) => (
+          <span key={name}>{def.label}: {markerCounts[name] ?? 0}</span>
         ))}
       </div>
       {warnings.length > 0 && (

@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AnswerFormatResult, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
+import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, SkipReason } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
@@ -66,6 +66,7 @@ function downloadJson(filename: string, content: string) {
 export default function Home() {
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
+  const [markerDefinitions, setMarkerDefinitions] = useState<MarkerDefinitionFile | null>(null)
   const [bottomTab, setBottomTab] = useState<BottomTab>('log')
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
@@ -283,11 +284,17 @@ export default function Home() {
   }
 
   const preflightResult = useMemo(
-    () => (project ? runPreflightCheck(project) : null),
-    [project],
+    () => (project ? runPreflightCheck(project, markerDefinitions) : null),
+    [project, markerDefinitions],
   )
 
-  if (!project) return <StartScreen onCreate={(inputs) => handleCreate(inputs)} onOpenProject={handleOpenProject} />
+  if (!project) return (
+    <StartScreen
+      onCreate={(inputs) => handleCreate(inputs)}
+      onOpenProject={handleOpenProject}
+      onMarkersLoaded={setMarkerDefinitions}
+    />
+  )
 
   const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null
 
@@ -320,7 +327,7 @@ export default function Home() {
         </div>
       </header>
 
-      <PreflightPanel result={preflightResult!} />
+      <PreflightPanel result={preflightResult!} markerDefinitions={markerDefinitions} />
       {initConfirmFailed && (
         <div className="shrink-0 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
           {UI_TEXT.initialConfirmation.generationError}
