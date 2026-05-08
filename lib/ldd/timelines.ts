@@ -21,13 +21,26 @@ export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: n
 }
 
 export function addSectionMarkerIfNeeded(project: Project): Project {
-  const lastMarker = [...project.timeline]
-    .reverse()
-    .find((t): t is SectionMarker => t.type === 'section_marker')
+  const { timeline, currentSectionId } = project
 
-  if (lastMarker?.sectionId === project.currentSectionId) return project
+  let lastSectionMarkerIndex = -1
+  let lastPhaseMarkerIndex = -1
+  for (let i = 0; i < timeline.length; i++) {
+    if (timeline[i].type === 'section_marker') lastSectionMarkerIndex = i
+    if (timeline[i].type === 'phase_marker') lastPhaseMarkerIndex = i
+  }
 
-  const section = project.sections.find((s) => s.id === project.currentSectionId)
+  const lastSectionMarker =
+    lastSectionMarkerIndex >= 0 ? (timeline[lastSectionMarkerIndex] as SectionMarker) : null
+
+  const needsMarker =
+    !lastSectionMarker ||
+    lastSectionMarker.sectionId !== currentSectionId ||
+    lastPhaseMarkerIndex > lastSectionMarkerIndex
+
+  if (!needsMarker) return project
+
+  const section = project.sections.find((s) => s.id === currentSectionId)
   if (!section) return project
 
   const marker: SectionMarker = {
@@ -37,7 +50,7 @@ export function addSectionMarkerIfNeeded(project: Project): Project {
     sectionTitle: section.title,
     createdAt: new Date().toISOString(),
   }
-  return { ...project, timeline: [...project.timeline, marker] }
+  return { ...project, timeline: [...timeline, marker] }
 }
 
 export function addQuestionsToTimeline(project: Project, questions: Question[]): Project {
