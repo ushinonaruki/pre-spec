@@ -308,7 +308,7 @@ export default function Home() {
   }
 
   const handleAddReference = useCallback(
-    (kind: RelatedSourceKind, rawName: string, content: string) => {
+    (kind: RelatedSourceKind, rawName: string, content: string, note?: string) => {
       updateProject((prev) => {
         const now = new Date().toISOString()
         const existingNames = prev.relatedSources.map((s) => s.name)
@@ -317,9 +317,10 @@ export default function Home() {
           id: crypto.randomUUID(),
           kind,
           name,
+          note,
           addedAt: now,
         }
-        const block = buildRelatedSourceBlock({ kind, name, content }, now)
+        const block = buildRelatedSourceBlock({ kind, name, content, note }, now)
         const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
         return {
           ...prev,
@@ -448,7 +449,7 @@ function TimelineBottomTabs({
   project: Project
   bottomTab: BottomTab
   setBottomTab: (t: BottomTab) => void
-  onAddReference: (kind: RelatedSourceKind, name: string, content: string) => void
+  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => void
 }) {
   const timelineMarkdown = useMemo(
     () => generateTimelineMarkdown(project.timeline, project.sections),
