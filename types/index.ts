@@ -121,6 +121,16 @@ export type CustomMarkerDefinition = {
   questionInstruction?: string
 }
 
+export type MarkerDefinition = {
+  label: string
+  description: string
+  questionInstruction?: string
+}
+
+export type MarkerDefinitionFile = {
+  markers: Record<string, MarkerDefinition>
+}
+
 export type PreSpecProject = {
   version: string
   project: {
