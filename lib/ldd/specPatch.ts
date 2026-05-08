@@ -1,6 +1,5 @@
 import type { AnswerFormatResult, Project, SkipReason } from '@/types'
 import { insertUnderHeading } from '@/lib/markdown'
-import { appendAnswerLog, appendSkipLog } from '@/lib/logBuilder'
 
 function buildSkipMarkerLine(params: {
   question: string
@@ -18,12 +17,7 @@ export function applyAnswer(
   params: { sectionTitle: string; question: string; answer: string },
 ): Project {
   const newSpec = insertUnderHeading(project.spec, params.sectionTitle, `- ${params.answer}`)
-  const newLog = appendAnswerLog(project.log, {
-    heading: params.sectionTitle,
-    question: params.question,
-    answer: params.answer,
-  })
-  return { ...project, spec: newSpec, log: newLog }
+  return { ...project, spec: newSpec }
 }
 
 export function applyFormattedAnswer(
@@ -35,13 +29,7 @@ export function applyFormattedAnswer(
     params.sectionTitle,
     params.formatResult.specInsertionMarkdown,
   )
-  const newLog = appendAnswerLog(project.log, {
-    heading: params.sectionTitle,
-    question: params.question,
-    answer: params.answer,
-    summary: params.formatResult.aggregationLogSummary,
-  })
-  return { ...project, spec: newSpec, log: newLog }
+  return { ...project, spec: newSpec }
 }
 
 export function applyProposedMarkdown(
@@ -62,11 +50,5 @@ export function applySkip(
     detail: params.detail,
   })
   const newSpec = insertUnderHeading(project.spec, params.sectionTitle, markerLine)
-  const newLog = appendSkipLog(project.log, {
-    heading: params.sectionTitle,
-    question: params.question,
-    reason: params.reason,
-    detail: params.detail,
-  })
-  return { project: { ...project, spec: newSpec, log: newLog }, reflectedMarkdown: markerLine }
+  return { project: { ...project, spec: newSpec }, reflectedMarkdown: markerLine }
 }

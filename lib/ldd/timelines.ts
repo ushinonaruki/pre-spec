@@ -1,5 +1,25 @@
 import type { ManualEdit, PhaseMarker, Project, Question, SectionMarker, SkipReason, TimelineItem } from '@/types'
 
+export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: number): string {
+  const items = timeline.filter(
+    (item): item is Question => item.type === 'question' && item.status !== 'open',
+  )
+  const lines: string[] = []
+  for (const q of items) {
+    if (q.status === 'answered') {
+      lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
+      lines.push(`  → ${q.answer ?? ''}`)
+      if (q.reflectedMarkdown) lines.push(`  反映: ${q.reflectedMarkdown}`)
+    } else if (q.status === 'skipped') {
+      const detail = q.skipDetail ? ` (${q.skipDetail})` : ''
+      lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
+      lines.push(`  → skip:${q.skipReason ?? ''}${detail}`)
+    }
+  }
+  const text = lines.join('\n')
+  return text.length <= maxChars ? text : text.slice(-maxChars)
+}
+
 export function addSectionMarkerIfNeeded(project: Project): Project {
   const lastMarker = [...project.timeline]
     .reverse()

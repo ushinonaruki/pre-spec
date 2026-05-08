@@ -1,6 +1,5 @@
 import type { Project, SectionMarker } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
-import { appendStartLog } from '@/lib/logBuilder'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 
 export type CreateProjectInputs = {
@@ -21,7 +20,6 @@ export function createProjectFromInputs({
   const spec = baseSpecMarkdown ?? SPEC_TEMPLATE
   const sections = extractSections(spec)
   const firstSection = sections[0] ?? null
-  const log = appendStartLog('', { prompt: requirementMemo })
 
   const memoParts: string[] = [
     '# References',
@@ -59,7 +57,6 @@ export function createProjectFromInputs({
     updatedAt: now,
     initialPrompt: requirementMemo,
     spec,
-    log,
     memo,
     sections,
     currentSectionId: firstSection?.id ?? null,
