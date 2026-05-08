@@ -13,6 +13,8 @@ import { buildAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, build
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { projectToPreSpecProject, generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
+import type { PreflightCheckResult } from '@/lib/preflight'
+import { EXTENSIBLE_MARKERS } from '@/lib/markers'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -41,6 +43,26 @@ type RawInitialQuestion = {
   kind?: string
   priority?: string
   proposedMarkdown?: string
+}
+
+function buildDownloadConfirmMessage(
+  result: PreflightCheckResult,
+  markerDefinitions: MarkerDefinitionFile | null,
+): string {
+  const lines: string[] = ['出力前チェック', '']
+  lines.push(`open 質問: ${result.openQuestions}件`)
+  lines.push(`skip marker: ${result.skipMarkers}件`)
+  for (const marker of EXTENSIBLE_MARKERS) {
+    lines.push(`${marker.label}: ${result.markerCounts[marker.id] ?? 0}件`)
+  }
+  if (markerDefinitions) {
+    for (const [name, def] of Object.entries(markerDefinitions.markers)) {
+      lines.push(`${def.label}: ${result.markerCounts[name] ?? 0}件`)
+    }
+  }
+  lines.push('')
+  lines.push('この状態で spec.md を出力しますか？')
+  return lines.join('\n')
 }
 
 function downloadFile(filename: string, content: string) {
@@ -271,6 +293,10 @@ export default function Home() {
 
   const handleDownloadAll = () => {
     if (!project) return
+    const result = runPreflightCheck(project, markerDefinitions)
+    if (result.warnings.length > 0) {
+      if (!window.confirm(buildDownloadConfirmMessage(result, markerDefinitions))) return
+    }
     const filenames = getProjectFilenames(project.slug)
     downloadFile(filenames.spec, project.spec)
     setTimeout(() => downloadFile(filenames.references, project.memo || '# References\n\n(empty)\n'), DOWNLOAD_STAGGER_MS)
