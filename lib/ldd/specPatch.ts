@@ -2,8 +2,6 @@ import type { AnswerFormatResult, Project, SkipReason } from '@/types'
 import { insertUnderHeading } from '@/lib/markdown'
 import { appendAnswerLog, appendSkipLog } from '@/lib/logBuilder'
 
-export const DUMMY_QUESTION = 'このセクションについて考えていることを入力してください'
-
 function buildSkipMarkerLine(params: {
   question: string
   reason: SkipReason
