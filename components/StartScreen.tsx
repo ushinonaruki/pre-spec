@@ -199,7 +199,6 @@ export default function StartScreen({ onCreate, onOpenProject, onMarkersLoaded }
             {markersSection(markersFileInputLandingRef)}
           </div>
 
-          <p className="text-xs text-stone-400 text-center">{UI_TEXT.startScreen.storageNote}</p>
         </div>
       </div>
     )
