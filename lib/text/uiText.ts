@@ -55,8 +55,12 @@ export const UI_TEXT = {
     logTab: 'timeline.md',
     memoTab: 'references.md',
     logEmpty: '(まだ記録がありません)',
-    memoPlaceholder:
-      '参照メモを自由に書いてください。\n\n例:\n## 既存サービス構成\n- manager.py は使っていない\n- Redis は一時状態のみ',
+    addRefButton: '+ 参照',
+    addRefText: 'テキスト',
+    addRefFile: 'ファイル',
+    addRefTextPlaceholder: '本文を入力…',
+    addRefFileButton: 'ファイルを選ぶ (.md / .txt)',
+    addRefAddButton: '追加',
   },
 
   interview: {
