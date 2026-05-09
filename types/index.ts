@@ -80,7 +80,6 @@ export type Project = {
   requirementMemo: string
   spec: string
   referencesMarkdown: string
-  relatedSources: RelatedSource[]
   sections: Section[]
   currentSectionId: string | null
   timeline: TimelineItem[]
@@ -135,7 +134,6 @@ export type PreSpecProject = {
   }
   inputs: {
     requirementMemo: string
-    relatedSources: RelatedSource[]
   }
   workspace: {
     draftSpecMarkdown: string
