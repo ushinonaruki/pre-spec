@@ -94,16 +94,12 @@ export const UI_TEXT = {
 
   preflight: {
     title: '出力前チェック',
-    openQuestions: 'open 質問',
-    skipMarkers: 'skip marker',
-    warnOpenQuestions: '未回答の質問が残っています。',
-    warnSkipMarkers: 'skip marker が残っています。未決事項を含む spec.md として出力されます。',
     downloadConfirmTitle: '出力前チェック',
-    downloadConfirmOpenQuestions: (n: number) => `open 質問: ${n}件`,
-    downloadConfirmSkipMarkers: (n: number) => `skip marker: ${n}件`,
-    downloadConfirmMarkerCount: (label: string, n: number) => `${label}: ${n}件`,
-    downloadConfirmPrompt: 'この状態で spec.md を出力しますか？',
-    warnCustomMarker: (name: string, count: number, label: string) => `[pre-spec:${name}] が ${count} 件残っています。（${label}）`,
+    downloadConfirmOpenQuestions: (n: number) => `未回答の質問: ${n}件`,
+    downloadConfirmMarkerHeader: 'marker:',
+    downloadConfirmMarkerItem: (name: string, n: number) => `  - ${name}: ${n}件`,
+    downloadConfirmWarning: '未回答の質問 または marker が残っています。',
+    downloadConfirmPrompt: 'この状態で成果物を出力しますか？',
   },
 
   initialConfirmation: {
