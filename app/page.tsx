@@ -53,17 +53,19 @@ function buildDownloadConfirmMessage(
   const extensibleIds = new Set(EXTENSIBLE_MARKERS.map((m) => m.id))
   const lines: string[] = [UI_TEXT.preflight.downloadConfirmTitle, '']
   lines.push(UI_TEXT.preflight.downloadConfirmOpenQuestions(result.openQuestions))
-  lines.push(UI_TEXT.preflight.downloadConfirmSkipMarkers(result.skipMarkers))
+  lines.push(UI_TEXT.preflight.downloadConfirmMarkerHeader)
+  lines.push(UI_TEXT.preflight.downloadConfirmMarkerItem('skip', result.skipMarkers))
   for (const marker of EXTENSIBLE_MARKERS) {
-    lines.push(UI_TEXT.preflight.downloadConfirmMarkerCount(marker.label, result.markerCounts[marker.id] ?? 0))
+    lines.push(UI_TEXT.preflight.downloadConfirmMarkerItem(marker.id, result.markerCounts[marker.id] ?? 0))
   }
   if (markerDefinitions) {
-    for (const [name, def] of Object.entries(markerDefinitions.markers)) {
+    for (const [name] of Object.entries(markerDefinitions.markers)) {
       if (extensibleIds.has(name)) continue
-      lines.push(UI_TEXT.preflight.downloadConfirmMarkerCount(def.label, result.markerCounts[name] ?? 0))
+      lines.push(UI_TEXT.preflight.downloadConfirmMarkerItem(name, result.markerCounts[name] ?? 0))
     }
   }
   lines.push('')
+  lines.push(UI_TEXT.preflight.downloadConfirmWarning)
   lines.push(UI_TEXT.preflight.downloadConfirmPrompt)
   return lines.join('\n')
 }

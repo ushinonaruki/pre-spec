@@ -1,11 +1,9 @@
 import type { MarkerDefinitionFile, Project, Question } from '@/types'
-import { UI_TEXT } from '@/lib/text/uiText'
 import { EXTENSIBLE_MARKERS } from '@/lib/markers'
 
 export type PreflightWarning = {
   type: string
   count: number
-  message: string
 }
 
 export type PreflightCheckResult = {
@@ -53,23 +51,23 @@ export function runPreflightCheck(
   const warnings: PreflightWarning[] = []
 
   if (openQuestions > 0) {
-    warnings.push({ type: 'open_questions', count: openQuestions, message: UI_TEXT.preflight.warnOpenQuestions })
+    warnings.push({ type: 'open_questions', count: openQuestions })
   }
   if (skipMarkers > 0) {
-    warnings.push({ type: 'skip_markers', count: skipMarkers, message: UI_TEXT.preflight.warnSkipMarkers })
+    warnings.push({ type: 'skip_markers', count: skipMarkers })
   }
   for (const marker of EXTENSIBLE_MARKERS) {
     const count = markerCounts[marker.id]
     if (count > 0) {
-      warnings.push({ type: marker.id, count, message: marker.warningMessage })
+      warnings.push({ type: marker.id, count })
     }
   }
   if (markerDefinitions) {
-    for (const [name, def] of Object.entries(markerDefinitions.markers)) {
+    for (const [name] of Object.entries(markerDefinitions.markers)) {
       if (extensibleIds.has(name)) continue
       const count = markerCounts[name] ?? 0
       if (count > 0) {
-        warnings.push({ type: name, count, message: UI_TEXT.preflight.warnCustomMarker(name, count, def.label) })
+        warnings.push({ type: name, count })
       }
     }
   }
