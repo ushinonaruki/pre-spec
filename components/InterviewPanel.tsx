@@ -143,7 +143,7 @@ function InitialConfirmationCard({
 
   return (
     <div className={`border rounded-lg overflow-hidden ${headerBg}`}>
-      <button onClick={() => setIsOpen((v) => !v)} className="w-full text-left p-3 space-y-1">
+      <button onClick={() => setIsOpen((v) => !v)} className="w-full text-left p-3 space-y-1 cursor-pointer">
         <div className="flex items-start gap-2">
           {statusIcon}
           <div className="flex-1 min-w-0 space-y-1">
@@ -215,14 +215,14 @@ function InitialConfirmationCard({
                     <button
                       onClick={() => { if (answer.trim()) onConfirm(answer.trim()) }}
                       disabled={!answer.trim() || isFormatting}
-                      className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {isFormatting ? UI_TEXT.interview.answerButtonFormatting : UI_TEXT.interview.answerButton}
                     </button>
                     <button
                       onClick={() => setShowSkip(true)}
                       disabled={isFormatting}
-                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipButton}
                     </button>
@@ -260,13 +260,13 @@ function InitialConfirmationCard({
                         setSkipDetail('')
                         setSkipReason('thinking')
                       }}
-                      className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 transition-colors"
+                      className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipConfirmButton}
                     </button>
                     <button
                       onClick={() => setShowSkip(false)}
-                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipCancelButton}
                     </button>
@@ -348,7 +348,7 @@ function QuestionCard({
     <div className={`border rounded-lg overflow-hidden ${headerBg}`}>
       <button
         onClick={() => setIsOpen((v) => !v)}
-        className="w-full text-left p-3 space-y-1"
+        className="w-full text-left p-3 space-y-1 cursor-pointer"
       >
         <div className="flex items-start gap-2">
           {statusIcon}
@@ -418,13 +418,13 @@ function QuestionCard({
                         setAnswer('')
                       }}
                       disabled={!answer.trim() || isFormatting}
-                      className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {isFormatting ? UI_TEXT.interview.answerButtonFormatting : UI_TEXT.interview.answerButton}
                     </button>
                     <button
                       onClick={() => setShowSkip(true)}
-                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipButton}
                     </button>
@@ -462,13 +462,13 @@ function QuestionCard({
                         setSkipDetail('')
                         setSkipReason('thinking')
                       }}
-                      className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 transition-colors"
+                      className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipConfirmButton}
                     </button>
                     <button
                       onClick={() => setShowSkip(false)}
-                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors"
+                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipCancelButton}
                     </button>
@@ -536,7 +536,7 @@ export default function InterviewPanel({
               <button
                 onClick={onNext}
                 disabled={openCount > 0}
-                className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 {UI_TEXT.interview.nextButton}
               </button>
@@ -545,7 +545,7 @@ export default function InterviewPanel({
               <button
                 onClick={onAddQuestions}
                 disabled={isGenerating || openCount > 0}
-                className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isGenerating ? UI_TEXT.interview.addQuestionsLoading : UI_TEXT.interview.addQuestionsButton}
               </button>

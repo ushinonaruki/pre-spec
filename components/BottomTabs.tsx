@@ -117,7 +117,7 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
         {addMode === null && (
           <button
             onClick={openAddForm}
-            className="ml-auto text-xs text-stone-500 hover:text-stone-800 transition-colors"
+            className="ml-auto text-xs text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
           >
             {UI_TEXT.bottomTabs.addRefButton}
           </button>
@@ -131,28 +131,28 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
               <button
                 onClick={() => { setAddMode('text'); setReviewError(null) }}
                 disabled={isReviewing}
-                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 ${addMode === 'text' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 cursor-pointer ${addMode === 'text' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 {UI_TEXT.bottomTabs.addRefText}
               </button>
               <button
                 onClick={() => { setAddMode('file'); setReviewError(null) }}
                 disabled={isReviewing}
-                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 ${addMode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 cursor-pointer ${addMode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 {UI_TEXT.bottomTabs.addRefFile}
               </button>
               <button
                 onClick={() => { setAddMode('url'); setReviewError(null) }}
                 disabled={isReviewing}
-                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 ${addMode === 'url' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 cursor-pointer ${addMode === 'url' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
               >
                 {UI_TEXT.bottomTabs.addRefUrl}
               </button>
               <button
                 onClick={closeAddForm}
                 disabled={isReviewing}
-                className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 ✕
               </button>
@@ -172,7 +172,7 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
                   <button
                     onClick={() => { void handleAddText() }}
                     disabled={!textInput.trim() || isReviewing}
-                    className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
                   </button>
@@ -192,7 +192,7 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
                     <button
                       onClick={() => { void handleAddFile() }}
                       disabled={isReviewing}
-                      className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
                     </button>
@@ -212,7 +212,7 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+                    className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
                   >
                     {UI_TEXT.bottomTabs.addRefFileButton}
                   </button>
@@ -237,7 +237,7 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
                   <button
                     onClick={() => { void handleAddUrl() }}
                     disabled={!urlInput.trim() || isReviewing}
-                    className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
                     {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
                   </button>

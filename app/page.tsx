@@ -464,13 +464,13 @@ export default function Home() {
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={handleDownloadAll}
-            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
           >
             {UI_TEXT.app.downloadAll}
           </button>
           <button
             onClick={() => router.push('/settings')}
-            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
           >
             {UI_TEXT.app.settings}
           </button>

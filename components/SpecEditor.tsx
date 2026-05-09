@@ -39,13 +39,13 @@ export default function SpecEditor({ value, onSave }: Props) {
           <>
             <button
               onClick={handleSave}
-              className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 transition-colors"
+              className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 transition-colors cursor-pointer"
             >
               {UI_TEXT.specEditor.saveButton}
             </button>
             <button
               onClick={handleCancel}
-              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors"
+              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
             >
               {UI_TEXT.specEditor.cancelButton}
             </button>
@@ -55,20 +55,20 @@ export default function SpecEditor({ value, onSave }: Props) {
             <div className="flex border border-stone-200 rounded overflow-hidden">
               <button
                 onClick={() => setViewMode('preview')}
-                className={`text-xs px-2 py-1 transition-colors ${viewMode === 'preview' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
+                className={`text-xs px-2 py-1 transition-colors cursor-pointer ${viewMode === 'preview' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
               >
                 {UI_TEXT.specEditor.previewButton}
               </button>
               <button
                 onClick={() => setViewMode('source')}
-                className={`text-xs px-2 py-1 transition-colors border-l border-stone-200 ${viewMode === 'source' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
+                className={`text-xs px-2 py-1 transition-colors cursor-pointer border-l border-stone-200 ${viewMode === 'source' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
               >
                 {UI_TEXT.specEditor.sourceButton}
               </button>
             </div>
             <button
               onClick={handleEnterEdit}
-              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors"
+              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
             >
               {UI_TEXT.specEditor.editButton}
             </button>
