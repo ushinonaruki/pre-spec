@@ -103,7 +103,7 @@ function InitialConfirmationCard({
   onConfirm: (answer: string) => void
   onSkip: (reason: SkipReason, detail?: string) => void
 }) {
-  const [isOpen, setIsOpen] = useState(question.status === 'open')
+  const [isOpen, setIsOpen] = useState(false)
   const [answer, setAnswer] = useState('')
   const [showSkip, setShowSkip] = useState(false)
   const [skipReason, setSkipReason] = useState<SkipReason>('thinking')
