@@ -1,4 +1,4 @@
-import { buildImportedBlock, type ImportedBlockParams } from '@/lib/references'
+import { buildImportedBlock } from '@/lib/references'
 
 export type RelatedSourceInput = {
   name: string
@@ -7,18 +7,14 @@ export type RelatedSourceInput = {
   note?: string
 }
 
-export function relatedSourceToBlockParams(input: RelatedSourceInput, checkedAt: string): ImportedBlockParams {
-  return {
+export function buildRelatedSourceBlock(input: RelatedSourceInput, checkedAt: string): string {
+  return buildImportedBlock({
     name: input.name,
     source: input.source,
     note: input.note,
     checkedAt,
     content: input.content,
-  }
-}
-
-export function buildRelatedSourceBlock(input: RelatedSourceInput, checkedAt: string): string {
-  return buildImportedBlock(relatedSourceToBlockParams(input, checkedAt))
+  })
 }
 
 export function resolveSourceName(existingNames: string[], baseName: string): string {
