@@ -4,6 +4,7 @@ export const UI_TEXT = {
     tagline: 'Spec Interview Workbench',
     downloadAll: '📥',
     generateTimelineError: '質問の生成に失敗しました。APIキーを確認してください。',
+    retryQuestionError: '質問の作り直しに失敗しました。元の質問はそのまま残ります。',
   },
 
   startScreen: {
@@ -82,6 +83,7 @@ export const UI_TEXT = {
     answerPlaceholder: '回答を入力…',
     answerButton: '回答して反映',
     answerButtonFormatting: '整形中…',
+    retryButton: '↻',
     skipButton: 'スキップ ▾',
     skipReasonLabel: 'スキップ理由',
     skipDetailPlaceholder: 'メモ (任意)',
