@@ -1,17 +1,6 @@
 import type { AnswerFormatResult, Project, SkipReason } from '@/types'
 import { insertUnderHeading } from '@/lib/markdown'
 
-function buildSkipMarkerLine(params: {
-  question: string
-  reason: SkipReason
-  detail?: string
-}): string {
-  const content = params.detail
-    ? `${params.question} — ${params.detail}`
-    : params.question
-  return `- [pre-spec:skip:${params.reason}] ${content}`
-}
-
 export function applyAnswer(
   project: Project,
   params: { sectionTitle: string; question: string; answer: string },
@@ -42,13 +31,9 @@ export function applyProposedMarkdown(
 
 export function applySkip(
   project: Project,
-  params: { sectionTitle: string; question: string; reason: SkipReason; detail?: string },
+  params: { sectionTitle: string; markerBody: string; reason: SkipReason },
 ): { project: Project; reflectedMarkdown: string } {
-  const markerLine = buildSkipMarkerLine({
-    question: params.question,
-    reason: params.reason,
-    detail: params.detail,
-  })
+  const markerLine = `- [pre-spec:skip:${params.reason}] ${params.markerBody}`
   const newSpec = insertUnderHeading(project.spec, params.sectionTitle, markerLine)
   return { project: { ...project, spec: newSpec }, reflectedMarkdown: markerLine }
 }
