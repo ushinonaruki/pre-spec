@@ -120,7 +120,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
       } else if (q.status === 'skipped') {
         lines.push(TIMELINE_TEXT.statusSkipped)
         if (q.skipReason) lines.push(`  - reason: ${q.skipReason}`)
-        if (q.skipDetail) lines.push(`  - detail: ${q.skipDetail}`)
+        if (q.skipCustomText) lines.push(`  - detail: ${q.skipCustomText}`)
         if (q.reflectedMarkdown) {
           lines.push(`  - reflected:`)
           lines.push(`    ${q.reflectedMarkdown}`)

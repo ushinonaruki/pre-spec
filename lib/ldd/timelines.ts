@@ -1,4 +1,4 @@
-import type { ManualEdit, PhaseMarker, Project, Question, SectionMarker, SkipReason, TimelineItem } from '@/types'
+import type { ManualEdit, PhaseMarker, Project, Question, SectionMarker, TimelineItem } from '@/types'
 
 export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: number): string {
   const items = timeline.filter(
@@ -11,7 +11,7 @@ export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: n
       lines.push(`  → ${q.answer ?? ''}`)
       if (q.reflectedMarkdown) lines.push(`  反映: ${q.reflectedMarkdown}`)
     } else if (q.status === 'skipped') {
-      const detail = q.skipDetail ? ` (${q.skipDetail})` : ''
+      const detail = q.skipCustomText ? ` (${q.skipCustomText})` : ''
       lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
       lines.push(`  → skip:${q.skipReason ?? ''}${detail}`)
     }
@@ -193,8 +193,8 @@ export function skipQuestion(
   project: Project,
   params: {
     questionId: string
-    skipReason: SkipReason
-    skipDetail?: string
+    skipReason: string
+    skipCustomText?: string
     reflectedMarkdown?: string
   },
 ): Project {
@@ -205,7 +205,7 @@ export function skipQuestion(
         ...item,
         status: 'skipped' as const,
         skipReason: params.skipReason,
-        skipDetail: params.skipDetail,
+        skipCustomText: params.skipCustomText,
         skippedAt: now,
         reflectedToSpec: params.reflectedMarkdown !== undefined,
         reflectedMarkdown: params.reflectedMarkdown,

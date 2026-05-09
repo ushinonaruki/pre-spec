@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { ManualEdit, PhaseMarker, Question, Section, SectionMarker, SkipReason, TimelineItem } from '@/types'
-import { SKIP_REASON_LABELS } from '@/types'
+import type { ManualEdit, PhaseMarker, Question, Section, SectionMarker, TimelineItem } from '@/types'
+import { CUSTOM_REASON } from '@/lib/skipReasons'
+import type { EffectiveSkipReason } from '@/lib/skipReasons'
 import { QUESTION_KIND_LABELS, QUESTION_PRIORITY_COLORS, QUESTION_PRIORITY_LABELS } from '@/lib/config/questionTaxonomy'
 import { UI_TEXT } from '@/lib/text/uiText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
@@ -67,6 +68,11 @@ function buildTimelineSlots(timeline: TimelineItem[]): TimelineSlot[] {
   return slots.reverse()
 }
 
+function resolveSkipLabel(skipReason: string | undefined, skipReasons: EffectiveSkipReason[]): string {
+  if (!skipReason) return ''
+  return skipReasons.find((r) => r.id === skipReason)?.label ?? skipReason
+}
+
 function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Section[] }) {
   const affectedTitles = edit.affectedSectionIds
     .map((id) => sections.find((s) => s.id === id)?.title ?? id)
@@ -92,8 +98,74 @@ function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Sectio
   )
 }
 
+function SkipPanel({
+  questionId,
+  skipReasons,
+  onSkip,
+  onCancel,
+}: {
+  questionId: string
+  skipReasons: EffectiveSkipReason[]
+  onSkip: (reason: string, customText?: string) => void
+  onCancel: () => void
+}) {
+  const defaultId = skipReasons[0]?.id ?? CUSTOM_REASON
+  const [selectedId, setSelectedId] = useState(defaultId)
+  const [customText, setCustomText] = useState('')
+
+  const isCustom = selectedId === CUSTOM_REASON
+  const canConfirm = !isCustom || customText.trim().length > 0
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-stone-600">{UI_TEXT.interview.skipReasonLabel}</p>
+      <div className="space-y-1">
+        {skipReasons.map((r) => (
+          <label key={r.id} className="flex items-center gap-2 text-xs cursor-pointer">
+            <input
+              type="radio"
+              name={`skip-${questionId}`}
+              value={r.id}
+              checked={selectedId === r.id}
+              onChange={() => setSelectedId(r.id)}
+              className="accent-stone-700"
+            />
+            {r.label}
+          </label>
+        ))}
+      </div>
+      {isCustom && (
+        <textarea
+          value={customText}
+          onChange={(e) => setCustomText(e.target.value)}
+          placeholder={UI_TEXT.interview.skipCustomPlaceholder}
+          className="w-full resize-none border border-stone-300 rounded p-2 text-xs h-12 focus:outline-none focus:ring-2 focus:ring-stone-400"
+        />
+      )}
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            onSkip(selectedId, isCustom ? customText.trim() || undefined : undefined)
+          }}
+          disabled={!canConfirm}
+          className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        >
+          {UI_TEXT.interview.skipConfirmButton}
+        </button>
+        <button
+          onClick={onCancel}
+          className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors cursor-pointer"
+        >
+          {UI_TEXT.interview.skipCancelButton}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function InitialConfirmationCard({
   question,
+  skipReasons,
   isFormatting,
   isRetrying,
   onConfirm,
@@ -101,17 +173,16 @@ function InitialConfirmationCard({
   onRetry,
 }: {
   question: Question
+  skipReasons: EffectiveSkipReason[]
   isFormatting: boolean
   isRetrying: boolean
   onConfirm: (answer: string) => void
-  onSkip: (reason: SkipReason, detail?: string) => void
+  onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [answer, setAnswer] = useState('')
   const [showSkip, setShowSkip] = useState(false)
-  const [skipReason, setSkipReason] = useState<SkipReason>('thinking')
-  const [skipDetail, setSkipDetail] = useState('')
 
   const headerBg =
     question.status === 'answered'
@@ -190,11 +261,11 @@ function InitialConfirmationCard({
             <div className="space-y-1 pt-2">
               {question.skipReason && (
                 <p className="text-xs text-stone-500">
-                  {UI_TEXT.interview.skipReasonLabel}: {SKIP_REASON_LABELS[question.skipReason]}
+                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.skipReason, skipReasons)}
                 </p>
               )}
-              {question.skipDetail && (
-                <p className="text-xs text-stone-500 italic">{question.skipDetail}</p>
+              {question.skipCustomText && (
+                <p className="text-xs text-stone-500 italic">{question.skipCustomText}</p>
               )}
               {question.reflectedMarkdown && (
                 <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
@@ -241,49 +312,15 @@ function InitialConfirmationCard({
                   </div>
                 </>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-stone-600">{UI_TEXT.interview.skipReasonLabel}</p>
-                  <div className="space-y-1">
-                    {(Object.keys(SKIP_REASON_LABELS) as SkipReason[]).map((r) => (
-                      <label key={r} className="flex items-center gap-2 text-xs cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`skip-init-${question.id}`}
-                          value={r}
-                          checked={skipReason === r}
-                          onChange={() => setSkipReason(r)}
-                          className="accent-stone-700"
-                        />
-                        {SKIP_REASON_LABELS[r]}
-                      </label>
-                    ))}
-                  </div>
-                  <textarea
-                    value={skipDetail}
-                    onChange={(e) => setSkipDetail(e.target.value)}
-                    placeholder={UI_TEXT.interview.skipDetailPlaceholder}
-                    className="w-full resize-none border border-stone-300 rounded p-2 text-xs h-12 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        onSkip(skipReason, skipDetail.trim() || undefined)
-                        setShowSkip(false)
-                        setSkipDetail('')
-                        setSkipReason('thinking')
-                      }}
-                      className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 transition-colors cursor-pointer"
-                    >
-                      {UI_TEXT.interview.skipConfirmButton}
-                    </button>
-                    <button
-                      onClick={() => setShowSkip(false)}
-                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors cursor-pointer"
-                    >
-                      {UI_TEXT.interview.skipCancelButton}
-                    </button>
-                  </div>
-                </div>
+                <SkipPanel
+                  questionId={question.id}
+                  skipReasons={skipReasons}
+                  onSkip={(reason, customText) => {
+                    onSkip(reason, customText)
+                    setShowSkip(false)
+                  }}
+                  onCancel={() => setShowSkip(false)}
+                />
               )}
             </>
           )}
@@ -297,13 +334,14 @@ type Props = {
   currentSection: Section | null
   sections: Section[]
   timeline: TimelineItem[]
+  skipReasons: EffectiveSkipReason[]
   isGenerating: boolean
   formattingQuestionId: string | null
   formattingFallback: boolean
   retryingQuestionId: string | null
   onAddQuestions: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
-  onSkipQuestion: (questionId: string, reason: SkipReason, detail?: string) => void
+  onSkipQuestion: (questionId: string, reason: string, customText?: string) => void
   onRetryQuestion: (questionId: string) => void
   onConfirmInitial: (questionId: string, answer: string, sectionTitle: string) => void
   onNext: () => void
@@ -311,6 +349,7 @@ type Props = {
 
 function QuestionCard({
   question,
+  skipReasons,
   isFormatting,
   isRetrying,
   onAnswer,
@@ -318,17 +357,16 @@ function QuestionCard({
   onRetry,
 }: {
   question: Question
+  skipReasons: EffectiveSkipReason[]
   isFormatting: boolean
   isRetrying: boolean
   onAnswer: (answer: string) => void
-  onSkip: (reason: SkipReason, detail?: string) => void
+  onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [answer, setAnswer] = useState('')
   const [showSkip, setShowSkip] = useState(false)
-  const [skipReason, setSkipReason] = useState<SkipReason>('thinking')
-  const [skipDetail, setSkipDetail] = useState('')
 
   const kindPriorityLabels =
     question.priority ?? question.kinds?.length ? (
@@ -404,11 +442,11 @@ function QuestionCard({
             <div className="space-y-1 pt-2">
               {question.skipReason && (
                 <p className="text-xs text-stone-500">
-                  {UI_TEXT.interview.skipReasonLabel}: {SKIP_REASON_LABELS[question.skipReason]}
+                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.skipReason, skipReasons)}
                 </p>
               )}
-              {question.skipDetail && (
-                <p className="text-xs text-stone-500 italic">{question.skipDetail}</p>
+              {question.skipCustomText && (
+                <p className="text-xs text-stone-500 italic">{question.skipCustomText}</p>
               )}
               {question.reflectedMarkdown && (
                 <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
@@ -458,49 +496,15 @@ function QuestionCard({
                   </div>
                 </>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-stone-600">{UI_TEXT.interview.skipReasonLabel}</p>
-                  <div className="space-y-1">
-                    {(Object.keys(SKIP_REASON_LABELS) as SkipReason[]).map((r) => (
-                      <label key={r} className="flex items-center gap-2 text-xs cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`skip-${question.id}`}
-                          value={r}
-                          checked={skipReason === r}
-                          onChange={() => setSkipReason(r)}
-                          className="accent-stone-700"
-                        />
-                        {SKIP_REASON_LABELS[r]}
-                      </label>
-                    ))}
-                  </div>
-                  <textarea
-                    value={skipDetail}
-                    onChange={(e) => setSkipDetail(e.target.value)}
-                    placeholder={UI_TEXT.interview.skipDetailPlaceholder}
-                    className="w-full resize-none border border-stone-300 rounded p-2 text-xs h-12 focus:outline-none focus:ring-2 focus:ring-stone-400"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        onSkip(skipReason, skipDetail.trim() || undefined)
-                        setShowSkip(false)
-                        setSkipDetail('')
-                        setSkipReason('thinking')
-                      }}
-                      className="flex-1 py-1.5 bg-stone-600 text-white text-xs rounded hover:bg-stone-500 transition-colors cursor-pointer"
-                    >
-                      {UI_TEXT.interview.skipConfirmButton}
-                    </button>
-                    <button
-                      onClick={() => setShowSkip(false)}
-                      className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 transition-colors cursor-pointer"
-                    >
-                      {UI_TEXT.interview.skipCancelButton}
-                    </button>
-                  </div>
-                </div>
+                <SkipPanel
+                  questionId={question.id}
+                  skipReasons={skipReasons}
+                  onSkip={(reason, customText) => {
+                    onSkip(reason, customText)
+                    setShowSkip(false)
+                  }}
+                  onCancel={() => setShowSkip(false)}
+                />
               )}
             </>
           )}
@@ -514,6 +518,7 @@ export default function InterviewPanel({
   currentSection,
   sections,
   timeline,
+  skipReasons,
   isGenerating,
   formattingQuestionId,
   formattingFallback,
@@ -615,10 +620,11 @@ export default function InterviewPanel({
                     <InitialConfirmationCard
                       key={q.id}
                       question={q}
+                      skipReasons={skipReasons}
                       isFormatting={formattingQuestionId === q.id}
                       isRetrying={retryingQuestionId === q.id}
                       onConfirm={(answer) => { void onConfirmInitial(q.id, answer, q.sectionTitle) }}
-                      onSkip={(reason, detail) => onSkipQuestion(q.id, reason, detail)}
+                      onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                       onRetry={() => onRetryQuestion(q.id)}
                     />
                   ))}
@@ -636,10 +642,11 @@ export default function InterviewPanel({
                   <QuestionCard
                     key={q.id}
                     question={q}
+                    skipReasons={skipReasons}
                     isFormatting={formattingQuestionId === q.id}
                     isRetrying={retryingQuestionId === q.id}
                     onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
-                    onSkip={(reason, detail) => onSkipQuestion(q.id, reason, detail)}
+                    onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                     onRetry={() => onRetryQuestion(q.id)}
                   />
                 ))}

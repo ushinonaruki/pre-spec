@@ -1,16 +1,12 @@
-export type SkipReason =
-  | 'thinking'
-  | 'need_confirm'
-  | 'need_research'
-  | 'defer_to_implementation'
-  | 'low_priority'
+export type SkipReason = string
 
-export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
-  thinking: 'まだ考えていない',
-  need_confirm: '他者確認待ち',
-  need_research: '既存仕様・コード調査待ち',
-  defer_to_implementation: 'この粒度では細かすぎる',
-  low_priority: '重要度が低い',
+export type SkipReasonDefinition = {
+  label: string
+  instruction: string
+}
+
+export type SkipReasonDefinitionFile = {
+  skipReasons: Record<string, SkipReasonDefinition>
 }
 
 export type Section = {
@@ -66,7 +62,7 @@ export type Question = {
   status: 'open' | 'answered' | 'skipped'
   answer?: string
   skipReason?: SkipReason
-  skipDetail?: string
+  skipCustomText?: string
   skippedAt?: string
   reflectedToSpec?: boolean
   reflectedMarkdown?: string
