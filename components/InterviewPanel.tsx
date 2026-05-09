@@ -128,14 +128,14 @@ function InitialConfirmationCard({
   const kindPriorityLabels =
     question.kind ?? question.priority ? (
       <div className="flex gap-1 flex-wrap">
-        {question.kind && (
-          <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
-            {QUESTION_KIND_LABELS[question.kind]}
-          </span>
-        )}
         {question.priority && (
           <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${QUESTION_PRIORITY_COLORS[question.priority]}`}>
             {QUESTION_PRIORITY_LABELS[question.priority]}
+          </span>
+        )}
+        {question.kind && (
+          <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
+            {QUESTION_KIND_LABELS[question.kind]}
           </span>
         )}
       </div>
@@ -315,14 +315,14 @@ function QuestionCard({
   const kindPriorityLabels =
     question.kind ?? question.priority ? (
       <div className="flex gap-1 flex-wrap">
-        {question.kind && (
-          <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
-            {QUESTION_KIND_LABELS[question.kind]}
-          </span>
-        )}
         {question.priority && (
           <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${QUESTION_PRIORITY_COLORS[question.priority]}`}>
             {QUESTION_PRIORITY_LABELS[question.priority]}
+          </span>
+        )}
+        {question.kind && (
+          <span className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
+            {QUESTION_KIND_LABELS[question.kind]}
           </span>
         )}
       </div>
