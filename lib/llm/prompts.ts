@@ -4,14 +4,10 @@ import { KIND_CANDIDATES, PRIORITY_CANDIDATES } from '@/lib/config/questionTaxon
 
 export function buildInitialConfirmationQuestionsPrompt(params: {
   requirementMemo: string
-  baseSpecMarkdown?: string
   referenceMarkdown: string
   sections: Section[]
 }): string {
   const sectionTitles = params.sections.map((s) => `- ${s.title}`).join('\n')
-  const baseSpecSection = params.baseSpecMarkdown?.trim()
-    ? `\n下地 spec.md:\n${params.baseSpecMarkdown}\n`
-    : ''
   const refSection = params.referenceMarkdown.trim()
     ? `\nReferences:\n${params.referenceMarkdown}\n`
     : ''
@@ -24,7 +20,7 @@ export function buildInitialConfirmationQuestionsPrompt(params: {
 
 要件定義メモ:
 ${params.requirementMemo}
-${baseSpecSection}${refSection}
+${refSection}
 ## spec.md セクション一覧
 
 ${sectionTitles}

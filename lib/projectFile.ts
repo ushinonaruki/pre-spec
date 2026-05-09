@@ -34,9 +34,6 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
       sections: project.sections,
       timeline: project.timeline,
     },
-    markers: {
-      custom: {},
-    },
   }
 }
 

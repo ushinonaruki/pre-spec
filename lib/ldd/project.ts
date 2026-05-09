@@ -11,7 +11,6 @@ export type CreateProjectInputs = {
   projectName: string
   requirementMemo: string
   requirementMemoFilename?: string
-  baseSpecMarkdown?: string
   relatedSources?: InitialRelatedSource[]
 }
 
@@ -19,11 +18,10 @@ export function createProjectFromInputs({
   projectName,
   requirementMemo,
   requirementMemoFilename,
-  baseSpecMarkdown,
 }: CreateProjectInputs): Project {
   const now = new Date().toISOString()
   const slug = generateProjectSlug(projectName)
-  const spec = baseSpecMarkdown ?? SPEC_TEMPLATE
+  const spec = SPEC_TEMPLATE
   const sections = extractSections(spec)
   const firstSection = sections[0] ?? null
 

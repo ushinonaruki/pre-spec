@@ -107,12 +107,6 @@ export type RelatedSource = {
   addedAt: string
 }
 
-export type CustomMarkerDefinition = {
-  label: string
-  description?: string
-  questionInstruction?: string
-}
-
 export type MarkerDefinition = {
   label: string
   description: string
@@ -147,7 +141,6 @@ export type PreSpecProject = {
   }
   inputs: {
     requirementMemo: string
-    baseSpecSourceId?: string
     relatedSources: RelatedSource[]
   }
   workspace: {
@@ -156,8 +149,5 @@ export type PreSpecProject = {
     currentSectionId: string | null
     sections: Section[]
     timeline: TimelineItem[]
-  }
-  markers: {
-    custom: Record<string, CustomMarkerDefinition>
   }
 }
