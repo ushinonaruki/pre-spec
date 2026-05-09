@@ -1,5 +1,7 @@
 import type { MarkerContext, MarkerDefinition, MarkerDefinitionFile, MarkerTarget } from '@/types'
 
+const MARKER_KEY_RE = /^[a-z0-9_-]+$/
+
 export function validateMarkerDefinitionFile(value: unknown): MarkerDefinitionFile {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Invalid marker definition file: root must be an object')
@@ -12,21 +14,19 @@ export function validateMarkerDefinitionFile(value: unknown): MarkerDefinitionFi
   const validated: Record<string, MarkerDefinition> = {}
   for (const [name, def] of Object.entries(markers)) {
     if (!name) throw new Error('Invalid marker definition: marker name must not be empty')
+    if (!MARKER_KEY_RE.test(name)) throw new Error(`Invalid marker definition: "${name}" contains invalid characters`)
     if (name === 'skip') throw new Error('Invalid marker definition: "skip" is a built-in marker')
     if (!def || typeof def !== 'object' || Array.isArray(def)) {
       throw new Error(`Invalid marker definition for "${name}": must be an object`)
     }
     const d = def as Record<string, unknown>
-    if (typeof d.label !== 'string') throw new Error(`Invalid marker definition for "${name}": label must be a string`)
-    if (typeof d.description !== 'string') throw new Error(`Invalid marker definition for "${name}": description must be a string`)
-    if (d.questionInstruction !== undefined && typeof d.questionInstruction !== 'string') {
-      throw new Error(`Invalid marker definition for "${name}": questionInstruction must be a string`)
+    if (typeof d.label !== 'string' || !d.label.trim()) {
+      throw new Error(`Invalid marker definition for "${name}": label must be a non-empty string`)
     }
-    validated[name] = {
-      label: d.label,
-      description: d.description,
-      questionInstruction: d.questionInstruction as string | undefined,
+    if (typeof d.instruction !== 'string' || !d.instruction.trim()) {
+      throw new Error(`Invalid marker definition for "${name}": instruction must be a non-empty string`)
     }
+    validated[name] = { label: d.label, instruction: d.instruction }
   }
   return { markers: validated }
 }
@@ -68,13 +68,7 @@ export function extractMarkerContexts(
     }
 
     if (targets.length > 0) {
-      contexts.push({
-        name,
-        label: def.label,
-        description: def.description,
-        questionInstruction: def.questionInstruction,
-        targets,
-      })
+      contexts.push({ name, label: def.label, instruction: def.instruction, targets })
     }
   }
 
