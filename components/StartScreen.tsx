@@ -179,79 +179,81 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         <h1 className="text-2xl font-bold text-stone-800">{UI_TEXT.app.name}</h1>
 
         <div className="bg-white border border-stone-200 rounded-lg p-6 space-y-5">
-          {/* プロジェクト名 */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-stone-700">
-              {UI_TEXT.startScreen.projectNameLabel}
-            </label>
-            <input
-              type="text"
-              value={projectName}
-              onChange={(e) => { setProjectName(e.target.value); setNameError(null) }}
-              placeholder={UI_TEXT.startScreen.projectNamePlaceholder}
-              className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
-            />
-            {nameError && <p className="text-xs text-red-600">{nameError}</p>}
-            {projectName.trim() && generateProjectSlug(projectName.trim()) && (
-              <p className="text-xs text-stone-400">
-                ファイル名: {generateProjectSlug(projectName.trim())}.pre-spec.json
-              </p>
-            )}
-          </div>
-
-          {/* 要件メモ */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-stone-700">
-              {UI_TEXT.startScreen.requirementMemoLabel}
-            </label>
-            <input
-              ref={requirementMemoFileInputRef}
-              type="file"
-              accept=".md,.txt"
-              onChange={(e) => { void handleRequirementMemoFileChange(e) }}
-              className="hidden"
-            />
-            {requirementMemoFilename ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-stone-500 truncate flex-1">{UI_TEXT.startScreen.requirementMemoFileSelected(requirementMemoFilename)}</span>
-                <button
-                  onClick={() => { setRequirementMemoContent(null); setRequirementMemoFilename(null) }}
-                  className="text-xs text-stone-400 hover:text-stone-700 transition-colors shrink-0"
-                >
-                  {UI_TEXT.startScreen.relatedRemoveButton}
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => requirementMemoFileInputRef.current?.click()}
-                className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
-              >
-                {UI_TEXT.startScreen.requirementMemoFileButton}
-              </button>
-            )}
-            {memoError && <p className="text-xs text-red-600">{memoError}</p>}
-          </div>
-
-          {/* 関連資料 */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-stone-700">
-              {UI_TEXT.startScreen.relatedLabel}
-            </label>
-            {relatedEntries.map((entry) => (
-              <RelatedEntryRow
-                key={entry.id}
-                entry={entry}
-                onChange={handleChangeRelatedEntry}
-                onRemove={handleRemoveRelatedEntry}
+          <fieldset disabled={isCreating} className="border-0 p-0 m-0 min-w-0 space-y-5">
+            {/* プロジェクト名 */}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-stone-700">
+                {UI_TEXT.startScreen.projectNameLabel}
+              </label>
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => { setProjectName(e.target.value); setNameError(null) }}
+                placeholder={UI_TEXT.startScreen.projectNamePlaceholder}
+                className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
-            ))}
-            <button
-              onClick={handleAddRelatedEntry}
-              className="text-xs text-stone-500 hover:text-stone-800 transition-colors"
-            >
-              {UI_TEXT.startScreen.relatedAddButton}
-            </button>
-          </div>
+              {nameError && <p className="text-xs text-red-600">{nameError}</p>}
+              {projectName.trim() && generateProjectSlug(projectName.trim()) && (
+                <p className="text-xs text-stone-400">
+                  ファイル名: {generateProjectSlug(projectName.trim())}.pre-spec.json
+                </p>
+              )}
+            </div>
+
+            {/* 要件メモ */}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-stone-700">
+                {UI_TEXT.startScreen.requirementMemoLabel}
+              </label>
+              <input
+                ref={requirementMemoFileInputRef}
+                type="file"
+                accept=".md,.txt"
+                onChange={(e) => { void handleRequirementMemoFileChange(e) }}
+                className="hidden"
+              />
+              {requirementMemoFilename ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-stone-500 truncate flex-1">{UI_TEXT.startScreen.requirementMemoFileSelected(requirementMemoFilename)}</span>
+                  <button
+                    onClick={() => { setRequirementMemoContent(null); setRequirementMemoFilename(null) }}
+                    className="text-xs text-stone-400 hover:text-stone-700 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {UI_TEXT.startScreen.relatedRemoveButton}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => requirementMemoFileInputRef.current?.click()}
+                  className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {UI_TEXT.startScreen.requirementMemoFileButton}
+                </button>
+              )}
+              {memoError && <p className="text-xs text-red-600">{memoError}</p>}
+            </div>
+
+            {/* 関連資料 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-stone-700">
+                {UI_TEXT.startScreen.relatedLabel}
+              </label>
+              {relatedEntries.map((entry) => (
+                <RelatedEntryRow
+                  key={entry.id}
+                  entry={entry}
+                  onChange={handleChangeRelatedEntry}
+                  onRemove={handleRemoveRelatedEntry}
+                />
+              ))}
+              <button
+                onClick={handleAddRelatedEntry}
+                className="text-xs text-stone-500 hover:text-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {UI_TEXT.startScreen.relatedAddButton}
+              </button>
+            </div>
+          </fieldset>
 
           <div className="flex gap-2">
             <button
@@ -303,19 +305,19 @@ function RelatedEntryRow({
       <div className="flex items-center gap-1">
         <button
           onClick={() => onChange(entry.id, { mode: 'file' })}
-          className={`text-xs px-2 py-0.5 rounded transition-colors ${entry.mode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+          className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${entry.mode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
         >
           {UI_TEXT.startScreen.relatedFileMode}
         </button>
         <button
           onClick={() => onChange(entry.id, { mode: 'url' })}
-          className={`text-xs px-2 py-0.5 rounded transition-colors ${entry.mode === 'url' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+          className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${entry.mode === 'url' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
         >
           {UI_TEXT.startScreen.relatedUrlMode}
         </button>
         <button
           onClick={() => onRemove(entry.id)}
-          className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors"
+          className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {UI_TEXT.startScreen.relatedRemoveButton}
         </button>
@@ -335,7 +337,7 @@ function RelatedEntryRow({
           ) : (
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+              className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {UI_TEXT.startScreen.relatedFileButton}
             </button>
@@ -349,7 +351,7 @@ function RelatedEntryRow({
           value={entry.url}
           onChange={(e) => onChange(entry.id, { url: e.target.value })}
           placeholder={UI_TEXT.startScreen.relatedUrlPlaceholder}
-          className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 font-mono"
+          className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 font-mono disabled:opacity-50 disabled:cursor-not-allowed"
         />
       )}
 
@@ -358,7 +360,7 @@ function RelatedEntryRow({
         onChange={(e) => onChange(entry.id, { note: e.target.value })}
         placeholder={UI_TEXT.startScreen.relatedNotePlaceholder}
         rows={2}
-        className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 resize-none"
+        className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
       />
     </div>
   )
