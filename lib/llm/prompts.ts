@@ -121,10 +121,7 @@ function buildMarkerContextSection(contexts: MarkerContext[]): string {
   for (const ctx of contexts) {
     lines.push(`- marker: ${ctx.name}`)
     lines.push(`  label: ${ctx.label}`)
-    lines.push(`  description: ${ctx.description}`)
-    if (ctx.questionInstruction) {
-      lines.push(`  questionInstruction: ${ctx.questionInstruction}`)
-    }
+    lines.push(`  instruction: ${ctx.instruction}`)
     lines.push('  targets:')
     for (const t of ctx.targets) {
       lines.push(`    - type: ${t.markerType}`)

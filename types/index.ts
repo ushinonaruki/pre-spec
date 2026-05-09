@@ -105,8 +105,7 @@ export type RelatedSource = {
 
 export type MarkerDefinition = {
   label: string
-  description: string
-  questionInstruction?: string
+  instruction: string
 }
 
 export type MarkerDefinitionFile = {
@@ -121,8 +120,7 @@ export type MarkerTarget = {
 export type MarkerContext = {
   name: string
   label: string
-  description: string
-  questionInstruction?: string
+  instruction: string
   targets: MarkerTarget[]
 }
 
