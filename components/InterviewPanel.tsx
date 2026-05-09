@@ -70,7 +70,7 @@ function buildTimelineSlots(timeline: TimelineItem[]): TimelineSlot[] {
 
 function resolveSkipLabel(skipReason: string | undefined, skipReasons: EffectiveSkipReason[]): string {
   if (!skipReason) return ''
-  return skipReasons.find((r) => r.id === skipReason)?.label ?? skipReason
+  return skipReasons.find((r) => r.reason === skipReason)?.label ?? skipReason
 }
 
 function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Section[] }) {
@@ -109,7 +109,7 @@ function SkipPanel({
   onSkip: (reason: string, customText?: string) => void
   onCancel: () => void
 }) {
-  const defaultId = skipReasons[0]?.id ?? CUSTOM_REASON
+  const defaultId = skipReasons[0]?.reason ?? CUSTOM_REASON
   const [selectedId, setSelectedId] = useState(defaultId)
   const [customText, setCustomText] = useState('')
 
@@ -121,13 +121,13 @@ function SkipPanel({
       <p className="text-xs font-medium text-stone-600">{UI_TEXT.interview.skipReasonLabel}</p>
       <div className="space-y-1">
         {skipReasons.map((r) => (
-          <label key={r.id} className="flex items-center gap-2 text-xs cursor-pointer">
+          <label key={r.reason} className="flex items-center gap-2 text-xs cursor-pointer">
             <input
               type="radio"
               name={`skip-${questionId}`}
-              value={r.id}
-              checked={selectedId === r.id}
-              onChange={() => setSelectedId(r.id)}
+              value={r.reason}
+              checked={selectedId === r.reason}
+              onChange={() => setSelectedId(r.reason)}
               className="accent-stone-700"
             />
             {r.label}
