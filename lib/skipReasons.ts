@@ -7,8 +7,6 @@ export const CUSTOM_REASON_INSTRUCTION = 'ユーザーが入力したテキス�
 export const SKIP_REASON_KEY_CHARS = '[a-z0-9_]'
 const REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)
 
-export const SKIP_REASON_KEY_CHARS = '[a-z0-9_]'
-
 export type EffectiveSkipReason =
   | { reason: string; label: string; instruction: string; isCustom?: false }
   | { reason: typeof CUSTOM_REASON; label: string; isCustom: true }
