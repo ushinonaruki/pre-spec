@@ -248,14 +248,14 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
               ))}
               <button
                 onClick={handleAddRelatedEntry}
-                className="text-xs text-stone-500 hover:text-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-sm text-stone-500 hover:text-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {UI_TEXT.startScreen.relatedAddButton}
               </button>
             </div>
           </fieldset>
 
-          <div className="flex gap-2">
+          <div className="border-t border-stone-100 pt-3 flex gap-2">
             <button
               onClick={() => { void handleCreate() }}
               disabled={isCreating}
