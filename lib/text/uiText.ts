@@ -1,9 +1,9 @@
 export const UI_TEXT = {
   app: {
     name: 'pre-spec',
-    tagline: 'LDD Interview Workbench',
+    tagline: 'Spec Interview Workbench',
     sectionCount: (n: number) => `${n} セクション`,
-    downloadAll: '↓ 成果物ダウンロード',
+    downloadAll: '⬇',
     settings: '⚙ 設定',
     generateTimelineError: '質問の生成に失敗しました。APIキーを確認してください。',
   },
@@ -56,14 +56,12 @@ export const UI_TEXT = {
 
   bottomTabs: {
     logTab: 'timeline.md',
-    memoTab: 'references.md',
+    memoTab: 'References',
     logEmpty: '(まだ記録がありません)',
     addRefButton: '+ 参照',
-    addRefText: 'テキスト',
     addRefFile: 'ファイル',
     addRefUrl: 'URL',
     addRefUrlPlaceholder: 'https://',
-    addRefTextPlaceholder: '本文を入力…',
     addRefNotePlaceholder: 'note',
     addRefFileButton: 'ファイルを選ぶ (.md / .txt)',
     addRefAddButton: '追加',

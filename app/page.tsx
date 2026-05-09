@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReason, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
@@ -25,7 +25,6 @@ import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
 import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
-import PreflightPanel from '@/components/PreflightPanel'
 
 const LOG_TAIL_CHARS = 1500
 const ERROR_BANNER_MS = 5000
@@ -446,11 +445,6 @@ export default function Home() {
     setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
   }
 
-  const preflightResult = useMemo(
-    () => (project ? runPreflightCheck(project, markerDefinitions) : null),
-    [project, markerDefinitions],
-  )
-
   if (!project) return (
     <StartScreen
       onCreate={(inputs) => handleCreate(inputs)}
@@ -470,20 +464,19 @@ export default function Home() {
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={handleDownloadAll}
-            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
           >
             {UI_TEXT.app.downloadAll}
           </button>
           <button
             onClick={() => router.push('/settings')}
-            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors"
+            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
           >
             {UI_TEXT.app.settings}
           </button>
         </div>
       </header>
 
-      <PreflightPanel result={preflightResult!} markerDefinitions={markerDefinitions} />
       {initConfirmFailed && (
         <div className="shrink-0 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
           {UI_TEXT.initialConfirmation.generationError}
@@ -493,13 +486,13 @@ export default function Home() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left column: spec editor + bottom tabs */}
         <div className="flex flex-col w-1/2 min-w-0 border-r border-stone-200">
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-[2] min-h-0 overflow-hidden">
             <SpecEditor
               value={project.spec}
               onSave={handleSpecSave}
             />
           </div>
-          <div className="shrink-0 h-48 border-t border-stone-200 overflow-hidden">
+          <div className="flex-1 min-h-0 border-t border-stone-200 overflow-hidden">
             <TimelineBottomTabs
               project={project}
               onAddReference={handleAddReference}
