@@ -136,25 +136,8 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
             </div>
 
             {addMode === 'file' && (
-              fileContent !== null ? (
-                <div className="flex flex-col flex-1 min-h-0 justify-end">
-                  <div className="px-2 py-1.5 text-xs font-mono text-stone-500 shrink-0">{fileName}</div>
-                  {noteRow}
-                  <div className="shrink-0 px-2 py-1.5 border-t border-stone-100 flex items-center gap-2">
-                    <button
-                      onClick={() => { void handleAddFile() }}
-                      disabled={isReviewing}
-                      className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                    >
-                      {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
-                    </button>
-                    {reviewError !== null && (
-                      <span className="text-xs text-red-600">{reviewError}</span>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-1 items-center justify-center">
+              <div className="flex flex-col flex-1 min-h-0">
+                <div className="px-2 py-1.5 shrink-0">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -162,14 +145,31 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
                     onChange={(e) => { void handleFileChange(e) }}
                     className="hidden"
                   />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
-                  >
-                    {UI_TEXT.bottomTabs.addRefFileButton}
-                  </button>
+                  {fileContent !== null ? (
+                    <p className="text-xs font-mono text-stone-500">{fileName}</p>
+                  ) : (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
+                    >
+                      {UI_TEXT.bottomTabs.addRefFileButton}
+                    </button>
+                  )}
                 </div>
-              )
+                {noteRow}
+                <div className="shrink-0 px-2 py-1.5 border-t border-stone-100 flex items-center gap-2">
+                  <button
+                    onClick={() => { void handleAddFile() }}
+                    disabled={!fileContent || isReviewing}
+                    className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  >
+                    {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
+                  </button>
+                  {reviewError !== null && (
+                    <span className="text-xs text-red-600">{reviewError}</span>
+                  )}
+                </div>
+              </div>
             )}
 
             {addMode === 'url' && (
