@@ -4,7 +4,8 @@ export const CUSTOM_REASON = 'custom'
 export const CUSTOM_REASON_LABEL = '理由を入力'
 export const CUSTOM_REASON_INSTRUCTION = 'ユーザーが入力したテキストを未決事項の説明として反映してください。'
 
-const REASON_KEY_RE = /^[a-z0-9_]+$/
+export const SKIP_REASON_KEY_CHARS = '[a-z0-9_]'
+const REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)
 
 export type EffectiveSkipReason = {
   id: string

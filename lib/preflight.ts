@@ -1,4 +1,5 @@
 import type { MarkerDefinitionFile, Project, Question } from '@/types'
+import { SKIP_REASON_KEY_CHARS } from '@/lib/skipReasons'
 
 export type PreflightWarning = {
   type: string
@@ -26,7 +27,7 @@ export function runPreflightCheck(
     (item): item is Question => item.type === 'question' && item.status === 'open',
   ).length
 
-  const skipMarkers = countPattern(spec, /\[pre-spec:skip:[a-z_-]+\]/g)
+  const skipMarkers = countPattern(spec, new RegExp(`\\[pre-spec:skip:${SKIP_REASON_KEY_CHARS}+\\]`, 'g'))
 
   const markerCounts: Record<string, number> = {}
 
