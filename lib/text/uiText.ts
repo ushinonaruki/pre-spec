@@ -33,6 +33,7 @@ export const UI_TEXT = {
     startButton: '開始',
     startButtonLoading: '開始中…',
     backButton: '戻る',
+    filenamePreview: (slug: string) => `ファイル名: ${slug}.pre-spec.json`,
   },
 
   specEditor: {
@@ -84,6 +85,7 @@ export const UI_TEXT = {
     answerButton: '回答して反映',
     answerButtonFormatting: '整形中…',
     retryButton: '↻',
+    retryButtonTitle: '質問を作り直す',
     skipButton: 'スキップ ▾',
     skipReasonLabel: 'スキップ理由',
     skipCustomPlaceholder: '理由を入力（必須）',

@@ -195,7 +195,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
               {nameError && <p className="text-xs text-red-600">{nameError}</p>}
               {projectName.trim() && generateProjectSlug(projectName.trim()) && (
                 <p className="text-xs text-stone-400">
-                  ファイル名: {generateProjectSlug(projectName.trim())}.pre-spec.json
+                  {UI_TEXT.startScreen.filenamePreview(generateProjectSlug(projectName.trim()))}
                 </p>
               )}
             </div>
