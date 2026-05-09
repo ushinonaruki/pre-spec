@@ -32,7 +32,7 @@ const DOWNLOAD_STAGGER_MS = 100
 type RawQuestion = {
   text: string
   reason?: string
-  kind?: string
+  kinds?: string[]
   priority?: string
   aiGuess?: { value: string; rationale: string }
 }
@@ -41,7 +41,7 @@ type RawInitialQuestion = {
   sectionTitle: string
   text: string
   reason?: string
-  kind?: string
+  kinds?: string[]
   priority?: string
   proposedMarkdown?: string
 }
@@ -177,7 +177,7 @@ export default function Home() {
             sectionTitle: q.sectionTitle,
             text: q.text,
             reason: q.reason,
-            kind: q.kind as QuestionKind | undefined,
+            kinds: q.kinds as QuestionKind[] | undefined,
             priority: q.priority as QuestionPriority | undefined,
             proposedMarkdown: q.proposedMarkdown,
             status: 'open' as const,
@@ -323,7 +323,7 @@ export default function Home() {
         sectionTitle: section.title,
         text: q.text,
         reason: q.reason,
-        kind: q.kind as QuestionKind | undefined,
+        kinds: q.kinds as QuestionKind[] | undefined,
         priority: q.priority as QuestionPriority | undefined,
         aiGuess: q.aiGuess,
         status: 'open' as const,
