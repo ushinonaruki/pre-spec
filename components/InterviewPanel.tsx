@@ -304,7 +304,7 @@ function InitialConfirmationCard({
                     <button
                       onClick={onRetry}
                       disabled={isFormatting || isRetrying}
-                      title="質問を作り直す"
+                      title={UI_TEXT.interview.retryButtonTitle}
                       className="px-2.5 py-1.5 border border-stone-300 text-stone-500 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {isRetrying ? '…' : UI_TEXT.interview.retryButton}
@@ -488,7 +488,7 @@ function QuestionCard({
                     <button
                       onClick={onRetry}
                       disabled={isFormatting || isRetrying}
-                      title="質問を作り直す"
+                      title={UI_TEXT.interview.retryButtonTitle}
                       className="px-2.5 py-1.5 border border-stone-300 text-stone-500 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {isRetrying ? '…' : UI_TEXT.interview.retryButton}
