@@ -155,7 +155,6 @@ export default function Home() {
       const text = await callLLM(
         buildInitialConfirmationQuestionsPrompt({
           requirementMemo: inputs.requirementMemo,
-          baseSpecMarkdown: inputs.baseSpecMarkdown,
           referenceMarkdown: p.memo,
           sections: p.sections,
         }),
