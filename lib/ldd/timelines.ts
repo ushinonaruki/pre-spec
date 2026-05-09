@@ -75,7 +75,7 @@ export function answerQuestion(
     }
     return item
   })
-  return { ...project, timeline }
+  return { ...project, timeline, updatedAt: now }
 }
 
 function simpleHash(s: string): string {
