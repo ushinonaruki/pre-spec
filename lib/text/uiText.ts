@@ -1,7 +1,7 @@
 export const UI_TEXT = {
   app: {
     name: 'pre-spec',
-    tagline: 'LDD Interview Workbench',
+    tagline: 'Spec Interview Workbench',
     sectionCount: (n: number) => `${n} セクション`,
     downloadAll: '⬇',
     settings: '⚙ 設定',
