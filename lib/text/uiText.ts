@@ -86,7 +86,7 @@ export const UI_TEXT = {
     retryButton: '↻',
     skipButton: 'スキップ ▾',
     skipReasonLabel: 'スキップ理由',
-    skipDetailPlaceholder: 'メモ (任意)',
+    skipCustomPlaceholder: '理由を入力（必須）',
     skipConfirmButton: 'スキップして記録',
     skipCancelButton: '戻る',
     statusAnswered: '✓',

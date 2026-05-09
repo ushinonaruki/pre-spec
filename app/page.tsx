@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReason, TimelineItem } from '@/types'
+import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReasonDefinitionFile, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { generateProjectSlug } from '@/lib/ldd/slug'
@@ -18,6 +18,8 @@ import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
+import { CUSTOM_REASON, CUSTOM_REASON_INSTRUCTION, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
+import type { EffectiveSkipReason } from '@/lib/skipReasons'
 import { buildRelatedSourceBlock, resolveSourceName } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
@@ -96,6 +98,7 @@ async function runRelatedSourceReview(
 export default function Home() {
   const [project, setProject] = useState<Project | null>(null)
   const [markerDefinitions, setMarkerDefinitions] = useState<MarkerDefinitionFile | null>(null)
+  const [skipReasonDefinitions, setSkipReasonDefinitions] = useState<SkipReasonDefinitionFile | null>(null)
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
@@ -116,6 +119,23 @@ export default function Home() {
         if (!raw) return
         try {
           setMarkerDefinitions(validateMarkerDefinitionFile(raw))
+        } catch {
+          // invalid file — ignore silently
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/pre-spec.skip-reasons.json')
+      .then((res) => {
+        if (!res.ok) return
+        return res.json() as Promise<unknown>
+      })
+      .then((raw) => {
+        if (!raw) return
+        try {
+          setSkipReasonDefinitions(validateSkipReasonDefinitionFile(raw))
         } catch {
           // invalid file — ignore silently
         }
@@ -384,7 +404,7 @@ export default function Home() {
   }, [project, updateProject])
 
   const handleSkipQuestion = useCallback(
-    async (questionId: string, reason: SkipReason, detail?: string) => {
+    async (questionId: string, reason: string, customText?: string) => {
       if (!project) return
       const questionItem = project.timeline.find(
         (item): item is Question => item.type === 'question' && item.id === questionId,
@@ -393,6 +413,11 @@ export default function Home() {
 
       const { sectionTitle, text: questionText, questionType, proposedMarkdown, aiGuess } = questionItem
 
+      const isCustom = reason === CUSTOM_REASON
+      const skipInstruction = isCustom
+        ? (customText?.trim() ?? CUSTOM_REASON_INSTRUCTION)
+        : (skipReasonDefinitions?.skipReasons[reason]?.instruction ?? CUSTOM_REASON_INSTRUCTION)
+
       const fallbackBody = proposedMarkdown?.trim()
         ? '提案内容を採用するかは未決。'
         : `${questionText}については未決。`
@@ -400,7 +425,7 @@ export default function Home() {
       let markerBody = fallbackBody
       try {
         const text = await callLLM(
-          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, questionType, proposedMarkdown, aiGuess, skipReason: reason, skipDetail: detail }),
+          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, questionType, proposedMarkdown, aiGuess, skipReason: reason, skipInstruction, isCustom }),
         )
         const result = extractJSON<{ markerBody: string }>(text)
         if (result?.markerBody?.trim()) {
@@ -412,10 +437,10 @@ export default function Home() {
 
       updateProject((prev) => {
         const { project: withSpec, reflectedMarkdown } = applySkip(prev, { sectionTitle, markerBody, reason })
-        return skipQuestion(withSpec, { questionId, skipReason: reason, skipDetail: detail, reflectedMarkdown })
+        return skipQuestion(withSpec, { questionId, skipReason: reason, skipCustomText: isCustom ? customText : undefined, reflectedMarkdown })
       })
     },
-    [project, updateProject],
+    [project, updateProject, skipReasonDefinitions],
   )
 
   const handleRetryQuestion = useCallback(
@@ -524,6 +549,7 @@ export default function Home() {
   )
 
   const currentSection = project.sections.find((s) => s.id === project.currentSectionId) ?? null
+  const effectiveSkipReasons: EffectiveSkipReason[] = getEffectiveSkipReasons(skipReasonDefinitions)
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-stone-50">
@@ -574,6 +600,7 @@ export default function Home() {
             retryingQuestionId={retryingQuestionId}
             onAddQuestions={() => { void handleGenerateTimeline() }}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
+            skipReasons={effectiveSkipReasons}
             onSkipQuestion={handleSkipQuestion}
             onRetryQuestion={(qId) => { void handleRetryQuestion(qId) }}
             onConfirmInitial={handleConfirmInitial}
