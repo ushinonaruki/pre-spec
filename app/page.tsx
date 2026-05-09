@@ -9,10 +9,10 @@ import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
-import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, skipQuestion } from '@/lib/ldd/timelines'
+import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
-import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt, buildSkipMarkerBodyPrompt } from '@/lib/llm/prompts'
-import type { RelatedSourceReviewResult } from '@/lib/llm/prompts'
+import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt, buildRetryQuestionPrompt, buildSkipMarkerBodyPrompt } from '@/lib/llm/prompts'
+import type { RelatedSourceReviewResult, RetryQuestionResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
@@ -98,6 +98,7 @@ export default function Home() {
   const [markerDefinitions, setMarkerDefinitions] = useState<MarkerDefinitionFile | null>(null)
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
+  const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
   const [formattingFallback, setFormattingFallback] = useState(false)
   const [initConfirmFailed, setInitConfirmFailed] = useState(false)
   const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
@@ -417,6 +418,54 @@ export default function Home() {
     [project, updateProject],
   )
 
+  const handleRetryQuestion = useCallback(
+    async (questionId: string) => {
+      if (!project) return
+      const questionItem = project.timeline.find(
+        (item): item is Question => item.type === 'question' && item.id === questionId,
+      )
+      if (!questionItem) return
+
+      setRetryingQuestionId(questionId)
+      try {
+        const text = await callLLM(
+          buildRetryQuestionPrompt({
+            sectionTitle: questionItem.sectionTitle,
+            originalQuestion: questionItem,
+            spec: project.spec,
+            memo: project.memo,
+          }),
+        )
+        const raw = extractJSON<RetryQuestionResult>(text)
+        if (!raw?.text?.trim()) throw new Error('Invalid retry result')
+
+        const now = new Date().toISOString()
+        const newQuestion: Question = {
+          id: crypto.randomUUID(),
+          type: 'question' as const,
+          questionType: questionItem.questionType,
+          sectionId: questionItem.sectionId,
+          sectionTitle: questionItem.sectionTitle,
+          text: raw.text.trim(),
+          reason: raw.reason,
+          kinds: raw.kinds as Question['kinds'],
+          priority: raw.priority as Question['priority'],
+          aiGuess: raw.aiGuess,
+          proposedMarkdown: raw.proposedMarkdown,
+          status: 'open' as const,
+          createdAt: now,
+        }
+
+        updateProject((prev) => retryQuestion(prev, { questionId, newQuestion }))
+      } catch {
+        alert(UI_TEXT.app.retryQuestionError)
+      } finally {
+        setRetryingQuestionId(null)
+      }
+    },
+    [project, updateProject],
+  )
+
   const handleNext = () => {
     updateProject((prev) => advanceSection(prev))
   }
@@ -522,9 +571,11 @@ export default function Home() {
             isGenerating={isGeneratingTimeline}
             formattingQuestionId={formattingQuestionId}
             formattingFallback={formattingFallback}
+            retryingQuestionId={retryingQuestionId}
             onAddQuestions={() => { void handleGenerateTimeline() }}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             onSkipQuestion={handleSkipQuestion}
+            onRetryQuestion={(qId) => { void handleRetryQuestion(qId) }}
             onConfirmInitial={handleConfirmInitial}
             onNext={handleNext}
           />

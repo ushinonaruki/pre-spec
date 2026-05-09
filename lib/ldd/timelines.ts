@@ -173,6 +173,22 @@ export function answerInitialConfirmation(
   return { ...project, timeline, updatedAt: now }
 }
 
+export function retryQuestion(
+  project: Project,
+  params: { questionId: string; newQuestion: Question },
+): Project {
+  const idx = project.timeline.findIndex(
+    (item) => item.type === 'question' && item.id === params.questionId,
+  )
+  if (idx === -1) return project
+  const timeline = [
+    ...project.timeline.slice(0, idx),
+    params.newQuestion,
+    ...project.timeline.slice(idx + 1),
+  ]
+  return { ...project, timeline }
+}
+
 export function skipQuestion(
   project: Project,
   params: {
