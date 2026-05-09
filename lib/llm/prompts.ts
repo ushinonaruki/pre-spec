@@ -44,7 +44,7 @@ ${sectionTitles}
 - 質問数に固定上限なし（必要な数だけ、ただし過剰に作らない）
 - 質問は日本語で記述する
 
-kind 候補: ${KIND_CANDIDATES}
+kinds 候補: ${KIND_CANDIDATES}
 priority 候補: ${PRIORITY_CANDIDATES}
 
 有効な JSON のみを返してください（マークダウンコードフェンス・説明文不要）:
@@ -54,7 +54,7 @@ priority 候補: ${PRIORITY_CANDIDATES}
       "sectionTitle": "(セクション名)",
       "text": "(セクション名) に以下を置いてよいですか？",
       "reason": "要件定義メモから読み取れるため",
-      "kind": "scope",
+      "kinds": ["scope"],
       "priority": "high",
       "proposedMarkdown": "- ..."
     }
@@ -320,14 +320,15 @@ ${memoSection}${logSection}${existingSection}${markerSection}
 - 参照メモから推定できる場合は aiGuess を付ける
 - aiGuess には value (推定値) と rationale (根拠) を含める
 - ユーザーが採用・修正しやすい推定を出す
-- 質問には kind と priority を付ける
+- 質問には kinds と priority を付ける
+- kinds は配列で、質問の観点として当てはまるものだけを入れる（重複なし・無関係なものは入れない）
 - priority high の質問を先に並べる
 - 質問数は 1〜5 問
 - 無理に 5 問出さない
 - 本当に聞くべき質問だけを出す
 - 質問は日本語で記述する
 
-kind 候補: ${KIND_CANDIDATES}
+kinds 候補: ${KIND_CANDIDATES}
 priority 候補: ${PRIORITY_CANDIDATES}
 
 有効な JSON のみを返してください (マークダウンコードフェンス・説明文不要):
@@ -336,7 +337,7 @@ priority 候補: ${PRIORITY_CANDIDATES}
     {
       "text": "...",
       "reason": "...",
-      "kind": "scope",
+      "kinds": ["scope"],
       "priority": "high",
       "aiGuess": {
         "value": "...",

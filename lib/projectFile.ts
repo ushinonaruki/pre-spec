@@ -108,7 +108,8 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
       lines.push('')
     } else if (item.type === 'question') {
       const q = item as Question
-      const meta = [q.kind, q.priority].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
+      const kindStr = q.kinds?.length ? q.kinds.join(' / ') : undefined
+      const meta = [q.priority, kindStr].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
       const prefix = q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
       lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
       if (q.reason) lines.push(`*${TIMELINE_TEXT.reasonLabel}: ${q.reason}*`)

@@ -56,7 +56,7 @@ export type Question = {
   sectionTitle: string
   text: string
   reason?: string
-  kind?: QuestionKind
+  kinds?: QuestionKind[]
   priority?: QuestionPriority
   aiGuess?: {
     value: string
