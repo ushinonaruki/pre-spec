@@ -11,7 +11,7 @@ import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
-import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt } from '@/lib/llm/prompts'
+import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt, buildSkipMarkerBodyPrompt } from '@/lib/llm/prompts'
 import type { RelatedSourceReviewResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
@@ -382,17 +382,40 @@ export default function Home() {
     }
   }, [project, updateProject])
 
-  const handleSkipQuestion = (questionId: string, reason: SkipReason, detail?: string) => {
-    updateProject((prev) => {
-      const questionItem = prev.timeline.find(
+  const handleSkipQuestion = useCallback(
+    async (questionId: string, reason: SkipReason, detail?: string) => {
+      if (!project) return
+      const questionItem = project.timeline.find(
         (item): item is Question => item.type === 'question' && item.id === questionId,
       )
-      if (!questionItem) return prev
-      const { sectionTitle, text: questionText } = questionItem
-      const { project: withSpec, reflectedMarkdown } = applySkip(prev, { sectionTitle, question: questionText, reason, detail })
-      return skipQuestion(withSpec, { questionId, skipReason: reason, skipDetail: detail, reflectedMarkdown })
-    })
-  }
+      if (!questionItem) return
+
+      const { sectionTitle, text: questionText, questionType, proposedMarkdown, aiGuess } = questionItem
+
+      const fallbackBody = proposedMarkdown?.trim()
+        ? '提案内容を採用するかは未決。'
+        : `${questionText}については未決。`
+
+      let markerBody = fallbackBody
+      try {
+        const text = await callLLM(
+          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, questionType, proposedMarkdown, aiGuess, skipReason: reason, skipDetail: detail }),
+        )
+        const result = extractJSON<{ markerBody: string }>(text)
+        if (result?.markerBody?.trim()) {
+          markerBody = result.markerBody.trim()
+        }
+      } catch {
+        // use fallback
+      }
+
+      updateProject((prev) => {
+        const { project: withSpec, reflectedMarkdown } = applySkip(prev, { sectionTitle, markerBody, reason })
+        return skipQuestion(withSpec, { questionId, skipReason: reason, skipDetail: detail, reflectedMarkdown })
+      })
+    },
+    [project, updateProject],
+  )
 
   const handleNext = () => {
     updateProject((prev) => advanceSection(prev))
