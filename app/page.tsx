@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReasonDefinitionFile, TimelineItem } from '@/types'
+import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSourceKind, SkipReasonDefinitionFile, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { generateProjectSlug } from '@/lib/ldd/slug'
@@ -220,21 +220,12 @@ export default function Home() {
       const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
       if (result?.status === 'ok' && result.content) {
         const now = new Date().toISOString()
-        const existingNames = baseProject.relatedSources.map((s) => s.name)
+        const existingNames = [...baseProject.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
         const name = resolveSourceName(existingNames, rawName)
-        const newSource: RelatedSource = {
-          id: crypto.randomUUID(),
-          kind: src.kind,
-          name,
-          note: src.note,
-          ...(src.kind === 'url' ? { url: src.url } : {}),
-          addedAt: now,
-        }
         const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, now)
         baseProject = {
           ...baseProject,
           referencesMarkdown: baseProject.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n',
-          relatedSources: [...baseProject.relatedSources, newSource],
         }
       }
     }
@@ -505,23 +496,14 @@ export default function Home() {
 
       updateProject((prev: Project) => {
         const now = new Date().toISOString()
-        const existingNames = prev.relatedSources.map((s) => s.name)
+        const existingNames = [...prev.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
         const name = resolveSourceName(existingNames, rawName)
         const source = kind === 'url' ? content : rawName
-        const newSource: RelatedSource = {
-          id: crypto.randomUUID(),
-          kind,
-          name,
-          note,
-          ...(kind === 'url' ? { url: content } : {}),
-          addedAt: now,
-        }
         const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, now)
         const newReferencesMarkdown = prev.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n'
         return {
           ...prev,
           referencesMarkdown: newReferencesMarkdown,
-          relatedSources: [...prev.relatedSources, newSource],
         }
       })
       return { ok: true }

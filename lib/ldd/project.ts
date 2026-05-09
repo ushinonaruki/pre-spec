@@ -1,4 +1,4 @@
-import type { Project, RelatedSource, SectionMarker } from '@/types'
+import type { Project, SectionMarker } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import { buildInitialRequirementMemoBlock } from '@/lib/references'
@@ -25,7 +25,6 @@ export function createProjectFromInputs({
   const sections = extractSections(spec)
   const firstSection = sections[0] ?? null
 
-  const relatedSources: RelatedSource[] = []
   const memoParts: string[] = [
     '# References',
     '',
@@ -53,7 +52,6 @@ export function createProjectFromInputs({
     requirementMemo,
     spec,
     referencesMarkdown,
-    relatedSources,
     sections,
     currentSectionId: firstSection?.id ?? null,
     timeline: initialMarker ? [initialMarker] : [],

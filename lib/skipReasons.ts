@@ -5,10 +5,10 @@ export const CUSTOM_REASON_LABEL = '理由を入力'
 export const CUSTOM_REASON_INSTRUCTION = 'ユーザーが入力したテキストを未決事項の説明として反映してください。'
 
 export const SKIP_REASON_KEY_CHARS = '[a-z0-9_]'
-const REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)
+export const SKIP_REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)
 
 export type EffectiveSkipReason =
-  | { reason: string; label: string; instruction: string; isCustom?: false }
+  | { reason: string; label: string; instruction: string; isCustom: false }
   | { reason: typeof CUSTOM_REASON; label: string; isCustom: true }
 
 export function validateSkipReasonDefinitionFile(raw: unknown): SkipReasonDefinitionFile {
@@ -20,7 +20,7 @@ export function validateSkipReasonDefinitionFile(raw: unknown): SkipReasonDefini
   const result: Record<string, SkipReasonDefinition> = {}
   for (const [key, value] of Object.entries(skipReasons)) {
     if (key === CUSTOM_REASON) continue
-    if (!REASON_KEY_RE.test(key)) throw new Error(`Invalid skip reason key: ${key}`)
+    if (!SKIP_REASON_KEY_RE.test(key)) throw new Error(`Invalid skip reason key: ${key}`)
     if (typeof value !== 'object' || value === null)
       throw new Error(`Skip reason "${key}" must be an object`)
     const def = value as Record<string, unknown>
@@ -37,7 +37,7 @@ export function getEffectiveSkipReasons(file: SkipReasonDefinitionFile | null): 
   const reasons: EffectiveSkipReason[] = []
   if (file) {
     for (const [id, def] of Object.entries(file.skipReasons)) {
-      reasons.push({ reason: id, label: def.label, instruction: def.instruction })
+      reasons.push({ reason: id, label: def.label, instruction: def.instruction, isCustom: false })
     }
   }
   reasons.push({ reason: CUSTOM_REASON, label: CUSTOM_REASON_LABEL, isCustom: true })

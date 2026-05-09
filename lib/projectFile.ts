@@ -25,7 +25,6 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
     },
     inputs: {
       requirementMemo: project.requirementMemo,
-      relatedSources: project.relatedSources,
     },
     workspace: {
       draftSpecMarkdown: project.spec,
@@ -50,7 +49,6 @@ export function preSpecProjectToProject(file: PreSpecProject): Project {
     requirementMemo: file.inputs?.requirementMemo ?? '',
     spec: ws.draftSpecMarkdown,
     referencesMarkdown,
-    relatedSources: file.inputs?.relatedSources ?? [],
     sections,
     currentSectionId: ws.currentSectionId,
     timeline: ws.timeline,
