@@ -2,7 +2,6 @@ export const UI_TEXT = {
   app: {
     name: 'pre-spec',
     tagline: 'Spec Interview Workbench',
-    sectionCount: (n: number) => `${n} セクション`,
     downloadAll: '⬇',
     generateTimelineError: '質問の生成に失敗しました。APIキーを確認してください。',
   },

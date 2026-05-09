@@ -479,9 +479,6 @@ export default function Home() {
     <div className="h-screen flex flex-col overflow-hidden bg-stone-50">
       <header className="shrink-0 flex items-center gap-3 px-4 py-2 bg-white border-b border-stone-200">
         <span className="font-semibold text-stone-800 text-sm">{UI_TEXT.app.name}</span>
-        <span className="text-xs text-stone-400">
-          {UI_TEXT.app.sectionCount(project.sections.length)}
-        </span>
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={handleDownloadAll}
