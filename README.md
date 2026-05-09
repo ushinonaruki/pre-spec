@@ -1,6 +1,6 @@
 # pre-spec
 
-LDD Interview Workbench — AI 実装に渡す `spec.md` を質問・回答・スキップ・参照メモで育てる 1 人用 Markdown ワークベンチ。
+AI は質問し、人間が判断する。その判断を `spec.md` に積み上げ、AI 実装 / SDD に渡す仕様書を作る 1 人用 Markdown ワークベンチ。
 
 ## セットアップ
 
@@ -59,34 +59,54 @@ docker compose up --build
 
 ## ワークフロー
 
-1. **新規作成** — プロジェクト名と要件定義メモを入力して開始。関連資料（テキスト・ファイル・URL）があれば追加（AI が確認して `references.md` に整理）。
-2. **初期反映** — AI が要件定義メモを読んで各セクションへの初期配置案を質問形式で提示。OK / 修正して反映を選ぶ。
-3. **インタビュー** — セクションごとに AI が質問を生成。回答・スキップ・AI 推定値の採用を繰り返して `spec.md` を育てる。
-4. **直接編集** — `spec.md` を手動編集して `timeline.md` に記録。
-5. **出力** — 出力前チェック（未回答質問・マーカー残留確認）後、`spec.md` / `references.md` / `timeline.md` をダウンロード。
+起動画面で **作業ファイルを開く**（`{slug}.pre-spec.json` を選んで再開）か **新規作成** を選ぶ。
 
-作業状態は `{slug}.pre-spec.json` として保存・復元できます（ブラウザの localStorage は使用しません）。
+新規作成の流れ:
+
+1. **初期入力** — プロジェクト名と要件定義メモをファイルアップロードする。関連資料（ファイル・URL）があれば追加し、各資料に読み方メモを添えられる。AI が資料を確認して `references.md` に整理する。
+2. **初期反映** — AI が要件定義メモから各セクションへの配置案を質問形式で提示。回答・修正依頼・スキップによって反映する。
+3. **インタビュー** — セクションごとに AI が質問を生成。回答・スキップを繰り返して `spec.md` を育てる。
+4. **直接編集** — `[Edit]` で `spec.md` を手動編集。変更は `timeline.md` に記録される。
+5. **出力** — 未回答質問とマーカーがすべて 0 件ならそのまま出力。残留がある場合は件数を確認してから出力を選択する。
+
+## 作業ファイル
+
+| ファイル | 内容 |
+| --- | --- |
+| `{slug}.pre-spec.json` | 作業ファイル（再開用） |
 
 ## 出力ファイル
 
 | ファイル | 内容 |
-| -------- | ---- |
+| --- | --- |
 | `{slug}.spec.md` | 育てた仕様書 |
 | `{slug}.references.md` | AI が整理した参照メモ |
 | `{slug}.timeline.md` | 質問・回答・編集の履歴 |
-| `{slug}.pre-spec.json` | 作業ファイル（再開用） |
 
 ## マーカー
 
-`spec.md` 内で以下のマーカーを使い、質問生成・出力前チェックの挙動を制御できます。
+`spec.md` 内でマーカーを使い、質問生成・出力前チェックの挙動を制御できます。
+
+### 組み込みマーカー（skip）
+
+skip は組み込みマーカーです。`pre-spec.markers.json` に依存せず常に使用できます。
 
 | マーカー | 形式 | 用途 |
-| -------- | ---- | ---- |
-| `[pre-spec:revisit]` | インライン / range | 再確認が必要な箇所の目印 |
-| `[pre-spec:protected]` | インライン / range | AI が書き換えないよう保護する箇所 |
-| `[pre-spec:skip]` | インライン | スキップ済み未決事項 |
+| --- | --- | --- |
+| `[pre-spec:skip:{reason}]` | インライン | スキップ済み未決事項 |
 
-カスタムマーカーは `public/pre-spec.markers.json` で定義できます。
+`{reason}` は `thinking` / `need_confirm` / `need_research` / `defer_to_implementation` / `low_priority` のいずれか。
+
+### マーカー定義ファイル
+
+`revisit` と `protected` は `public/pre-spec.markers.json` の初期設定として定義されています。
+
+| マーカー | 形式 | 用途 |
+| --- | --- | --- |
+| `[pre-spec:revisit]` | インライン / 範囲指定 | 再確認が必要な箇所の目印 |
+| `[pre-spec:protected]` | インライン / 範囲指定 | AI が自動変更提案してはならない箇所 |
+
+このファイルを編集することで、マーカーの追加・削除・説明の変更・AI への読み方指示の変更ができます。
 
 ## 構成
 
@@ -95,6 +115,8 @@ app/
   page.tsx           メインワークベンチ画面
   api/llm/route.ts   Anthropic API プロキシ
 components/          UI コンポーネント
+public/
+  pre-spec.markers.json  マーカー定義
 lib/
   ldd/               LDD ワークフロー（project 初期化・spec 更新・timeline 管理）
   llm/               LLM クライアント・プロンプト
