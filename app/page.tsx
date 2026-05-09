@@ -17,7 +17,7 @@ import { extractJSON } from '@/lib/llm/extractJSON'
 import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
-import { EXTENSIBLE_MARKERS, extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
+import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
 import { buildRelatedSourceBlock, resolveSourceName } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
@@ -50,17 +50,12 @@ function buildDownloadConfirmMessage(
   result: PreflightCheckResult,
   markerDefinitions: MarkerDefinitionFile | null,
 ): string {
-  const extensibleIds = new Set(EXTENSIBLE_MARKERS.map((m) => m.id))
   const lines: string[] = [UI_TEXT.preflight.downloadConfirmTitle, '']
   lines.push(UI_TEXT.preflight.downloadConfirmOpenQuestions(result.openQuestions))
   lines.push(UI_TEXT.preflight.downloadConfirmMarkerHeader)
   lines.push(UI_TEXT.preflight.downloadConfirmMarkerItem('skip', result.skipMarkers))
-  for (const marker of EXTENSIBLE_MARKERS) {
-    lines.push(UI_TEXT.preflight.downloadConfirmMarkerItem(marker.id, result.markerCounts[marker.id] ?? 0))
-  }
   if (markerDefinitions) {
     for (const [name] of Object.entries(markerDefinitions.markers)) {
-      if (extensibleIds.has(name)) continue
       lines.push(UI_TEXT.preflight.downloadConfirmMarkerItem(name, result.markerCounts[name] ?? 0))
     }
   }

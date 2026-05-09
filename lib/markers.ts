@@ -1,27 +1,5 @@
 import type { MarkerContext, MarkerDefinition, MarkerDefinitionFile, MarkerTarget } from '@/types'
 
-export type ExtensibleMarkerDef = {
-  id: string
-  label: string
-  inlinePattern: RegExp
-  rangePattern?: RegExp
-}
-
-export const EXTENSIBLE_MARKERS: ExtensibleMarkerDef[] = [
-  {
-    id: 'revisit',
-    label: 'revisit marker',
-    inlinePattern: /\[pre-spec:revisit\]/g,
-    rangePattern: /<!--\s*pre-spec:revisit:start\s*-->/g,
-  },
-  {
-    id: 'protected',
-    label: 'protected marker',
-    inlinePattern: /\[pre-spec:protected\]/g,
-    rangePattern: /<!--\s*pre-spec:protected:start\s*-->/g,
-  },
-]
-
 export function validateMarkerDefinitionFile(value: unknown): MarkerDefinitionFile {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Invalid marker definition file: root must be an object')
