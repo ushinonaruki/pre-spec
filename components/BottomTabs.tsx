@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import type { RelatedSourceKind } from '@/types'
 import { UI_TEXT } from '@/lib/text/uiText'
 
-type AddMode = 'text' | 'file' | 'url'
+type AddMode = 'file' | 'url'
 
 type Props = {
   memo: string
@@ -13,7 +13,6 @@ type Props = {
 
 export default function BottomTabs({ memo, onAddReference }: Props) {
   const [addMode, setAddMode] = useState<AddMode | null>(null)
-  const [textInput, setTextInput] = useState('')
   const [urlInput, setUrlInput] = useState('')
   const [noteInput, setNoteInput] = useState('')
   const [fileContent, setFileContent] = useState<string | null>(null)
@@ -23,8 +22,7 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   function openAddForm() {
-    setAddMode('text')
-    setTextInput('')
+    setAddMode('file')
     setUrlInput('')
     setNoteInput('')
     setFileContent(null)
@@ -35,26 +33,12 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
 
   function closeAddForm() {
     setAddMode(null)
-    setTextInput('')
     setUrlInput('')
     setNoteInput('')
     setFileContent(null)
     setFileName(null)
     setIsReviewing(false)
     setReviewError(null)
-  }
-
-  async function handleAddText() {
-    if (!textInput.trim()) return
-    setIsReviewing(true)
-    setReviewError(null)
-    const result = await onAddReference('text', 'related-input', textInput.trim(), noteInput.trim() || undefined)
-    setIsReviewing(false)
-    if (result.ok) {
-      closeAddForm()
-    } else {
-      setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
-    }
   }
 
   async function handleAddFile() {
@@ -129,13 +113,6 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
           <div className="flex flex-col h-full">
             <div className="flex items-center gap-1 px-2 py-1.5 border-b border-stone-100 bg-stone-50 shrink-0">
               <button
-                onClick={() => { setAddMode('text'); setReviewError(null) }}
-                disabled={isReviewing}
-                className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 cursor-pointer ${addMode === 'text' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
-              >
-                {UI_TEXT.bottomTabs.addRefText}
-              </button>
-              <button
                 onClick={() => { setAddMode('file'); setReviewError(null) }}
                 disabled={isReviewing}
                 className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 cursor-pointer ${addMode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
@@ -157,31 +134,6 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
                 ✕
               </button>
             </div>
-
-            {addMode === 'text' && (
-              <div className="flex flex-col flex-1 min-h-0">
-                <textarea
-                  value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
-                  placeholder={UI_TEXT.bottomTabs.addRefTextPlaceholder}
-                  disabled={isReviewing}
-                  className="flex-1 min-h-0 resize-none p-2 text-xs font-mono text-stone-700 bg-white focus:outline-none disabled:opacity-50"
-                />
-                {noteRow}
-                <div className="shrink-0 px-2 py-1.5 border-t border-stone-100 flex items-center gap-2">
-                  <button
-                    onClick={() => { void handleAddText() }}
-                    disabled={!textInput.trim() || isReviewing}
-                    className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                  >
-                    {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
-                  </button>
-                  {reviewError !== null && (
-                    <span className="text-xs text-red-600">{reviewError}</span>
-                  )}
-                </div>
-              </div>
-            )}
 
             {addMode === 'file' && (
               fileContent !== null ? (
