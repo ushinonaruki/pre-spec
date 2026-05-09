@@ -4,7 +4,6 @@ export const UI_TEXT = {
     tagline: 'Spec Interview Workbench',
     sectionCount: (n: number) => `${n} セクション`,
     downloadAll: '⬇',
-    settings: '⚙ 設定',
     generateTimelineError: '質問の生成に失敗しました。APIキーを確認してください。',
   },
 
@@ -116,13 +115,4 @@ export const UI_TEXT = {
     generationError: '初期反映質問の生成に失敗しました',
   },
 
-  settings: {
-    title: '設定',
-    apiKeyLabel: 'LLM API キー',
-    apiKeyNote: 'Claude API キーはサーバー側の ANTHROPIC_API_KEY 環境変数で設定します。この画面では API キーを入力・保存しません。',
-    resetButton: 'プロジェクトをリセット',
-    resetConfirm:
-      'プロジェクトをリセットしますか？ spec.md・参照・タイムラインがすべて消えます。',
-    backButton: 'ワークベンチに戻る',
-  },
 }

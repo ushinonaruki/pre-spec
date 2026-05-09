@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSource, RelatedSourceKind, SkipReason, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
@@ -96,7 +95,6 @@ async function runRelatedSourceReview(
 }
 
 export default function Home() {
-  const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [markerDefinitions, setMarkerDefinitions] = useState<MarkerDefinitionFile | null>(null)
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
@@ -467,12 +465,6 @@ export default function Home() {
             className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
           >
             {UI_TEXT.app.downloadAll}
-          </button>
-          <button
-            onClick={() => router.push('/settings')}
-            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
-          >
-            {UI_TEXT.app.settings}
           </button>
         </div>
       </header>
