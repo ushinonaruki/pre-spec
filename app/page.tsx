@@ -486,13 +486,13 @@ export default function Home() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left column: spec editor + bottom tabs */}
         <div className="flex flex-col w-1/2 min-w-0 border-r border-stone-200">
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-[2] min-h-0 overflow-hidden">
             <SpecEditor
               value={project.spec}
               onSave={handleSpecSave}
             />
           </div>
-          <div className="shrink-0 h-48 border-t border-stone-200 overflow-hidden">
+          <div className="flex-1 min-h-0 border-t border-stone-200 overflow-hidden">
             <TimelineBottomTabs
               project={project}
               onAddReference={handleAddReference}
