@@ -262,7 +262,8 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
             </button>
             <button
               onClick={() => setView('landing')}
-              className="px-4 py-2.5 border border-stone-300 text-stone-600 text-sm rounded hover:bg-stone-50 transition-colors"
+              disabled={isCreating}
+              className="px-4 py-2.5 border border-stone-300 text-stone-600 text-sm rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {UI_TEXT.startScreen.backButton}
             </button>
