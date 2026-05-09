@@ -3,7 +3,7 @@ export const UI_TEXT = {
     name: 'pre-spec',
     tagline: 'LDD Interview Workbench',
     sectionCount: (n: number) => `${n} セクション`,
-    downloadAll: '↓ 成果物ダウンロード',
+    downloadAll: '⬇',
     settings: '⚙ 設定',
     generateTimelineError: '質問の生成に失敗しました。APIキーを確認してください。',
   },
