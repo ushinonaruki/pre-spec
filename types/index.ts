@@ -77,7 +77,7 @@ export type Project = {
   slug: string
   createdAt: string
   updatedAt: string
-  initialPrompt: string
+  requirementMemo: string
   spec: string
   memo: string
   relatedSources: RelatedSource[]
