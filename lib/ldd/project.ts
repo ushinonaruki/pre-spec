@@ -50,7 +50,7 @@ export function createProjectFromInputs({
     slug,
     createdAt: now,
     updatedAt: now,
-    initialPrompt: requirementMemo,
+    requirementMemo,
     spec,
     memo,
     relatedSources,

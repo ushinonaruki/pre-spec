@@ -24,7 +24,7 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
       updatedAt: project.updatedAt,
     },
     inputs: {
-      requirementMemo: project.initialPrompt,
+      requirementMemo: project.requirementMemo,
       relatedSources: project.relatedSources,
     },
     workspace: {
@@ -48,7 +48,7 @@ export function preSpecProjectToProject(file: PreSpecProject): Project {
     slug,
     createdAt: file.project.createdAt,
     updatedAt: file.project.updatedAt,
-    initialPrompt: file.inputs?.requirementMemo ?? '',
+    requirementMemo: file.inputs?.requirementMemo ?? '',
     spec: ws.draftSpecMarkdown,
     memo,
     relatedSources: file.inputs?.relatedSources ?? [],
