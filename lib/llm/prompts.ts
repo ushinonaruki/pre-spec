@@ -3,12 +3,12 @@ import { KIND_CANDIDATES, PRIORITY_CANDIDATES } from '@/lib/config/questionTaxon
 
 export function buildInitialConfirmationQuestionsPrompt(params: {
   requirementMemo: string
-  referenceMarkdown: string
+  referencesMarkdown: string
   sections: Section[]
 }): string {
   const sectionTitles = params.sections.map((s) => `- ${s.title}`).join('\n')
-  const refSection = params.referenceMarkdown.trim()
-    ? `\nReferences:\n${params.referenceMarkdown}\n`
+  const refSection = params.referencesMarkdown.trim()
+    ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
 
   return `あなたは pre-spec の初期反映質問生成エンジンです。
@@ -62,11 +62,11 @@ export function buildAnswerFormatPrompt(params: {
   question: string
   answer: string
   currentSpec: string
-  referenceMemo: string
+  referencesMarkdown: string
   recentLog: string
 }): string {
-  const memoSection = params.referenceMemo.trim()
-    ? `\nReferences:\n${params.referenceMemo}\n`
+  const memoSection = params.referencesMarkdown.trim()
+    ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
   const logSection = params.recentLog.trim()
     ? `\n直近ログ (末尾):\n${params.recentLog}\n`
@@ -140,10 +140,10 @@ export function buildInitialConfirmationAnswerFormatPrompt(params: {
   proposedMarkdown: string
   answer: string
   currentSpec: string
-  referenceMemo: string
+  referencesMarkdown: string
 }): string {
-  const memoSection = params.referenceMemo.trim()
-    ? `\nReferences:\n${params.referenceMemo}\n`
+  const memoSection = params.referencesMarkdown.trim()
+    ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
   const proposedSection = params.proposedMarkdown.trim()
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
@@ -288,12 +288,12 @@ export function buildRetryQuestionPrompt(params: {
   sectionTitle: string
   originalQuestion: Pick<Question, 'text' | 'questionType' | 'kinds' | 'priority' | 'aiGuess' | 'reason' | 'proposedMarkdown'>
   spec: string
-  memo: string
+  referencesMarkdown: string
 }): string {
-  const { sectionTitle, originalQuestion, spec, memo } = params
+  const { sectionTitle, originalQuestion, spec, referencesMarkdown } = params
   const isInitial = originalQuestion.questionType === 'initial_confirmation'
 
-  const memoSection = memo.trim() ? `\nReferences:\n${memo}\n` : ''
+  const memoSection = referencesMarkdown.trim() ? `\nReferences:\n${referencesMarkdown}\n` : ''
 
   const kindsStr = originalQuestion.kinds?.length ? originalQuestion.kinds.join(' / ') : '(なし)'
   const priorityStr = originalQuestion.priority ?? '(なし)'
@@ -360,13 +360,13 @@ ${outputFormat}`
 export function buildQuestionTimelinePrompt(params: {
   sectionTitle: string
   spec: string
-  memo: string
+  referencesMarkdown: string
   existingQuestions: string[]
   recentAggregationLog: string
   markerContexts?: MarkerContext[]
 }): string {
-  const memoSection = params.memo.trim()
-    ? `\nReferences:\n${params.memo}\n`
+  const memoSection = params.referencesMarkdown.trim()
+    ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
   const logSection = params.recentAggregationLog.trim()
     ? `\n直近集約ログ:\n${params.recentAggregationLog}\n`

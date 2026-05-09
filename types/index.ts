@@ -79,7 +79,7 @@ export type Project = {
   updatedAt: string
   requirementMemo: string
   spec: string
-  memo: string
+  referencesMarkdown: string
   relatedSources: RelatedSource[]
   sections: Section[]
   currentSectionId: string | null
