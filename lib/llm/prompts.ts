@@ -1,5 +1,4 @@
-import type { MarkerContext, Question, RelatedSourceKind, Section, SkipReason } from '@/types'
-import { SKIP_REASON_LABELS } from '@/types'
+import type { MarkerContext, Question, RelatedSourceKind, Section } from '@/types'
 import { KIND_CANDIDATES, PRIORITY_CANDIDATES } from '@/lib/config/questionTaxonomy'
 
 export function buildInitialConfirmationQuestionsPrompt(params: {
@@ -247,17 +246,15 @@ export function buildSkipMarkerBodyPrompt(params: {
   questionType?: 'initial_confirmation' | 'section_question'
   proposedMarkdown?: string
   aiGuess?: { value: string; rationale: string }
-  skipReason: SkipReason
-  skipDetail?: string
+  skipReason: string
+  skipInstruction: string
+  isCustom: boolean
 }): string {
   const proposedSection = params.proposedMarkdown?.trim()
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
     : ''
   const aiGuessSection = params.aiGuess
     ? `\nAI推定値: ${params.aiGuess.value}\n推定根拠: ${params.aiGuess.rationale}\n`
-    : ''
-  const detailSection = params.skipDetail?.trim()
-    ? `\nメモ: ${params.skipDetail}\n`
     : ''
 
   return `あなたは pre-spec の skip marker 生成エンジンです。
@@ -266,12 +263,13 @@ export function buildSkipMarkerBodyPrompt(params: {
 
 セクション: ${params.sectionTitle}
 質問: ${params.questionText}
-skip 理由: ${SKIP_REASON_LABELS[params.skipReason]}${detailSection}${proposedSection}${aiGuessSection}
+${proposedSection}${aiGuessSection}
+指示: ${params.skipInstruction}
+
 ルール:
 - 質問文をそのまま返さない
 - spec.md に残る未決事項として読める文にする
-- skip reason の意味を反映する
-- skipDetail がある場合は内容を反映する
+- 指示の意味を反映する
 - proposedMarkdown がある場合は、それを優先して未決内容を表現する
 - 確定事項として書かない
 - 日本語で簡潔にする (1〜2 文)
