@@ -7,11 +7,11 @@ import { UI_TEXT } from '@/lib/text/uiText'
 type AddMode = 'file' | 'url'
 
 type Props = {
-  memo: string
+  referencesMarkdown: string
   onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
 }
 
-export default function BottomTabs({ memo, onAddReference }: Props) {
+export default function BottomTabs({ referencesMarkdown, onAddReference }: Props) {
   const [addMode, setAddMode] = useState<AddMode | null>(null)
   const [urlInput, setUrlInput] = useState('')
   const [noteInput, setNoteInput] = useState('')
@@ -203,7 +203,7 @@ export default function BottomTabs({ memo, onAddReference }: Props) {
         ) : (
           <textarea
             readOnly
-            value={memo}
+            value={referencesMarkdown}
             className="w-full h-full resize-none p-3 text-xs font-mono text-stone-700 bg-white focus:outline-none"
           />
         )}

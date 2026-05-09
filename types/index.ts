@@ -77,9 +77,9 @@ export type Project = {
   slug: string
   createdAt: string
   updatedAt: string
-  initialPrompt: string
+  requirementMemo: string
   spec: string
-  memo: string
+  referencesMarkdown: string
   relatedSources: RelatedSource[]
   sections: Section[]
   currentSectionId: string | null

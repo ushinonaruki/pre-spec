@@ -176,7 +176,7 @@ export default function Home() {
       const text = await callLLM(
         buildInitialConfirmationQuestionsPrompt({
           requirementMemo: inputs.requirementMemo,
-          referenceMarkdown: p.memo,
+          referenceMarkdown: p.referencesMarkdown,
           sections: p.sections,
         }),
       )
@@ -233,7 +233,7 @@ export default function Home() {
         const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, now)
         baseProject = {
           ...baseProject,
-          memo: baseProject.memo.replace(/\n+$/, '') + '\n\n' + block + '\n',
+          referencesMarkdown: baseProject.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n',
           relatedSources: [...baseProject.relatedSources, newSource],
         }
       }
@@ -262,7 +262,7 @@ export default function Home() {
             proposedMarkdown: questionItem.proposedMarkdown ?? '',
             answer,
             currentSpec: project.spec,
-            referenceMemo: project.memo,
+            referenceMemo: project.referencesMarkdown,
           }),
         )
         const formatResult = extractJSON<AnswerFormatResult>(text)
@@ -325,7 +325,7 @@ export default function Home() {
         buildQuestionTimelinePrompt({
           sectionTitle: section.title,
           spec: project.spec,
-          memo: project.memo,
+          memo: project.referencesMarkdown,
           existingQuestions,
           recentAggregationLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
           markerContexts,
@@ -379,7 +379,7 @@ export default function Home() {
           question: questionText,
           answer,
           currentSpec: project.spec,
-          referenceMemo: project.memo,
+          referenceMemo: project.referencesMarkdown,
           recentLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
         }),
       )
@@ -458,7 +458,7 @@ export default function Home() {
             sectionTitle: questionItem.sectionTitle,
             originalQuestion: questionItem,
             spec: project.spec,
-            memo: project.memo,
+            memo: project.referencesMarkdown,
           }),
         )
         const raw = extractJSON<RetryQuestionResult>(text)
@@ -517,10 +517,10 @@ export default function Home() {
           addedAt: now,
         }
         const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, now)
-        const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
+        const newReferencesMarkdown = prev.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n'
         return {
           ...prev,
-          memo: newMemo,
+          referencesMarkdown: newReferencesMarkdown,
           relatedSources: [...prev.relatedSources, newSource],
         }
       })
@@ -537,7 +537,7 @@ export default function Home() {
     }
     const filenames = getProjectFilenames(project.slug)
     downloadFile(filenames.spec, project.spec)
-    setTimeout(() => downloadFile(filenames.references, project.memo || '# References\n\n(empty)\n'), DOWNLOAD_STAGGER_MS)
+    setTimeout(() => downloadFile(filenames.references, project.referencesMarkdown || '# References\n\n(empty)\n'), DOWNLOAD_STAGGER_MS)
     setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
   }
 
@@ -621,7 +621,7 @@ function TimelineBottomTabs({
 }) {
   return (
     <BottomTabs
-      memo={project.memo}
+      referencesMarkdown={project.referencesMarkdown}
       onAddReference={onAddReference}
     />
   )

@@ -33,7 +33,7 @@ export function createProjectFromInputs({
   ]
 
   memoParts.push('')
-  const memo = memoParts.join('\n')
+  const referencesMarkdown = memoParts.join('\n')
 
   const initialMarker: SectionMarker | null = firstSection
     ? {
@@ -50,9 +50,9 @@ export function createProjectFromInputs({
     slug,
     createdAt: now,
     updatedAt: now,
-    initialPrompt: requirementMemo,
+    requirementMemo,
     spec,
-    memo,
+    referencesMarkdown,
     relatedSources,
     sections,
     currentSectionId: firstSection?.id ?? null,

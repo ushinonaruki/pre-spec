@@ -24,12 +24,12 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
       updatedAt: project.updatedAt,
     },
     inputs: {
-      requirementMemo: project.initialPrompt,
+      requirementMemo: project.requirementMemo,
       relatedSources: project.relatedSources,
     },
     workspace: {
       draftSpecMarkdown: project.spec,
-      referencesMarkdown: project.memo,
+      referencesMarkdown: project.referencesMarkdown,
       currentSectionId: project.currentSectionId,
       sections: project.sections,
       timeline: project.timeline,
@@ -39,8 +39,7 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
 
 export function preSpecProjectToProject(file: PreSpecProject): Project {
   const ws = file.workspace
-  const rawWs = ws as unknown as Record<string, unknown>
-  const memo = (rawWs.referencesMarkdown ?? rawWs.referenceMarkdown ?? '') as string
+  const referencesMarkdown = (ws.referencesMarkdown ?? '') as string
   const sections = ws.sections.length > 0 ? ws.sections : extractSections(ws.draftSpecMarkdown)
   const slug = file.project.slug || 'untitled-project'
   return {
@@ -48,9 +47,9 @@ export function preSpecProjectToProject(file: PreSpecProject): Project {
     slug,
     createdAt: file.project.createdAt,
     updatedAt: file.project.updatedAt,
-    initialPrompt: file.inputs?.requirementMemo ?? '',
+    requirementMemo: file.inputs?.requirementMemo ?? '',
     spec: ws.draftSpecMarkdown,
-    memo,
+    referencesMarkdown,
     relatedSources: file.inputs?.relatedSources ?? [],
     sections,
     currentSectionId: ws.currentSectionId,
@@ -73,7 +72,7 @@ export function validatePreSpecProject(raw: unknown): raw is PreSpecProject {
   const ws = r.workspace as Record<string, unknown> | undefined
   if (!ws || typeof ws !== 'object') return false
   if (typeof ws.draftSpecMarkdown !== 'string') return false
-  if (typeof ws.referencesMarkdown !== 'string' && typeof ws.referenceMarkdown !== 'string') return false
+  if (typeof ws.referencesMarkdown !== 'string') return false
   if (!Array.isArray(ws.sections)) return false
   if (!Array.isArray(ws.timeline)) return false
   if (ws.currentSectionId !== null && typeof ws.currentSectionId !== 'string') return false
