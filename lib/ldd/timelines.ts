@@ -59,12 +59,19 @@ export function addQuestionsToTimeline(project: Project, questions: Question[]):
 
 export function answerQuestion(
   project: Project,
-  params: { questionId: string; answer: string },
+  params: { questionId: string; answer: string; reflectedMarkdown?: string },
 ): Project {
   const now = new Date().toISOString()
   const timeline = project.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
-      return { ...item, status: 'answered' as const, answer: params.answer, answeredAt: now }
+      return {
+        ...item,
+        status: 'answered' as const,
+        answer: params.answer,
+        answeredAt: now,
+        reflectedToSpec: true,
+        reflectedMarkdown: params.reflectedMarkdown,
+      }
     }
     return item
   })

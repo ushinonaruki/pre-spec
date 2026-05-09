@@ -50,6 +50,7 @@ function buildDownloadConfirmMessage(
   result: PreflightCheckResult,
   markerDefinitions: MarkerDefinitionFile | null,
 ): string {
+  const extensibleIds = new Set(EXTENSIBLE_MARKERS.map((m) => m.id))
   const lines: string[] = [UI_TEXT.preflight.downloadConfirmTitle, '']
   lines.push(UI_TEXT.preflight.downloadConfirmOpenQuestions(result.openQuestions))
   lines.push(UI_TEXT.preflight.downloadConfirmSkipMarkers(result.skipMarkers))
@@ -58,6 +59,7 @@ function buildDownloadConfirmMessage(
   }
   if (markerDefinitions) {
     for (const [name, def] of Object.entries(markerDefinitions.markers)) {
+      if (extensibleIds.has(name)) continue
       lines.push(UI_TEXT.preflight.downloadConfirmMarkerCount(def.label, result.markerCounts[name] ?? 0))
     }
   }
@@ -369,14 +371,15 @@ export default function Home() {
 
       updateProject((prev) => {
         const withSpec = applyFormattedAnswer(prev, { sectionTitle, question: questionText, answer, formatResult })
-        return answerQuestion(withSpec, { questionId, answer })
+        return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: formatResult.specInsertionMarkdown })
       })
     } catch {
       setFormattingFallback(true)
       fallbackTimer.current = setTimeout(() => setFormattingFallback(false), ERROR_BANNER_MS)
       updateProject((prev) => {
+        const fallbackMarkdown = `- ${answer}`
         const withSpec = applyAnswer(prev, { sectionTitle, question: questionText, answer })
-        return answerQuestion(withSpec, { questionId, answer })
+        return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: fallbackMarkdown })
       })
     } finally {
       setFormattingQuestionId(null)

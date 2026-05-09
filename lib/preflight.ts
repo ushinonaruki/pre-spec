@@ -39,8 +39,11 @@ export function runPreflightCheck(
     markerCounts[marker.id] = inline + range
   }
 
+  const extensibleIds = new Set(EXTENSIBLE_MARKERS.map((m) => m.id))
+
   if (markerDefinitions) {
     for (const name of Object.keys(markerDefinitions.markers)) {
+      if (extensibleIds.has(name)) continue
       const inlinePattern = new RegExp(`\\[pre-spec:${name}\\]`, 'g')
       const rangePattern = new RegExp(`<!--\\s*pre-spec:${name}:start\\s*-->`, 'g')
       markerCounts[name] = countPattern(spec, inlinePattern) + countPattern(spec, rangePattern)
@@ -63,6 +66,7 @@ export function runPreflightCheck(
   }
   if (markerDefinitions) {
     for (const [name, def] of Object.entries(markerDefinitions.markers)) {
+      if (extensibleIds.has(name)) continue
       const count = markerCounts[name] ?? 0
       if (count > 0) {
         warnings.push({ type: name, count, message: UI_TEXT.preflight.warnCustomMarker(name, count, def.label) })
