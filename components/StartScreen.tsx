@@ -119,6 +119,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
       await onCreate({
         projectName: trimmedName,
         requirementMemo: requirementMemoContent,
+        requirementMemoFilename: requirementMemoFilename ?? undefined,
         relatedSources: relatedSources.length > 0 ? relatedSources : undefined,
       })
     } finally {

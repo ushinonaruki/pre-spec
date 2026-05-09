@@ -1,7 +1,7 @@
 import type { Project, RelatedSource, SectionMarker } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { generateProjectSlug } from '@/lib/ldd/slug'
-import { buildInitialRequirementMemoBlock, buildImportedBlock } from '@/lib/references'
+import { buildInitialRequirementMemoBlock } from '@/lib/references'
 
 export type InitialRelatedSource =
   | { kind: 'file'; filename: string; content: string; note?: string }
@@ -10,6 +10,7 @@ export type InitialRelatedSource =
 export type CreateProjectInputs = {
   projectName: string
   requirementMemo: string
+  requirementMemoFilename?: string
   baseSpecMarkdown?: string
   relatedSources?: InitialRelatedSource[]
 }
@@ -17,6 +18,7 @@ export type CreateProjectInputs = {
 export function createProjectFromInputs({
   projectName,
   requirementMemo,
+  requirementMemoFilename,
   baseSpecMarkdown,
 }: CreateProjectInputs): Project {
   const now = new Date().toISOString()
@@ -29,18 +31,8 @@ export function createProjectFromInputs({
   const memoParts: string[] = [
     '# References',
     '',
-    buildInitialRequirementMemoBlock(requirementMemo, now),
+    buildInitialRequirementMemoBlock(requirementMemo, now, requirementMemoFilename ?? 'initial.md'),
   ]
-
-  if (baseSpecMarkdown) {
-    memoParts.push('', buildImportedBlock({
-      name: 'initial-base-spec',
-      source: 'user provided base spec',
-      kind: 'file',
-      checkedAt: now,
-      content: baseSpecMarkdown,
-    }))
-  }
 
   memoParts.push('')
   const memo = memoParts.join('\n')

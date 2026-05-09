@@ -1,24 +1,16 @@
-import type { RelatedSourceKind } from '@/types'
 import { buildImportedBlock, type ImportedBlockParams } from '@/lib/references'
 
 export type RelatedSourceInput = {
-  kind: RelatedSourceKind
   name: string
+  source: string
   content: string
   note?: string
-}
-
-function sourceLabel(kind: RelatedSourceKind): string {
-  if (kind === 'file') return 'user upload'
-  if (kind === 'url') return 'url'
-  return 'user input'
 }
 
 export function relatedSourceToBlockParams(input: RelatedSourceInput, checkedAt: string): ImportedBlockParams {
   return {
     name: input.name,
-    source: sourceLabel(input.kind),
-    kind: input.kind,
+    source: input.source,
     note: input.note,
     checkedAt,
     content: input.content,

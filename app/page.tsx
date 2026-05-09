@@ -197,6 +197,7 @@ export default function Home() {
     for (const src of inputs.relatedSources ?? []) {
       const rawName = src.kind === 'file' ? src.filename : 'url-source'
       const content = src.kind === 'file' ? src.content : src.url
+      const source = src.kind === 'file' ? rawName : src.url
       const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
       if (result?.status === 'ok' && result.content) {
         const now = new Date().toISOString()
@@ -210,7 +211,7 @@ export default function Home() {
           ...(src.kind === 'url' ? { url: src.url } : {}),
           addedAt: now,
         }
-        const block = buildRelatedSourceBlock({ kind: src.kind, name, content: result.content, note: src.note }, now)
+        const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, now)
         baseProject = {
           ...baseProject,
           memo: baseProject.memo.replace(/\n+$/, '') + '\n\n' + block + '\n',
@@ -433,6 +434,7 @@ export default function Home() {
         const now = new Date().toISOString()
         const existingNames = prev.relatedSources.map((s) => s.name)
         const name = resolveSourceName(existingNames, rawName)
+        const source = kind === 'url' ? content : rawName
         const newSource: RelatedSource = {
           id: crypto.randomUUID(),
           kind,
@@ -441,7 +443,7 @@ export default function Home() {
           ...(kind === 'url' ? { url: content } : {}),
           addedAt: now,
         }
-        const block = buildRelatedSourceBlock({ kind, name, content: aiContent, note }, now)
+        const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, now)
         const newMemo = prev.memo.replace(/\n+$/, '') + '\n\n' + block + '\n'
         return {
           ...prev,
