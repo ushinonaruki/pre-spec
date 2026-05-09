@@ -176,7 +176,7 @@ export default function Home() {
       const text = await callLLM(
         buildInitialConfirmationQuestionsPrompt({
           requirementMemo: inputs.requirementMemo,
-          referenceMarkdown: p.referencesMarkdown,
+          referencesMarkdown: p.referencesMarkdown,
           sections: p.sections,
         }),
       )
@@ -262,7 +262,7 @@ export default function Home() {
             proposedMarkdown: questionItem.proposedMarkdown ?? '',
             answer,
             currentSpec: project.spec,
-            referenceMemo: project.referencesMarkdown,
+            referencesMarkdown: project.referencesMarkdown,
           }),
         )
         const formatResult = extractJSON<AnswerFormatResult>(text)
@@ -325,7 +325,7 @@ export default function Home() {
         buildQuestionTimelinePrompt({
           sectionTitle: section.title,
           spec: project.spec,
-          memo: project.referencesMarkdown,
+          referencesMarkdown: project.referencesMarkdown,
           existingQuestions,
           recentAggregationLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
           markerContexts,
@@ -379,7 +379,7 @@ export default function Home() {
           question: questionText,
           answer,
           currentSpec: project.spec,
-          referenceMemo: project.referencesMarkdown,
+          referencesMarkdown: project.referencesMarkdown,
           recentLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
         }),
       )
@@ -458,7 +458,7 @@ export default function Home() {
             sectionTitle: questionItem.sectionTitle,
             originalQuestion: questionItem,
             spec: project.spec,
-            memo: project.referencesMarkdown,
+            referencesMarkdown: project.referencesMarkdown,
           }),
         )
         const raw = extractJSON<RetryQuestionResult>(text)
