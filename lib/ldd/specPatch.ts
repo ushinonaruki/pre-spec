@@ -1,14 +1,6 @@
 import type { AnswerFormatResult, Project } from '@/types'
 import { insertUnderHeading } from '@/lib/markdown'
 
-export function applyAnswer(
-  project: Project,
-  params: { sectionTitle: string; question: string; answer: string },
-): Project {
-  const newSpec = insertUnderHeading(project.spec, params.sectionTitle, `- ${params.answer}`)
-  return { ...project, spec: newSpec }
-}
-
 export function applyFormattedAnswer(
   project: Project,
   params: { sectionTitle: string; question: string; answer: string; formatResult: AnswerFormatResult },

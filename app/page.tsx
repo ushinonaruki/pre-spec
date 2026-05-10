@@ -8,7 +8,7 @@ import { generateProjectSlug } from '@/lib/ldd/slug'
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
-import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
+import { applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt, buildRetryQuestionPrompt, buildSkipMarkerBodyPrompt } from '@/lib/llm/prompts'
@@ -29,7 +29,6 @@ import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
 
 const LOG_TAIL_CHARS = 1500
-const ERROR_BANNER_MS = 5000
 const DOWNLOAD_STAGGER_MS = 100
 
 type RawQuestion = {
@@ -103,13 +102,11 @@ export default function Home() {
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
-  const [formattingFallback, setFormattingFallback] = useState(false)
   const [initConfirmFailed, setInitConfirmFailed] = useState(false)
   const [confirmLLMErrorId, setConfirmLLMErrorId] = useState<string | null>(null)
+  const [answerLLMErrorId, setAnswerLLMErrorId] = useState<string | null>(null)
+  const [skipLLMErrorId, setSkipLLMErrorId] = useState<string | null>(null)
   const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
-  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const initConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const confirmLLMErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -211,9 +208,7 @@ export default function Home() {
       const withPhase = addPhaseMarker(p)
       baseProject = addQuestionsToTimeline(withPhase, questions)
     } catch {
-      if (initConfirmTimer.current) clearTimeout(initConfirmTimer.current)
       setInitConfirmFailed(true)
-      initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), ERROR_BANNER_MS)
     }
 
     for (const src of inputs.relatedSources ?? []) {
@@ -249,9 +244,8 @@ export default function Home() {
         return
       }
 
+      setConfirmLLMErrorId(null)
       setFormattingQuestionId(questionId)
-      setFormattingFallback(false)
-      if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
 
       try {
         const text = await callLLM(
@@ -280,8 +274,6 @@ export default function Home() {
         })
       } catch {
         setConfirmLLMErrorId(questionId)
-        if (confirmLLMErrorTimer.current) clearTimeout(confirmLLMErrorTimer.current)
-        confirmLLMErrorTimer.current = setTimeout(() => setConfirmLLMErrorId(null), ERROR_BANNER_MS)
       } finally {
         setFormattingQuestionId(null)
       }
@@ -366,9 +358,8 @@ export default function Home() {
       return
     }
 
+    setAnswerLLMErrorId(null)
     setFormattingQuestionId(questionId)
-    setFormattingFallback(false)
-    if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
 
     try {
       const text = await callLLM(
@@ -389,13 +380,7 @@ export default function Home() {
         return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: formatResult.specInsertionMarkdown })
       })
     } catch {
-      setFormattingFallback(true)
-      fallbackTimer.current = setTimeout(() => setFormattingFallback(false), ERROR_BANNER_MS)
-      updateProject((prev) => {
-        const fallbackMarkdown = `- ${answer}`
-        const withSpec = applyAnswer(prev, { sectionTitle, question: questionText, answer })
-        return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: fallbackMarkdown })
-      })
+      setAnswerLLMErrorId(questionId)
     } finally {
       setFormattingQuestionId(null)
     }
@@ -424,21 +409,19 @@ export default function Home() {
         ? (customText?.trim() ?? CUSTOM_REASON_INSTRUCTION)
         : (skipReasonDefinitions?.skipReasons[reason]?.instruction ?? CUSTOM_REASON_INSTRUCTION)
 
-      const fallbackBody = proposedMarkdown?.trim()
-        ? '提案内容を採用するかは未決。'
-        : `${questionText}については未決。`
+      setSkipLLMErrorId(null)
 
-      let markerBody = fallbackBody
+      let markerBody: string
       try {
         const text = await callLLM(
           buildSkipMarkerBodyPrompt({ sectionTitle, questionText, questionType, proposedMarkdown, aiGuess, skipReason: reason, skipInstruction, isCustom }),
         )
         const result = extractJSON<{ markerBody: string }>(text)
-        if (result?.markerBody?.trim()) {
-          markerBody = result.markerBody.trim()
-        }
+        if (!result?.markerBody?.trim()) throw new Error('Invalid result')
+        markerBody = result.markerBody.trim()
       } catch {
-        // use fallback
+        setSkipLLMErrorId(questionId)
+        return
       }
 
       updateProject((prev) => {
@@ -563,8 +546,9 @@ export default function Home() {
       </header>
 
       {initConfirmFailed && (
-        <div className="shrink-0 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
-          {UI_TEXT.initialConfirmation.generationError}
+        <div className="shrink-0 flex items-center gap-2 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
+          <span className="flex-1">{UI_TEXT.initialConfirmation.generationError}</span>
+          <button onClick={() => setInitConfirmFailed(false)} className="shrink-0 text-amber-500 hover:text-amber-700 transition-colors cursor-pointer">✕</button>
         </div>
       )}
 
@@ -593,8 +577,11 @@ export default function Home() {
             timeline={project.timeline}
             isGenerating={isGeneratingTimeline}
             formattingQuestionId={formattingQuestionId}
-            formattingFallback={formattingFallback}
             retryingQuestionId={retryingQuestionId}
+            answerLLMErrorQuestionId={answerLLMErrorId}
+            skipLLMErrorQuestionId={skipLLMErrorId}
+            onDismissAnswerLLMError={() => setAnswerLLMErrorId(null)}
+            onDismissSkipLLMError={() => setSkipLLMErrorId(null)}
             onAddQuestions={() => { void handleGenerateTimeline() }}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             skipReasons={effectiveSkipReasons}
@@ -602,6 +589,7 @@ export default function Home() {
             onRetryQuestion={(qId) => { void handleRetryQuestion(qId) }}
             onConfirmInitial={handleConfirmInitial}
             confirmLLMErrorQuestionId={confirmLLMErrorId}
+            onDismissConfirmLLMError={() => setConfirmLLMErrorId(null)}
             onNext={handleNext}
           />
         </div>
