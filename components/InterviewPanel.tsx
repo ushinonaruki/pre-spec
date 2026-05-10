@@ -179,6 +179,8 @@ function InitialConfirmationCard({
   isRetrying,
   hasLLMError,
   onDismissLLMError,
+  hasRetryLLMError,
+  onDismissRetryLLMError,
   onConfirm,
   onSkip,
   onRetry,
@@ -190,6 +192,8 @@ function InitialConfirmationCard({
   isRetrying: boolean
   hasLLMError: boolean
   onDismissLLMError: () => void
+  hasRetryLLMError: boolean
+  onDismissRetryLLMError: () => void
   onConfirm: (answer: string) => void
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
@@ -317,6 +321,12 @@ function InitialConfirmationCard({
                   <button onClick={onDismissLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
                 </div>
               )}
+              {hasRetryLLMError && (
+                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  <span className="flex-1">{UI_TEXT.interview.retryLLMError}</span>
+                  <button onClick={onDismissRetryLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+                </div>
+              )}
               {!showSkip ? (
                 <>
                   <textarea
@@ -376,9 +386,13 @@ type Props = {
   timeline: TimelineItem[]
   skipReasons: EffectiveSkipReason[]
   isGenerating: boolean
+  generateTimelineError: boolean
+  onDismissGenerateTimelineError: () => void
   formattingQuestionId: string | null
   skippingQuestionId: string | null
   retryingQuestionId: string | null
+  retryLLMErrorQuestionId: string | null
+  onDismissRetryLLMError: () => void
   onAddQuestions: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
   onSkipQuestion: (questionId: string, reason: string, customText?: string) => void
@@ -401,8 +415,10 @@ function QuestionCard({
   isRetrying,
   hasAnswerLLMError,
   hasSkipLLMError,
+  hasRetryLLMError,
   onDismissAnswerLLMError,
   onDismissSkipLLMError,
+  onDismissRetryLLMError,
   onAnswer,
   onSkip,
   onRetry,
@@ -414,8 +430,10 @@ function QuestionCard({
   isRetrying: boolean
   hasAnswerLLMError: boolean
   hasSkipLLMError: boolean
+  hasRetryLLMError: boolean
   onDismissAnswerLLMError: () => void
   onDismissSkipLLMError: () => void
+  onDismissRetryLLMError: () => void
   onAnswer: (answer: string) => void
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
@@ -546,6 +564,12 @@ function QuestionCard({
                   <button onClick={onDismissSkipLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
                 </div>
               )}
+              {hasRetryLLMError && (
+                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  <span className="flex-1">{UI_TEXT.interview.retryLLMError}</span>
+                  <button onClick={onDismissRetryLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+                </div>
+              )}
               {!showSkip ? (
                 <>
                   <textarea
@@ -609,9 +633,13 @@ export default function InterviewPanel({
   timeline,
   skipReasons,
   isGenerating,
+  generateTimelineError,
+  onDismissGenerateTimelineError,
   formattingQuestionId,
   skippingQuestionId,
   retryingQuestionId,
+  retryLLMErrorQuestionId,
+  onDismissRetryLLMError,
   onAddQuestions,
   onAnswerQuestion,
   onSkipQuestion,
@@ -681,7 +709,12 @@ export default function InterviewPanel({
             </span>
           </div>
         </div>
-
+        {generateTimelineError && (
+          <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+            <span className="flex-1">{UI_TEXT.interview.generateQuestionsError}</span>
+            <button onClick={onDismissGenerateTimelineError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+          </div>
+        )}
       </div>
 
       {/* Timeline */}
@@ -716,6 +749,8 @@ export default function InterviewPanel({
                       isRetrying={retryingQuestionId === q.id}
                       hasLLMError={confirmLLMErrorQuestionId === q.id}
                       onDismissLLMError={onDismissConfirmLLMError}
+                      hasRetryLLMError={retryLLMErrorQuestionId === q.id}
+                      onDismissRetryLLMError={onDismissRetryLLMError}
                       onConfirm={(answer) => { void onConfirmInitial(q.id, answer, q.sectionTitle) }}
                       onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                       onRetry={() => onRetryQuestion(q.id)}
@@ -741,8 +776,10 @@ export default function InterviewPanel({
                     isRetrying={retryingQuestionId === q.id}
                     hasAnswerLLMError={answerLLMErrorQuestionId === q.id}
                     hasSkipLLMError={skipLLMErrorQuestionId === q.id}
+                    hasRetryLLMError={retryLLMErrorQuestionId === q.id}
                     onDismissAnswerLLMError={onDismissAnswerLLMError}
                     onDismissSkipLLMError={onDismissSkipLLMError}
+                    onDismissRetryLLMError={onDismissRetryLLMError}
                     onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
                     onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                     onRetry={() => onRetryQuestion(q.id)}

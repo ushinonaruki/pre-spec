@@ -107,6 +107,8 @@ export default function Home() {
   const [confirmLLMErrorId, setConfirmLLMErrorId] = useState<string | null>(null)
   const [answerLLMErrorId, setAnswerLLMErrorId] = useState<string | null>(null)
   const [skipLLMErrorId, setSkipLLMErrorId] = useState<string | null>(null)
+  const [generateTimelineError, setGenerateTimelineError] = useState(false)
+  const [retryLLMErrorQuestionId, setRetryLLMErrorQuestionId] = useState<string | null>(null)
   const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -321,6 +323,7 @@ export default function Home() {
       .filter((item): item is Question => item.type === 'question' && item.sectionId === project.currentSectionId)
       .map((q) => q.text)
 
+    setGenerateTimelineError(false)
     setIsGeneratingTimeline(true)
     try {
       const markerContexts = extractMarkerContexts(project.spec, markerDefinitions)
@@ -358,7 +361,7 @@ export default function Home() {
         return addQuestionsToTimeline(withMarker, newQuestions)
       })
     } catch {
-      alert(UI_TEXT.app.generateTimelineError)
+      setGenerateTimelineError(true)
     } finally {
       setIsGeneratingTimeline(false)
     }
@@ -468,6 +471,7 @@ export default function Home() {
       )
       if (!questionItem) return
 
+      setRetryLLMErrorQuestionId(null)
       setRetryingQuestionId(questionId)
       try {
         const text = await callLLM(
@@ -500,7 +504,7 @@ export default function Home() {
 
         updateProject((prev) => retryQuestion(prev, { questionId, newQuestion }))
       } catch {
-        alert(UI_TEXT.app.retryQuestionError)
+        setRetryLLMErrorQuestionId(questionId)
       } finally {
         setRetryingQuestionId(null)
       }
@@ -597,9 +601,13 @@ export default function Home() {
             sections={project.sections}
             timeline={project.timeline}
             isGenerating={isGeneratingTimeline}
+            generateTimelineError={generateTimelineError}
+            onDismissGenerateTimelineError={() => setGenerateTimelineError(false)}
             formattingQuestionId={formattingQuestionId}
             skippingQuestionId={skippingQuestionId}
             retryingQuestionId={retryingQuestionId}
+            retryLLMErrorQuestionId={retryLLMErrorQuestionId}
+            onDismissRetryLLMError={() => setRetryLLMErrorQuestionId(null)}
             answerLLMErrorQuestionId={answerLLMErrorId}
             skipLLMErrorQuestionId={skipLLMErrorId}
             onDismissAnswerLLMError={() => setAnswerLLMErrorId(null)}
