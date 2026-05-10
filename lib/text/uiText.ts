@@ -33,7 +33,6 @@ export const UI_TEXT = {
     startButton: '開始',
     startButtonLoading: '開始中…',
     backButton: '戻る',
-    filenamePreview: (fileBase: string) => `ファイル名: ${fileBase}.pre-spec.json`,
     createErrorGeneration: '初期反映質問の生成に失敗しました。APIキーを確認してください。',
     createErrorRelatedSource: '関連資料の確認に失敗しました。APIキーを確認してください。',
   },

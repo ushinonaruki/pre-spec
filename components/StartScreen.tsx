@@ -195,11 +195,6 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
                 className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               {nameError && <p className="text-xs text-red-600">{nameError}</p>}
-              {fileBase.trim() && validateProjectFileBase(fileBase.trim()) && (
-                <p className="text-xs text-stone-400">
-                  {UI_TEXT.startScreen.filenamePreview(fileBase.trim())}
-                </p>
-              )}
             </div>
 
             {/* 要件メモ */}
