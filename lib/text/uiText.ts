@@ -34,6 +34,8 @@ export const UI_TEXT = {
     startButtonLoading: '開始中…',
     backButton: '戻る',
     filenamePreview: (slug: string) => `ファイル名: ${slug}.pre-spec.json`,
+    createErrorGeneration: '初期反映質問の生成に失敗しました。APIキーを確認してください。',
+    createErrorRelatedSource: '関連資料の確認に失敗しました。APIキーを確認してください。',
   },
 
   specEditor: {
@@ -113,7 +115,6 @@ export const UI_TEXT = {
     proposedMarkdownLabel: '提案 Markdown',
     answerPlaceholder: 'OK / このままでよい / 以下のように修正…',
     applyNote: 'この内容を反映します',
-    generationError: '初期反映質問の生成に失敗しました',
     answerLLMError: '整形に失敗しました。再度回答してください。',
   },
 

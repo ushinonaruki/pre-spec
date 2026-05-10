@@ -29,7 +29,7 @@ function emptyEntry(): RelatedEntry {
 }
 
 type Props = {
-  onCreate: (inputs: CreateProjectInputs) => Promise<void>
+  onCreate: (inputs: CreateProjectInputs) => Promise<{ ok: true } | { ok: false; error?: string }>
   onOpenProject: (project: Project, saveTarget: ProjectSaveTarget) => void
 }
 
@@ -42,6 +42,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
   const [nameError, setNameError] = useState<string | null>(null)
   const [memoError, setMemoError] = useState<string | null>(null)
   const [openError, setOpenError] = useState<string | null>(null)
+  const [createError, setCreateError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isOpeningFile, setIsOpeningFile] = useState(false)
 
@@ -105,6 +106,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
 
     setNameError(null)
     setMemoError(null)
+    setCreateError(null)
     setIsCreating(true)
     try {
       const relatedSources: InitialRelatedSource[] = relatedEntries.flatMap((entry): InitialRelatedSource[] => {
@@ -116,12 +118,15 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         }
         return []
       })
-      await onCreate({
+      const result = await onCreate({
         projectName: trimmedName,
         requirementMemo: requirementMemoContent,
         requirementMemoFilename: requirementMemoFilename ?? undefined,
         relatedSources: relatedSources.length > 0 ? relatedSources : undefined,
       })
+      if (!result.ok && result.error) {
+        setCreateError(result.error)
+      }
     } finally {
       setIsCreating(false)
     }
@@ -255,21 +260,26 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
             </div>
           </fieldset>
 
-          <div className="border-t border-stone-100 pt-3 flex gap-2">
-            <button
-              onClick={() => { void handleCreate() }}
-              disabled={isCreating}
-              className="flex-1 py-2.5 bg-stone-800 text-white text-sm font-medium rounded hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-            >
-              {isCreating ? UI_TEXT.startScreen.startButtonLoading : UI_TEXT.startScreen.startButton}
-            </button>
-            <button
-              onClick={() => setView('landing')}
-              disabled={isCreating}
-              className="px-4 py-2.5 border border-stone-300 text-stone-600 text-sm rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {UI_TEXT.startScreen.backButton}
-            </button>
+          <div className="border-t border-stone-100 pt-3 space-y-2">
+            <div className="flex gap-2">
+              <button
+                onClick={() => { void handleCreate() }}
+                disabled={isCreating}
+                className="flex-1 py-2.5 bg-stone-800 text-white text-sm font-medium rounded hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              >
+                {isCreating ? UI_TEXT.startScreen.startButtonLoading : UI_TEXT.startScreen.startButton}
+              </button>
+              <button
+                onClick={() => setView('landing')}
+                disabled={isCreating}
+                className="px-4 py-2.5 border border-stone-300 text-stone-600 text-sm rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {UI_TEXT.startScreen.backButton}
+              </button>
+            </div>
+            {createError && (
+              <p className="text-xs text-red-600">{createError}</p>
+            )}
           </div>
         </div>
       </div>
