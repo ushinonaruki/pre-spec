@@ -82,8 +82,9 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
       if (!content.trim()) return
       setFileContent(content)
       setFileName(file.name)
+      setReviewError(null)
     } catch {
-      // ignore read errors
+      setReviewError(UI_TEXT.bottomTabs.addRefFileReadError)
     }
   }
 
