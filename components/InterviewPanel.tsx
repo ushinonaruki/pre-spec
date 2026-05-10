@@ -1,80 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { ManualEdit, PhaseMarker, Question, Section, SectionMarker, TimelineItem } from '@/types'
+import type { ManualEdit, Question, Section, TimelineItem } from '@/types'
 import { CUSTOM_REASON } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
 import { QUESTION_KIND_LABELS, QUESTION_PRIORITY_COLORS, QUESTION_PRIORITY_LABELS } from '@/lib/config/questionTaxonomy'
 import { UI_TEXT } from '@/lib/text/uiText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
-
-type SectionBlock = {
-  marker: SectionMarker
-  questions: Question[]
-}
-
-type PhaseBlock = {
-  marker: PhaseMarker
-  questions: Question[]
-}
-
-type TimelineSlot =
-  | { type: 'block'; id: string; data: SectionBlock }
-  | { type: 'phase_block'; id: string; data: PhaseBlock }
-  | { type: 'manual_edit'; id: string; data: ManualEdit }
-
-function buildTimelineSlots(timeline: TimelineItem[]): TimelineSlot[] {
-  const slots: TimelineSlot[] = []
-  let currentSection: SectionBlock | null = null
-  let currentPhase: PhaseBlock | null = null
-
-  const flushSection = () => {
-    if (currentSection) {
-      slots.push({ type: 'block', id: currentSection.marker.id, data: currentSection })
-      currentSection = null
-    }
-  }
-  const flushPhase = () => {
-    if (currentPhase) {
-      slots.push({ type: 'phase_block', id: currentPhase.marker.id, data: currentPhase })
-      currentPhase = null
-    }
-  }
-
-  for (const item of timeline) {
-    if (item.type === 'phase_marker') {
-      flushSection()
-      flushPhase()
-      currentPhase = { marker: item, questions: [] }
-    } else if (item.type === 'section_marker') {
-      flushPhase()
-      flushSection()
-      currentSection = { marker: item, questions: [] }
-    } else if (item.type === 'question') {
-      if (item.questionType === 'initial_confirmation') {
-        if (currentPhase) currentPhase.questions.push(item)
-      } else {
-        if (currentSection) currentSection.questions.push(item)
-      }
-    } else if (item.type === 'manual_edit') {
-      flushPhase()
-      flushSection()
-      slots.push({ type: 'manual_edit', id: item.id, data: item })
-    }
-  }
-  flushPhase()
-  flushSection()
-
-  return slots.reverse().map((slot): TimelineSlot => {
-    if (slot.type === 'block') {
-      return { ...slot, data: { ...slot.data, questions: slot.data.questions.slice().reverse() } }
-    }
-    if (slot.type === 'phase_block') {
-      return { ...slot, data: { ...slot.data, questions: slot.data.questions.slice().reverse() } }
-    }
-    return slot
-  })
-}
+import { buildTimelineSlots } from '@/lib/ldd/timelineSlots'
 
 function resolveSkipLabel(skipReason: string | undefined, skipReasons: EffectiveSkipReason[]): string {
   if (!skipReason) return ''
