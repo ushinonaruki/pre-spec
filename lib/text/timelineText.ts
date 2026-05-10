@@ -3,6 +3,7 @@ export const TIMELINE_TEXT = {
   empty: '(まだ記録がありません)',
   questionPrefixInitial: '**[初期反映]**',
   questionPrefix: '**Q**',
+  questionPrefixFailed: '**[failed]**',
   metaSeparator: '・',
   reasonLabel: '理由',
   aiGuessLabel: 'AI推定',
@@ -10,6 +11,10 @@ export const TIMELINE_TEXT = {
   statusAnswered: '→ ✓ 反映済み',
   statusSkipped: '→ — スキップ',
   statusOpen: '→ ○ 未回答',
+  statusFailed: '→ ✗ 反映失敗',
+  failureReasonLabel: 'failureReason',
+  attemptedAnswerLabel: 'attemptedAnswer',
+  attemptedSkipLabel: 'attemptedSkip',
   sectionMarker: (title: string, timestamp: string) => `\n─── ${title} ─── *${timestamp}*`,
   manualEditHeading: '## Manual Edit',
 }
