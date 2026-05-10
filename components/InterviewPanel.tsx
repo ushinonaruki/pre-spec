@@ -299,11 +299,12 @@ function InitialConfirmationCard({
 
           {question.status === 'open' && (
             <>
-              {hasLLMError ? (
+              {hasLLMError && (
                 <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
                   {UI_TEXT.initialConfirmation.answerLLMError}
                 </p>
-              ) : !showSkip ? (
+              )}
+              {!showSkip ? (
                 <>
                   <textarea
                     value={answer}
