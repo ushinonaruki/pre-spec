@@ -364,7 +364,6 @@ type Props = {
   skipReasons: EffectiveSkipReason[]
   isGenerating: boolean
   formattingQuestionId: string | null
-  formattingFallback: boolean
   retryingQuestionId: string | null
   onAddQuestions: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
@@ -372,6 +371,8 @@ type Props = {
   onRetryQuestion: (questionId: string) => void
   onConfirmInitial: (questionId: string, answer: string, sectionTitle: string) => void
   confirmLLMErrorQuestionId: string | null
+  answerLLMErrorQuestionId: string | null
+  skipLLMErrorQuestionId: string | null
   onNext: () => void
 }
 
@@ -380,6 +381,8 @@ function QuestionCard({
   skipReasons,
   isFormatting,
   isRetrying,
+  hasAnswerLLMError,
+  hasSkipLLMError,
   onAnswer,
   onSkip,
   onRetry,
@@ -388,6 +391,8 @@ function QuestionCard({
   skipReasons: EffectiveSkipReason[]
   isFormatting: boolean
   isRetrying: boolean
+  hasAnswerLLMError: boolean
+  hasSkipLLMError: boolean
   onAnswer: (answer: string) => void
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
@@ -506,13 +511,24 @@ function QuestionCard({
 
           {question.status === 'open' && (
             <>
+              {hasAnswerLLMError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  {UI_TEXT.interview.answerLLMError}
+                </p>
+              )}
+              {hasSkipLLMError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  {UI_TEXT.interview.skipLLMError}
+                </p>
+              )}
               {!showSkip ? (
                 <>
                   <textarea
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder={UI_TEXT.interview.answerPlaceholder}
-                    className="w-full resize-none border border-stone-300 rounded p-2 text-sm h-16 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                    disabled={isFormatting || isRetrying}
+                    className="w-full resize-none border border-stone-300 rounded p-2 text-sm h-16 focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
                   />
                   <div className="flex gap-2">
                     <button
@@ -569,7 +585,6 @@ export default function InterviewPanel({
   skipReasons,
   isGenerating,
   formattingQuestionId,
-  formattingFallback,
   retryingQuestionId,
   onAddQuestions,
   onAnswerQuestion,
@@ -577,6 +592,8 @@ export default function InterviewPanel({
   onRetryQuestion,
   onConfirmInitial,
   confirmLLMErrorQuestionId,
+  answerLLMErrorQuestionId,
+  skipLLMErrorQuestionId,
   onNext,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -636,11 +653,6 @@ export default function InterviewPanel({
           </div>
         </div>
 
-        {formattingFallback && (
-          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-            {UI_TEXT.interview.formattingFallbackWarning}
-          </div>
-        )}
       </div>
 
       {/* Timeline */}
@@ -695,6 +707,8 @@ export default function InterviewPanel({
                     skipReasons={skipReasons}
                     isFormatting={formattingQuestionId === q.id}
                     isRetrying={retryingQuestionId === q.id}
+                    hasAnswerLLMError={answerLLMErrorQuestionId === q.id}
+                    hasSkipLLMError={skipLLMErrorQuestionId === q.id}
                     onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
                     onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                     onRetry={() => onRetryQuestion(q.id)}
