@@ -11,7 +11,7 @@ type Props = {
   onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
 }
 
-export default function BottomTabs({ referencesMarkdown, onAddReference }: Props) {
+export default function ReferencesPanel({ referencesMarkdown, onAddReference }: Props) {
   const [addMode, setAddMode] = useState<AddMode | null>(null)
   const [urlInput, setUrlInput] = useState('')
   const [noteInput, setNoteInput] = useState('')

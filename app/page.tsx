@@ -7,7 +7,7 @@ import type { CreateProjectInputs } from '@/lib/ldd/project'
 import { generateProjectSlug } from '@/lib/ldd/slug'
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
-import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
+import { replaceSpecMarkdownAndRefreshSections, advanceSection } from '@/lib/ldd/headings'
 import { applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
@@ -26,7 +26,7 @@ import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
 import InterviewPanel from '@/components/InterviewPanel'
-import BottomTabs from '@/components/BottomTabs'
+import ReferencesPanel from '@/components/ReferencesPanel'
 
 const LOG_TAIL_CHARS = 1500
 const DOWNLOAD_STAGGER_MS = 100
@@ -289,7 +289,7 @@ export default function Home() {
   const handleSpecSave = useCallback((newSpec: string, memo?: string) => {
     updateProject((prev) => {
       const beforeMarkdown = prev.spec
-      const withUpdatedSpec = updateProjectSpec(prev, newSpec)
+      const withUpdatedSpec = replaceSpecMarkdownAndRefreshSections(prev, newSpec)
       return addManualEdit(withUpdatedSpec, { beforeMarkdown, afterMarkdown: newSpec, memo })
     })
   }, [updateProject])
@@ -312,7 +312,7 @@ export default function Home() {
           spec: project.spec,
           referencesMarkdown: project.referencesMarkdown,
           existingQuestions,
-          recentAggregationLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
+          recentTimelineLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
           markerContexts,
         }),
       )
@@ -370,7 +370,7 @@ export default function Home() {
           answer,
           currentSpec: project.spec,
           referencesMarkdown: project.referencesMarkdown,
-          recentLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
+          recentTimelineLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
         }),
       )
       const formatResult = extractJSON<AnswerFormatResult>(text)
@@ -563,7 +563,7 @@ export default function Home() {
             />
           </div>
           <div className="flex-1 min-h-0 border-t border-stone-200 overflow-hidden">
-            <TimelineBottomTabs
+            <ReferencesSection
               project={project}
               onAddReference={handleAddReference}
             />
@@ -599,7 +599,7 @@ export default function Home() {
   )
 }
 
-function TimelineBottomTabs({
+function ReferencesSection({
   project,
   onAddReference,
 }: {
@@ -607,7 +607,7 @@ function TimelineBottomTabs({
   onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
 }) {
   return (
-    <BottomTabs
+    <ReferencesPanel
       referencesMarkdown={project.referencesMarkdown}
       onAddReference={onAddReference}
     />
