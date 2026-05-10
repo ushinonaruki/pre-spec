@@ -47,7 +47,7 @@ export type ManualEdit = {
 export type Question = {
   id: string
   type: 'question'
-  questionType?: 'initial_confirmation' | 'section_question'
+  questionType: 'initial_confirmation' | 'section_question'
   sectionId: string
   sectionTitle: string
   text: string

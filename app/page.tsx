@@ -323,6 +323,7 @@ export default function Home() {
       const newQuestions: Question[] = raw.questions.map((q) => ({
         id: crypto.randomUUID(),
         type: 'question' as const,
+        questionType: 'section_question' as const,
         sectionId: section.id,
         sectionTitle: section.title,
         text: q.text,
