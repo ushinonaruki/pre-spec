@@ -81,7 +81,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
       setRequirementMemoFilename(file.name)
       setMemoError(null)
     } catch {
-      // ignore read errors
+      setMemoError(UI_TEXT.startScreen.requirementMemoReadError)
     }
   }
 
@@ -289,6 +289,7 @@ function RelatedEntryRow({
   onRemove: (id: string) => void
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [fileReadError, setFileReadError] = useState<string | null>(null)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -297,8 +298,9 @@ function RelatedEntryRow({
     try {
       const content = await file.text()
       onChange(entry.id, { fileContent: content, fileName: file.name })
+      setFileReadError(null)
     } catch {
-      // ignore read errors
+      setFileReadError(UI_TEXT.startScreen.relatedFileReadError)
     }
   }
 
@@ -344,6 +346,7 @@ function RelatedEntryRow({
               {UI_TEXT.startScreen.relatedFileButton}
             </button>
           )}
+          {fileReadError && <p className="text-xs text-red-600">{fileReadError}</p>}
         </>
       )}
 
