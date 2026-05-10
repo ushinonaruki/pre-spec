@@ -189,7 +189,7 @@ export function retryQuestion(
     params.newQuestion,
     ...project.timeline.slice(idx + 1),
   ]
-  return { ...project, timeline }
+  return { ...project, timeline, updatedAt: new Date().toISOString() }
 }
 
 export function failQuestion(
@@ -241,5 +241,5 @@ export function skipQuestion(
     }
     return item
   })
-  return { ...project, timeline }
+  return { ...project, timeline, updatedAt: now }
 }
