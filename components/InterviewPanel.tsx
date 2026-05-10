@@ -167,6 +167,7 @@ function InitialConfirmationCard({
   question,
   skipReasons,
   isFormatting,
+  isSkipping,
   isRetrying,
   hasLLMError,
   onDismissLLMError,
@@ -177,6 +178,7 @@ function InitialConfirmationCard({
   question: Question
   skipReasons: EffectiveSkipReason[]
   isFormatting: boolean
+  isSkipping: boolean
   isRetrying: boolean
   hasLLMError: boolean
   onDismissLLMError: () => void
@@ -313,27 +315,27 @@ function InitialConfirmationCard({
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder={UI_TEXT.initialConfirmation.answerPlaceholder}
-                    disabled={isFormatting || isRetrying}
+                    disabled={isFormatting || isSkipping || isRetrying}
                     className="w-full resize-none border border-stone-300 rounded p-2 text-sm h-16 focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
                   />
                   <div className="flex gap-2">
                     <button
                       onClick={() => { if (answer.trim()) onConfirm(answer.trim()) }}
-                      disabled={!answer.trim() || isFormatting || isRetrying}
+                      disabled={!answer.trim() || isFormatting || isSkipping || isRetrying}
                       className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {isFormatting ? UI_TEXT.interview.answerButtonFormatting : UI_TEXT.interview.answerButton}
                     </button>
                     <button
                       onClick={() => setShowSkip(true)}
-                      disabled={isFormatting || isRetrying}
+                      disabled={isFormatting || isSkipping || isRetrying}
                       className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipButton}
                     </button>
                     <button
                       onClick={onRetry}
-                      disabled={isFormatting || isRetrying}
+                      disabled={isFormatting || isSkipping || isRetrying}
                       title={UI_TEXT.interview.retryButtonTitle}
                       className="px-2.5 py-1.5 border border-stone-300 text-stone-500 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
@@ -367,6 +369,7 @@ type Props = {
   skipReasons: EffectiveSkipReason[]
   isGenerating: boolean
   formattingQuestionId: string | null
+  skippingQuestionId: string | null
   retryingQuestionId: string | null
   onAddQuestions: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
@@ -386,6 +389,7 @@ function QuestionCard({
   question,
   skipReasons,
   isFormatting,
+  isSkipping,
   isRetrying,
   hasAnswerLLMError,
   hasSkipLLMError,
@@ -398,6 +402,7 @@ function QuestionCard({
   question: Question
   skipReasons: EffectiveSkipReason[]
   isFormatting: boolean
+  isSkipping: boolean
   isRetrying: boolean
   hasAnswerLLMError: boolean
   hasSkipLLMError: boolean
@@ -539,7 +544,7 @@ function QuestionCard({
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
                     placeholder={UI_TEXT.interview.answerPlaceholder}
-                    disabled={isFormatting || isRetrying}
+                    disabled={isFormatting || isSkipping || isRetrying}
                     className="w-full resize-none border border-stone-300 rounded p-2 text-sm h-16 focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50"
                   />
                   <div className="flex gap-2">
@@ -549,21 +554,21 @@ function QuestionCard({
                         onAnswer(answer.trim())
                         setAnswer('')
                       }}
-                      disabled={!answer.trim() || isFormatting || isRetrying}
+                      disabled={!answer.trim() || isFormatting || isSkipping || isRetrying}
                       className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {isFormatting ? UI_TEXT.interview.answerButtonFormatting : UI_TEXT.interview.answerButton}
                     </button>
                     <button
                       onClick={() => setShowSkip(true)}
-                      disabled={isFormatting || isRetrying}
+                      disabled={isFormatting || isSkipping || isRetrying}
                       className="px-3 py-1.5 border border-stone-300 text-stone-600 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       {UI_TEXT.interview.skipButton}
                     </button>
                     <button
                       onClick={onRetry}
-                      disabled={isFormatting || isRetrying}
+                      disabled={isFormatting || isSkipping || isRetrying}
                       title={UI_TEXT.interview.retryButtonTitle}
                       className="px-2.5 py-1.5 border border-stone-300 text-stone-500 text-xs rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
@@ -597,6 +602,7 @@ export default function InterviewPanel({
   skipReasons,
   isGenerating,
   formattingQuestionId,
+  skippingQuestionId,
   retryingQuestionId,
   onAddQuestions,
   onAnswerQuestion,
@@ -698,6 +704,7 @@ export default function InterviewPanel({
                       question={q}
                       skipReasons={skipReasons}
                       isFormatting={formattingQuestionId === q.id}
+                      isSkipping={skippingQuestionId === q.id}
                       isRetrying={retryingQuestionId === q.id}
                       hasLLMError={confirmLLMErrorQuestionId === q.id}
                       onDismissLLMError={onDismissConfirmLLMError}
@@ -722,6 +729,7 @@ export default function InterviewPanel({
                     question={q}
                     skipReasons={skipReasons}
                     isFormatting={formattingQuestionId === q.id}
+                    isSkipping={skippingQuestionId === q.id}
                     isRetrying={retryingQuestionId === q.id}
                     hasAnswerLLMError={answerLLMErrorQuestionId === q.id}
                     hasSkipLLMError={skipLLMErrorQuestionId === q.id}
