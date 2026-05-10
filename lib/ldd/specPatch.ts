@@ -3,7 +3,7 @@ import { insertUnderHeading } from '@/lib/markdown'
 
 export function applyFormattedAnswer(
   project: Project,
-  params: { sectionTitle: string; question: string; answer: string; formatResult: AnswerFormatResult },
+  params: { sectionTitle: string; formatResult: AnswerFormatResult },
 ): Project {
   const newSpec = insertUnderHeading(
     project.spec,

@@ -377,7 +377,7 @@ export default function Home() {
       if (!formatResult?.specInsertionMarkdown) throw new Error('Invalid format result')
 
       updateProject((prev) => {
-        const withSpec = applyFormattedAnswer(prev, { sectionTitle, question: questionText, answer, formatResult })
+        const withSpec = applyFormattedAnswer(prev, { sectionTitle, formatResult })
         return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: formatResult.specInsertionMarkdown })
       })
     } catch {
