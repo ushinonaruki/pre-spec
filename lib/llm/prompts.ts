@@ -63,13 +63,13 @@ export function buildAnswerFormatPrompt(params: {
   answer: string
   currentSpec: string
   referencesMarkdown: string
-  recentLog: string
+  recentTimelineLog: string
 }): string {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
-  const logSection = params.recentLog.trim()
-    ? `\n直近ログ (末尾):\n${params.recentLog}\n`
+  const logSection = params.recentTimelineLog.trim()
+    ? `\n直近ログ (末尾):\n${params.recentTimelineLog}\n`
     : ''
   return `あなたは pre-spec の回答整形エンジンです。
 
@@ -357,14 +357,14 @@ export function buildQuestionTimelinePrompt(params: {
   spec: string
   referencesMarkdown: string
   existingQuestions: string[]
-  recentAggregationLog: string
+  recentTimelineLog: string
   markerContexts?: MarkerContext[]
 }): string {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
-  const logSection = params.recentAggregationLog.trim()
-    ? `\n直近集約ログ:\n${params.recentAggregationLog}\n`
+  const logSection = params.recentTimelineLog.trim()
+    ? `\n直近集約ログ:\n${params.recentTimelineLog}\n`
     : ''
   const existingSection = params.existingQuestions.length
     ? `\n既出質問 (重複・類似禁止):\n${params.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n`
