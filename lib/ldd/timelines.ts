@@ -57,7 +57,7 @@ export function addSectionMarkerIfNeeded(project: Project): Project {
 }
 
 export function addQuestionsToTimeline(project: Project, questions: Question[]): Project {
-  return { ...project, timeline: [...project.timeline, ...questions] }
+  return { ...project, timeline: [...project.timeline, ...questions], updatedAt: new Date().toISOString() }
 }
 
 export function answerQuestion(

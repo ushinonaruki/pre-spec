@@ -34,5 +34,6 @@ export function advanceSection(project: Project): Project {
     ...project,
     currentSectionId: nextSection.id,
     timeline: [...project.timeline, marker],
+    updatedAt: now,
   }
 }
