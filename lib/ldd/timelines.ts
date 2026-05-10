@@ -241,5 +241,5 @@ export function skipQuestion(
     }
     return item
   })
-  return { ...project, timeline }
+  return { ...project, timeline, updatedAt: now }
 }
