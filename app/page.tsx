@@ -7,7 +7,7 @@ import type { CreateProjectInputs } from '@/lib/ldd/project'
 
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
-import { replaceSpecMarkdownAndRefreshSections, advanceSection } from '@/lib/ldd/headings'
+import { replaceSpecMarkdownAndRefreshSections, advanceCurrentSection } from '@/lib/ldd/headings'
 import { applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
 import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
@@ -513,7 +513,7 @@ export default function Home() {
   )
 
   const handleNext = () => {
-    updateProject((prev) => advanceSection(prev))
+    updateProject((prev) => advanceCurrentSection(prev))
   }
 
   const handleAddReference = useCallback(

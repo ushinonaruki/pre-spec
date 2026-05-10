@@ -13,7 +13,7 @@ export function replaceSpecMarkdownAndRefreshSections(project: Project, specMark
   }
 }
 
-export function advanceSection(project: Project): Project {
+export function advanceCurrentSection(project: Project): Project {
   const sections = project.sections
   if (sections.length === 0) return project
 
