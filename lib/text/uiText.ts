@@ -66,6 +66,7 @@ export const UI_TEXT = {
     addRefReviewing: '確認中…',
     addRefUnreadable: (reason: string) => `読み込み不可: ${reason}`,
     addRefError: '確認に失敗しました',
+    addRefCloseButton: '✕',
   },
 
   interview: {
