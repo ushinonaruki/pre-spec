@@ -14,6 +14,9 @@ export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: n
       const detail = q.skipCustomText ? ` (${q.skipCustomText})` : ''
       lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
       lines.push(`  → skip:${q.skipReason ?? ''}${detail}`)
+    } else if (q.status === 'failed') {
+      lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
+      lines.push(`  → failed: ${q.failureReason ?? ''}`)
     }
   }
   const text = lines.join('\n')
@@ -187,6 +190,31 @@ export function retryQuestion(
     ...project.timeline.slice(idx + 1),
   ]
   return { ...project, timeline }
+}
+
+export function failQuestion(
+  project: Project,
+  params: {
+    questionId: string
+    attemptedAnswer?: string
+    attemptedSkip?: { reason: string; customText?: string }
+  },
+): Project {
+  const now = new Date().toISOString()
+  const timeline = project.timeline.map((item): TimelineItem => {
+    if (item.type === 'question' && item.id === params.questionId) {
+      return {
+        ...item,
+        status: 'failed' as const,
+        failedAt: now,
+        failureReason: 'target_section_not_found' as const,
+        attemptedAnswer: params.attemptedAnswer,
+        attemptedSkip: params.attemptedSkip,
+      }
+    }
+    return item
+  })
+  return { ...project, timeline, updatedAt: now }
 }
 
 export function skipQuestion(

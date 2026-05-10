@@ -56,6 +56,13 @@ export function mergeSections(existing: Section[], fresh: Section[]): Section[] 
   })
 }
 
+export function hasSectionHeading(markdown: string, headingTitle: string): boolean {
+  return markdown.split('\n').some((line) => {
+    const m = line.match(/^## (.+)$/)
+    return m !== null && m[1].trim() === headingTitle
+  })
+}
+
 export function insertUnderHeading(
   markdown: string,
   headingTitle: string,

@@ -59,13 +59,17 @@ export type Question = {
     rationale: string
   }
   proposedMarkdown?: string
-  status: 'open' | 'answered' | 'skipped'
+  status: 'open' | 'answered' | 'skipped' | 'failed'
   answer?: string
   skipReason?: SkipReason
   skipCustomText?: string
   skippedAt?: string
   reflectedToSpec?: boolean
   reflectedMarkdown?: string
+  failedAt?: string
+  failureReason?: 'target_section_not_found'
+  attemptedAnswer?: string
+  attemptedSkip?: { reason: string; customText?: string }
   createdAt: string
   answeredAt?: string
 }

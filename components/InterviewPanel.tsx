@@ -189,13 +189,17 @@ function InitialConfirmationCard({
       ? 'border-green-200 bg-green-50'
       : question.status === 'skipped'
         ? 'border-stone-200 bg-stone-50 opacity-60'
-        : 'border-blue-200 bg-blue-50'
+        : question.status === 'failed'
+          ? 'border-red-200 bg-red-50'
+          : 'border-blue-200 bg-blue-50'
 
   const statusIcon =
     question.status === 'answered' ? (
       <span className="text-xs text-green-700 font-medium shrink-0">{UI_TEXT.interview.statusAnswered}</span>
     ) : question.status === 'skipped' ? (
       <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusSkipped}</span>
+    ) : question.status === 'failed' ? (
+      <span className="text-xs text-red-600 font-medium shrink-0">{UI_TEXT.interview.statusFailed}</span>
     ) : (
       <span className="text-xs text-blue-500 font-medium shrink-0">{UI_TEXT.interview.statusOpen}</span>
     )
@@ -270,6 +274,22 @@ function InitialConfirmationCard({
               {question.reflectedMarkdown && (
                 <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
                   {question.reflectedMarkdown}
+                </p>
+              )}
+            </div>
+          )}
+
+          {question.status === 'failed' && (
+            <div className="space-y-1 pt-2 border-t border-red-100">
+              <p className="text-xs font-medium text-red-600">{UI_TEXT.interview.failedBadge}</p>
+              <p className="text-xs text-red-500">{UI_TEXT.interview.failedReason}</p>
+              {question.attemptedAnswer && (
+                <p className="text-xs text-stone-600 bg-red-50 rounded p-2">{question.attemptedAnswer}</p>
+              )}
+              {question.attemptedSkip && (
+                <p className="text-xs text-stone-500 italic">
+                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.attemptedSkip.reason, skipReasons)}
+                  {question.attemptedSkip.customText ? ` — ${question.attemptedSkip.customText}` : ''}
                 </p>
               )}
             </div>
@@ -389,6 +409,8 @@ function QuestionCard({
       <span className="text-xs text-green-700 font-medium shrink-0">{UI_TEXT.interview.statusAnswered}</span>
     ) : question.status === 'skipped' ? (
       <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusSkipped}</span>
+    ) : question.status === 'failed' ? (
+      <span className="text-xs text-red-600 font-medium shrink-0">{UI_TEXT.interview.statusFailed}</span>
     ) : (
       <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusOpen}</span>
     )
@@ -398,7 +420,9 @@ function QuestionCard({
       ? 'border-green-200 bg-green-50'
       : question.status === 'skipped'
         ? 'border-stone-200 bg-stone-50 opacity-60'
-        : 'border-stone-200 bg-white'
+        : question.status === 'failed'
+          ? 'border-red-200 bg-red-50'
+          : 'border-stone-200 bg-white'
 
   return (
     <div className={`border rounded-lg overflow-hidden ${headerBg}`}>
@@ -451,6 +475,22 @@ function QuestionCard({
               {question.reflectedMarkdown && (
                 <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
                   {question.reflectedMarkdown}
+                </p>
+              )}
+            </div>
+          )}
+
+          {question.status === 'failed' && (
+            <div className="space-y-1 pt-2 border-t border-red-100">
+              <p className="text-xs font-medium text-red-600">{UI_TEXT.interview.failedBadge}</p>
+              <p className="text-xs text-red-500">{UI_TEXT.interview.failedReason}</p>
+              {question.attemptedAnswer && (
+                <p className="text-xs text-stone-600 bg-red-50 rounded p-2">{question.attemptedAnswer}</p>
+              )}
+              {question.attemptedSkip && (
+                <p className="text-xs text-stone-500 italic">
+                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.attemptedSkip.reason, skipReasons)}
+                  {question.attemptedSkip.customText ? ` — ${question.attemptedSkip.customText}` : ''}
                 </p>
               )}
             </div>

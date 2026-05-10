@@ -9,11 +9,12 @@ import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
 import { updateProjectSpec, advanceSection } from '@/lib/ldd/headings'
 import { applyAnswer, applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
-import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt, buildRetryQuestionPrompt, buildSkipMarkerBodyPrompt } from '@/lib/llm/prompts'
 import type { RelatedSourceReviewResult, RetryQuestionResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
+import { hasSectionHeading } from '@/lib/markdown'
 import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
@@ -241,6 +242,11 @@ export default function Home() {
       )
       if (!questionItem) return
 
+      if (!hasSectionHeading(project.spec, sectionTitle)) {
+        updateProject((prev) => failQuestion(prev, { questionId, attemptedAnswer: answer }))
+        return
+      }
+
       setFormattingQuestionId(questionId)
       setFormattingFallback(false)
       if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
@@ -359,6 +365,11 @@ export default function Home() {
     if (!questionItem) return
     const { sectionTitle, text: questionText } = questionItem
 
+    if (!hasSectionHeading(project.spec, sectionTitle)) {
+      updateProject((prev) => failQuestion(prev, { questionId, attemptedAnswer: answer }))
+      return
+    }
+
     setFormattingQuestionId(questionId)
     setFormattingFallback(false)
     if (fallbackTimer.current) clearTimeout(fallbackTimer.current)
@@ -403,6 +414,14 @@ export default function Home() {
       if (!questionItem) return
 
       const { sectionTitle, text: questionText, questionType, proposedMarkdown, aiGuess } = questionItem
+
+      if (!hasSectionHeading(project.spec, sectionTitle)) {
+        updateProject((prev) => failQuestion(prev, {
+          questionId,
+          attemptedSkip: { reason, customText: customText ?? undefined },
+        }))
+        return
+      }
 
       const isCustom = reason === CUSTOM_REASON
       const skipInstruction = isCustom

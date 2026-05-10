@@ -94,6 +94,9 @@ export const UI_TEXT = {
     statusAnswered: '✓',
     statusSkipped: '—',
     statusOpen: '○',
+    statusFailed: '✗',
+    failedBadge: '反映失敗',
+    failedReason: 'セクションが見つかりません',
   },
 
   preflight: {
