@@ -4,12 +4,12 @@ import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 const CURRENT_VERSION = '1'
 
-export function getProjectFilenames(slug: string) {
+export function getProjectFilenames(fileBase: string) {
   return {
-    spec: `${slug}.spec.md`,
-    references: `${slug}.references.md`,
-    timeline: `${slug}.timeline.md`,
-    project: `${slug}.pre-spec.json`,
+    spec: `${fileBase}.spec.md`,
+    references: `${fileBase}.references.md`,
+    timeline: `${fileBase}.timeline.md`,
+    project: `${fileBase}.pre-spec.json`,
   }
 }
 
@@ -18,7 +18,7 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
     version: CURRENT_VERSION,
     project: {
       id: project.id,
-      slug: project.slug,
+      fileBase: project.fileBase,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     },
@@ -39,7 +39,7 @@ export function preSpecProjectToProject(file: PreSpecProject): Project {
   const ws = file.workspace
   return {
     id: file.project.id,
-    slug: file.project.slug,
+    fileBase: file.project.fileBase,
     createdAt: file.project.createdAt,
     updatedAt: file.project.updatedAt,
     requirementMemo: file.inputs.requirementMemo,
@@ -60,7 +60,7 @@ export function validatePreSpecProject(raw: unknown): raw is PreSpecProject {
   const proj = r.project as Record<string, unknown> | undefined
   if (!proj || typeof proj !== 'object') return false
   if (typeof proj.id !== 'string') return false
-  if (typeof proj.slug !== 'string' || !proj.slug) return false
+  if (typeof proj.fileBase !== 'string' || !proj.fileBase) return false
   if (typeof proj.createdAt !== 'string') return false
   if (typeof proj.updatedAt !== 'string') return false
 

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSourceKind, SkipReasonDefinitionFile, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectInputs } from '@/lib/ldd/project'
-import { generateProjectSlug } from '@/lib/ldd/slug'
+
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
 import { replaceSpecMarkdownAndRefreshSections, advanceSection } from '@/lib/ldd/headings'
@@ -165,11 +165,9 @@ export default function Home() {
   )
 
   const handleCreate = useCallback(async (inputs: CreateProjectInputs): Promise<{ ok: true } | { ok: false; error?: string }> => {
-    const slug = generateProjectSlug(inputs.projectName)
-
     let pickedTarget: ProjectSaveTarget
     try {
-      pickedTarget = await pickSaveTarget(`${slug}.pre-spec.json`)
+      pickedTarget = await pickSaveTarget(`${inputs.projectFileBase}.pre-spec.json`)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return { ok: false }
       return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
@@ -527,7 +525,7 @@ export default function Home() {
     if (result.warnings.length > 0) {
       if (!window.confirm(buildDownloadConfirmMessage(result, markerDefinitions))) return
     }
-    const filenames = getProjectFilenames(project.slug)
+    const filenames = getProjectFilenames(project.fileBase)
     downloadFile(filenames.spec, project.spec)
     setTimeout(() => downloadFile(filenames.references, project.referencesMarkdown || '# References\n\n(empty)\n'), DOWNLOAD_STAGGER_MS)
     setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
