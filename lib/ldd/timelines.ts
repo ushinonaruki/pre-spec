@@ -91,29 +91,27 @@ function simpleHash(s: string): string {
 function extractSectionContents(markdown: string): Record<string, string> {
   const lines = markdown.split('\n')
   const result: Record<string, string> = {}
-  let currentId: string | null = null
-  const buffer: string[] = []
   const occurrenceCount: Record<string, number> = {}
+  let currentId: string | null = null
+  let sectionStart = 0
 
-  const flush = () => {
-    if (currentId !== null) result[currentId] = buffer.join('\n')
-  }
-
-  for (const line of lines) {
-    const match = line.match(/^## (.+)$/)
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^## (.+)$/)
     if (match) {
-      flush()
+      if (currentId !== null) {
+        result[currentId] = lines.slice(sectionStart, i).join('\n')
+      }
       const title = match[1].trim()
       const slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-')
       const occ = occurrenceCount[slug] ?? 0
       occurrenceCount[slug] = occ + 1
       currentId = `s-${slug}-${occ}`
-      buffer.length = 0
-    } else if (currentId !== null) {
-      buffer.push(line)
+      sectionStart = i + 1
     }
   }
-  flush()
+  if (currentId !== null) {
+    result[currentId] = lines.slice(sectionStart).join('\n')
+  }
   return result
 }
 
