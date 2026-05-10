@@ -55,9 +55,7 @@ export const UI_TEXT = {
   },
 
   bottomTabs: {
-    logTab: 'timeline.md',
     memoTab: 'References',
-    logEmpty: '(まだ記録がありません)',
     addRefButton: '+ 追加',
     addRefFile: 'ファイル',
     addRefUrl: 'URL',
