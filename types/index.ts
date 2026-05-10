@@ -91,8 +91,6 @@ export type Project = {
 
 export type AnswerFormatResult = {
   specInsertionMarkdown: string
-  aggregationLogSummary: string
-  openQuestionInsertions: string[]
 }
 
 export type RelatedSourceKind = 'file' | 'url'
