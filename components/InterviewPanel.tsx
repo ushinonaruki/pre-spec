@@ -65,7 +65,15 @@ function buildTimelineSlots(timeline: TimelineItem[]): TimelineSlot[] {
   flushPhase()
   flushSection()
 
-  return slots.reverse()
+  return slots.reverse().map((slot): TimelineSlot => {
+    if (slot.type === 'block') {
+      return { ...slot, data: { ...slot.data, questions: slot.data.questions.slice().reverse() } }
+    }
+    if (slot.type === 'phase_block') {
+      return { ...slot, data: { ...slot.data, questions: slot.data.questions.slice().reverse() } }
+    }
+    return slot
+  })
 }
 
 function resolveSkipLabel(skipReason: string | undefined, skipReasons: EffectiveSkipReason[]): string {
@@ -698,7 +706,7 @@ export default function InterviewPanel({
                     </span>
                     <div className="flex-1 border-t border-blue-200" />
                   </div>
-                  {slot.data.questions.slice().reverse().map((q) => (
+                  {slot.data.questions.map((q) => (
                     <InitialConfirmationCard
                       key={q.id}
                       question={q}
@@ -723,7 +731,7 @@ export default function InterviewPanel({
                   <span className="text-xs text-stone-400 shrink-0 px-1">{slot.data.marker.sectionTitle}</span>
                   <div className="flex-1 border-t border-stone-200" />
                 </div>
-                {slot.data.questions.slice().reverse().map((q: Question) => (
+                {slot.data.questions.map((q: Question) => (
                   <QuestionCard
                     key={q.id}
                     question={q}
