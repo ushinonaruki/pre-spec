@@ -100,7 +100,6 @@ export const UI_TEXT = {
   },
 
   preflight: {
-    title: '出力前チェック',
     downloadConfirmTitle: '出力前チェック',
     downloadConfirmOpenQuestions: (n: number) => `未回答の質問: ${n}件`,
     downloadConfirmMarkerHeader: 'marker:',
