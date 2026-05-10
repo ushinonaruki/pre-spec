@@ -64,7 +64,6 @@ export type Question = {
   skipReason?: SkipReason
   skipCustomText?: string
   skippedAt?: string
-  reflectedToSpec?: boolean
   reflectedMarkdown?: string
   failedAt?: string
   failureReason?: 'target_section_not_found'
