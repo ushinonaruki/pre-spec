@@ -124,7 +124,7 @@ export default function Home() {
           // invalid file — ignore silently
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function Home() {
           // invalid file — ignore silently
         }
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   useEffect(() => {
@@ -271,18 +271,23 @@ export default function Home() {
         const formatResult = extractJSON<AnswerFormatResult>(text)
         if (!formatResult) throw new Error('Invalid format result')
 
+        const rawSpecInsertionMarkdown = (formatResult as Record<string, unknown>).specInsertionMarkdown
+        if (typeof rawSpecInsertionMarkdown !== 'string') {
+          throw new Error('Invalid format result')
+        }
+
+        const specInsertionMarkdown = rawSpecInsertionMarkdown
         updateProject((prev: Project) => {
-          const reflectedMarkdown = formatResult.specInsertionMarkdown ?? ''
-          if (reflectedMarkdown && !hasSectionHeading(prev.spec, sectionTitle)) {
+          if (specInsertionMarkdown && !hasSectionHeading(prev.spec, sectionTitle)) {
             return failQuestion(prev, { questionId, attemptedAnswer: answer })
           }
-          const withSpec = reflectedMarkdown
-            ? applyProposedMarkdown(prev, { sectionTitle, markdown: reflectedMarkdown })
+          const withSpec = specInsertionMarkdown
+            ? applyProposedMarkdown(prev, { sectionTitle, markdown: specInsertionMarkdown })
             : prev
           return answerInitialConfirmation(withSpec, {
             questionId,
             answerMarkdown: answer,
-            reflectedMarkdown,
+            reflectedMarkdown: specInsertionMarkdown,
           })
         })
       } catch {
