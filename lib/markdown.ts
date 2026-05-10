@@ -78,7 +78,7 @@ export function insertUnderHeading(
     }
   }
 
-  if (targetIdx === -1) return markdown + `\n## ${headingTitle}\n\n${insertion}\n`
+  if (targetIdx === -1) throw new Error(`Section heading not found: ${headingTitle}`)
 
   let nextHeadingIdx = lines.length
   for (let i = targetIdx + 1; i < lines.length; i++) {
