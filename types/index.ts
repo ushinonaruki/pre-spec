@@ -76,7 +76,7 @@ export type TimelineItem = PhaseMarker | SectionMarker | Question | ManualEdit
 
 export type Project = {
   id: string
-  slug: string
+  fileBase: string
   createdAt: string
   updatedAt: string
   requirementMemo: string
@@ -118,7 +118,7 @@ export type PreSpecProject = {
   version: string
   project: {
     id: string
-    slug: string
+    fileBase: string
     createdAt: string
     updatedAt: string
   }

@@ -3,13 +3,11 @@
 import { useRef, useState } from 'react'
 import type { Project } from '@/types'
 import type { CreateProjectInputs, InitialRelatedSource } from '@/lib/ldd/project'
-import { generateProjectSlug } from '@/lib/ldd/slug'
+import { validateProjectFileBase } from '@/lib/ldd/fileBase'
 import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickOpenTarget } from '@/lib/storage/fsaSaveTarget'
 import { UI_TEXT } from '@/lib/text/uiText'
-
-const WORK_FILE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*\.pre-spec\.json$/
 
 type View = 'landing' | 'new_project'
 
@@ -35,7 +33,7 @@ type Props = {
 
 export default function StartScreen({ onCreate, onOpenProject }: Props) {
   const [view, setView] = useState<View>('landing')
-  const [projectName, setProjectName] = useState('')
+  const [fileBase, setFileBase] = useState('')
   const [requirementMemoContent, setRequirementMemoContent] = useState<string | null>(null)
   const [requirementMemoFilename, setRequirementMemoFilename] = useState<string | null>(null)
   const [relatedEntries, setRelatedEntries] = useState<RelatedEntry[]>([])
@@ -53,7 +51,8 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
     setIsOpeningFile(true)
     try {
       const result = await pickOpenTarget()
-      if (!WORK_FILE_PATTERN.test(result.fileName)) {
+      const filenameFileBase = result.fileName.replace(/\.pre-spec\.json$/, '')
+      if (!result.fileName.endsWith('.pre-spec.json') || !validateProjectFileBase(filenameFileBase)) {
         setOpenError(UI_TEXT.startScreen.openWorkFileNameError)
         return
       }
@@ -62,8 +61,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         setOpenError(UI_TEXT.startScreen.openWorkFileError)
         return
       }
-      const filenameSlug = result.fileName.replace(/\.pre-spec\.json$/, '')
-      const project = { ...preSpecProjectToProject(raw), slug: filenameSlug }
+      const project = { ...preSpecProjectToProject(raw), fileBase: filenameFileBase }
       onOpenProject(project, result.saveTarget)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
@@ -88,15 +86,14 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
   }
 
   const handleCreate = async () => {
-    const trimmedName = projectName.trim()
-    const slug = generateProjectSlug(trimmedName)
+    const trimmedFileBase = fileBase.trim()
 
-    if (!trimmedName) {
-      setNameError(UI_TEXT.startScreen.projectNameRequired)
+    if (!trimmedFileBase) {
+      setNameError(UI_TEXT.startScreen.fileBaseRequired)
       return
     }
-    if (!slug) {
-      setNameError(UI_TEXT.startScreen.projectNameInvalid)
+    if (!validateProjectFileBase(trimmedFileBase)) {
+      setNameError(UI_TEXT.startScreen.fileBaseInvalid)
       return
     }
     if (!requirementMemoContent) {
@@ -119,7 +116,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         return []
       })
       const result = await onCreate({
-        projectName: trimmedName,
+        projectFileBase: trimmedFileBase,
         requirementMemo: requirementMemoContent,
         requirementMemoFilename: requirementMemoFilename ?? undefined,
         relatedSources: relatedSources.length > 0 ? relatedSources : undefined,
@@ -185,22 +182,22 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
 
         <div className="bg-white border border-stone-200 rounded-lg p-6 space-y-5">
           <fieldset disabled={isCreating} className="border-0 p-0 m-0 min-w-0 space-y-5">
-            {/* プロジェクト名 */}
+            {/* ファイル名ベース */}
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-stone-700">
-                {UI_TEXT.startScreen.projectNameLabel}
+                {UI_TEXT.startScreen.fileBaseLabel}
               </label>
               <input
                 type="text"
-                value={projectName}
-                onChange={(e) => { setProjectName(e.target.value); setNameError(null) }}
-                placeholder={UI_TEXT.startScreen.projectNamePlaceholder}
+                value={fileBase}
+                onChange={(e) => { setFileBase(e.target.value); setNameError(null) }}
+                placeholder={UI_TEXT.startScreen.fileBasePlaceholder}
                 className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               {nameError && <p className="text-xs text-red-600">{nameError}</p>}
-              {projectName.trim() && generateProjectSlug(projectName.trim()) && (
+              {fileBase.trim() && validateProjectFileBase(fileBase.trim()) && (
                 <p className="text-xs text-stone-400">
-                  {UI_TEXT.startScreen.filenamePreview(generateProjectSlug(projectName.trim()))}
+                  {UI_TEXT.startScreen.filenamePreview(fileBase.trim())}
                 </p>
               )}
             </div>
