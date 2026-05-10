@@ -273,6 +273,9 @@ export default function Home() {
 
         updateProject((prev: Project) => {
           const reflectedMarkdown = formatResult.specInsertionMarkdown ?? ''
+          if (reflectedMarkdown && !hasSectionHeading(prev.spec, sectionTitle)) {
+            return failQuestion(prev, { questionId, attemptedAnswer: answer })
+          }
           const withSpec = reflectedMarkdown
             ? applyProposedMarkdown(prev, { sectionTitle, markdown: reflectedMarkdown })
             : prev
@@ -387,6 +390,9 @@ export default function Home() {
       if (!formatResult?.specInsertionMarkdown) throw new Error('Invalid format result')
 
       updateProject((prev) => {
+        if (!hasSectionHeading(prev.spec, sectionTitle)) {
+          return failQuestion(prev, { questionId, attemptedAnswer: answer })
+        }
         const withSpec = applyFormattedAnswer(prev, { sectionTitle, formatResult })
         return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: formatResult.specInsertionMarkdown })
       })
@@ -439,6 +445,9 @@ export default function Home() {
       }
 
       updateProject((prev) => {
+        if (!hasSectionHeading(prev.spec, sectionTitle)) {
+          return failQuestion(prev, { questionId, attemptedSkip: { reason, customText: customText ?? undefined } })
+        }
         const { project: withSpec, reflectedMarkdown } = applySkip(prev, { sectionTitle, markerBody, reason })
         return skipQuestion(withSpec, { questionId, skipReason: reason, skipCustomText: isCustom ? customText : undefined, reflectedMarkdown })
       })
