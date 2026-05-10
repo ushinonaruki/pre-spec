@@ -9,6 +9,8 @@ import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickOpenTarget } from '@/lib/storage/fsaSaveTarget'
 import { UI_TEXT } from '@/lib/text/uiText'
 
+const PRE_SPEC_PROJECT_FILE_SUFFIX = '.pre-spec.json'
+
 type View = 'landing' | 'new_project'
 
 type RelatedEntryMode = 'file' | 'url'
@@ -51,8 +53,8 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
     setIsOpeningFile(true)
     try {
       const result = await pickOpenTarget()
-      const filenameFileBase = result.fileName.replace(/\.pre-spec\.json$/, '')
-      if (!result.fileName.endsWith('.pre-spec.json') || !validateProjectFileBase(filenameFileBase)) {
+      const filenameFileBase = result.fileName.slice(0, -PRE_SPEC_PROJECT_FILE_SUFFIX.length)
+      if (!result.fileName.endsWith(PRE_SPEC_PROJECT_FILE_SUFFIX) || !validateProjectFileBase(filenameFileBase)) {
         setOpenError(UI_TEXT.startScreen.openWorkFileNameError)
         return
       }
