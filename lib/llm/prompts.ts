@@ -364,7 +364,7 @@ export function buildQuestionTimelinePrompt(params: {
     ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
   const logSection = params.recentTimelineLog.trim()
-    ? `\n直近集約ログ:\n${params.recentTimelineLog}\n`
+    ? `\n直近タイムラインログ:\n${params.recentTimelineLog}\n`
     : ''
   const existingSection = params.existingQuestions.length
     ? `\n既出質問 (重複・類似禁止):\n${params.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n`
