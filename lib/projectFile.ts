@@ -104,7 +104,9 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
       const q = item as Question
       const kindStr = q.kinds?.length ? q.kinds.join(' / ') : undefined
       const meta = [q.priority, kindStr].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
-      const prefix = q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
+      const prefix = q.status === 'failed'
+        ? `${TIMELINE_TEXT.questionPrefixFailed} ${q.sectionTitle}`
+        : q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
       lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
       if (q.reason) lines.push(`*${TIMELINE_TEXT.reasonLabel}: ${q.reason}*`)
       if (q.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${q.aiGuess.value}*`)
@@ -121,6 +123,14 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
         if (q.reflectedMarkdown) {
           lines.push(`  - reflected:`)
           lines.push(`    ${q.reflectedMarkdown}`)
+        }
+      } else if (q.status === 'failed') {
+        lines.push(TIMELINE_TEXT.statusFailed)
+        if (q.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${q.failureReason}`)
+        if (q.failedAt) lines.push(`  - failedAt: ${formatTimestamp(q.failedAt)}`)
+        if (q.attemptedAnswer) lines.push(`  - ${TIMELINE_TEXT.attemptedAnswerLabel}: ${q.attemptedAnswer}`)
+        if (q.attemptedSkip) {
+          lines.push(`  - ${TIMELINE_TEXT.attemptedSkipLabel}: reason=${q.attemptedSkip.reason}${q.attemptedSkip.customText ? ` / ${q.attemptedSkip.customText}` : ''}`)
         }
       } else {
         lines.push(TIMELINE_TEXT.statusOpen)
