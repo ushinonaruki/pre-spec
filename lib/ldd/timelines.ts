@@ -203,9 +203,21 @@ export function failQuestion(
   const now = new Date().toISOString()
   const timeline = project.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
+      const q = item as Question
       return {
-        ...item,
+        id: q.id,
+        type: 'question' as const,
+        questionType: q.questionType,
+        sectionId: q.sectionId,
+        sectionTitle: q.sectionTitle,
+        text: q.text,
+        reason: q.reason,
+        kinds: q.kinds,
+        priority: q.priority,
+        aiGuess: q.aiGuess,
+        proposedMarkdown: q.proposedMarkdown,
         status: 'failed' as const,
+        createdAt: q.createdAt,
         failedAt: now,
         failureReason: 'target_section_not_found' as const,
         attemptedAnswer: params.attemptedAnswer,
