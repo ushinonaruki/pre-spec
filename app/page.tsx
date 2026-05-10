@@ -102,6 +102,7 @@ export default function Home() {
   const [skipReasonDefinitions, setSkipReasonDefinitions] = useState<SkipReasonDefinitionFile | null>(null)
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
+  const [skippingQuestionId, setSkippingQuestionId] = useState<string | null>(null)
   const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
   const [confirmLLMErrorId, setConfirmLLMErrorId] = useState<string | null>(null)
   const [answerLLMErrorId, setAnswerLLMErrorId] = useState<string | null>(null)
@@ -420,6 +421,7 @@ export default function Home() {
         : (skipReasonDefinitions?.skipReasons[reason]?.instruction ?? CUSTOM_REASON_INSTRUCTION)
 
       setSkipLLMErrorId(null)
+      setSkippingQuestionId(questionId)
 
       let markerBody: string
       try {
@@ -432,6 +434,8 @@ export default function Home() {
       } catch {
         setSkipLLMErrorId(questionId)
         return
+      } finally {
+        setSkippingQuestionId(null)
       }
 
       updateProject((prev) => {
@@ -580,6 +584,7 @@ export default function Home() {
             timeline={project.timeline}
             isGenerating={isGeneratingTimeline}
             formattingQuestionId={formattingQuestionId}
+            skippingQuestionId={skippingQuestionId}
             retryingQuestionId={retryingQuestionId}
             answerLLMErrorQuestionId={answerLLMErrorId}
             skipLLMErrorQuestionId={skipLLMErrorId}

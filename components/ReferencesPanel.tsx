@@ -45,12 +45,15 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
     if (!fileContent || !fileName) return
     setIsReviewing(true)
     setReviewError(null)
-    const result = await onAddReference('file', fileName, fileContent, noteInput.trim() || undefined)
-    setIsReviewing(false)
-    if (result.ok) {
-      closeAddForm()
-    } else {
-      setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+    try {
+      const result = await onAddReference('file', fileName, fileContent, noteInput.trim() || undefined)
+      if (result.ok) {
+        closeAddForm()
+      } else {
+        setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+      }
+    } finally {
+      setIsReviewing(false)
     }
   }
 
@@ -58,12 +61,15 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
     if (!urlInput.trim()) return
     setIsReviewing(true)
     setReviewError(null)
-    const result = await onAddReference('url', 'url-source', urlInput.trim(), noteInput.trim() || undefined)
-    setIsReviewing(false)
-    if (result.ok) {
-      closeAddForm()
-    } else {
-      setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+    try {
+      const result = await onAddReference('url', 'url-source', urlInput.trim(), noteInput.trim() || undefined)
+      if (result.ok) {
+        closeAddForm()
+      } else {
+        setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+      }
+    } finally {
+      setIsReviewing(false)
     }
   }
 
