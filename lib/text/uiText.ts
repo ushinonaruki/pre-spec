@@ -114,6 +114,7 @@ export const UI_TEXT = {
     answerPlaceholder: 'OK / このままでよい / 以下のように修正…',
     applyNote: 'この内容を反映します',
     generationError: '初期反映質問の生成に失敗しました',
+    answerLLMError: '整形に失敗しました。再度回答してください。',
   },
 
 }
