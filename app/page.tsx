@@ -105,9 +105,11 @@ export default function Home() {
   const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
   const [formattingFallback, setFormattingFallback] = useState(false)
   const [initConfirmFailed, setInitConfirmFailed] = useState(false)
+  const [confirmLLMErrorId, setConfirmLLMErrorId] = useState<string | null>(null)
   const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const confirmLLMErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -277,15 +279,9 @@ export default function Home() {
           })
         })
       } catch {
-        setFormattingFallback(true)
-        fallbackTimer.current = setTimeout(() => setFormattingFallback(false), ERROR_BANNER_MS)
-        updateProject((prev: Project) =>
-          answerInitialConfirmation(prev, {
-            questionId,
-            answerMarkdown: answer,
-            reflectedMarkdown: '',
-          }),
-        )
+        setConfirmLLMErrorId(questionId)
+        if (confirmLLMErrorTimer.current) clearTimeout(confirmLLMErrorTimer.current)
+        confirmLLMErrorTimer.current = setTimeout(() => setConfirmLLMErrorId(null), ERROR_BANNER_MS)
       } finally {
         setFormattingQuestionId(null)
       }
@@ -605,6 +601,7 @@ export default function Home() {
             onSkipQuestion={handleSkipQuestion}
             onRetryQuestion={(qId) => { void handleRetryQuestion(qId) }}
             onConfirmInitial={handleConfirmInitial}
+            confirmLLMErrorQuestionId={confirmLLMErrorId}
             onNext={handleNext}
           />
         </div>

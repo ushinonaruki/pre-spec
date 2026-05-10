@@ -168,6 +168,7 @@ function InitialConfirmationCard({
   skipReasons,
   isFormatting,
   isRetrying,
+  hasLLMError,
   onConfirm,
   onSkip,
   onRetry,
@@ -176,6 +177,7 @@ function InitialConfirmationCard({
   skipReasons: EffectiveSkipReason[]
   isFormatting: boolean
   isRetrying: boolean
+  hasLLMError: boolean
   onConfirm: (answer: string) => void
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
@@ -297,7 +299,11 @@ function InitialConfirmationCard({
 
           {question.status === 'open' && (
             <>
-              {!showSkip ? (
+              {hasLLMError ? (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  {UI_TEXT.initialConfirmation.answerLLMError}
+                </p>
+              ) : !showSkip ? (
                 <>
                   <textarea
                     value={answer}
@@ -364,6 +370,7 @@ type Props = {
   onSkipQuestion: (questionId: string, reason: string, customText?: string) => void
   onRetryQuestion: (questionId: string) => void
   onConfirmInitial: (questionId: string, answer: string, sectionTitle: string) => void
+  confirmLLMErrorQuestionId: string | null
   onNext: () => void
 }
 
@@ -568,6 +575,7 @@ export default function InterviewPanel({
   onSkipQuestion,
   onRetryQuestion,
   onConfirmInitial,
+  confirmLLMErrorQuestionId,
   onNext,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -663,6 +671,7 @@ export default function InterviewPanel({
                       skipReasons={skipReasons}
                       isFormatting={formattingQuestionId === q.id}
                       isRetrying={retryingQuestionId === q.id}
+                      hasLLMError={confirmLLMErrorQuestionId === q.id}
                       onConfirm={(answer) => { void onConfirmInitial(q.id, answer, q.sectionTitle) }}
                       onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                       onRetry={() => onRetryQuestion(q.id)}
