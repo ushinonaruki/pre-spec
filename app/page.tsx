@@ -29,7 +29,6 @@ import InterviewPanel from '@/components/InterviewPanel'
 import BottomTabs from '@/components/BottomTabs'
 
 const LOG_TAIL_CHARS = 1500
-const ERROR_BANNER_MS = 5000
 const DOWNLOAD_STAGGER_MS = 100
 
 type RawQuestion = {
@@ -108,10 +107,6 @@ export default function Home() {
   const [answerLLMErrorId, setAnswerLLMErrorId] = useState<string | null>(null)
   const [skipLLMErrorId, setSkipLLMErrorId] = useState<string | null>(null)
   const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
-  const initConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const confirmLLMErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const answerLLMErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const skipLLMErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -213,9 +208,7 @@ export default function Home() {
       const withPhase = addPhaseMarker(p)
       baseProject = addQuestionsToTimeline(withPhase, questions)
     } catch {
-      if (initConfirmTimer.current) clearTimeout(initConfirmTimer.current)
       setInitConfirmFailed(true)
-      initConfirmTimer.current = setTimeout(() => setInitConfirmFailed(false), ERROR_BANNER_MS)
     }
 
     for (const src of inputs.relatedSources ?? []) {
@@ -281,8 +274,6 @@ export default function Home() {
         })
       } catch {
         setConfirmLLMErrorId(questionId)
-        if (confirmLLMErrorTimer.current) clearTimeout(confirmLLMErrorTimer.current)
-        confirmLLMErrorTimer.current = setTimeout(() => setConfirmLLMErrorId(null), ERROR_BANNER_MS)
       } finally {
         setFormattingQuestionId(null)
       }
@@ -390,8 +381,6 @@ export default function Home() {
       })
     } catch {
       setAnswerLLMErrorId(questionId)
-      if (answerLLMErrorTimer.current) clearTimeout(answerLLMErrorTimer.current)
-      answerLLMErrorTimer.current = setTimeout(() => setAnswerLLMErrorId(null), ERROR_BANNER_MS)
     } finally {
       setFormattingQuestionId(null)
     }
@@ -432,8 +421,6 @@ export default function Home() {
         markerBody = result.markerBody.trim()
       } catch {
         setSkipLLMErrorId(questionId)
-        if (skipLLMErrorTimer.current) clearTimeout(skipLLMErrorTimer.current)
-        skipLLMErrorTimer.current = setTimeout(() => setSkipLLMErrorId(null), ERROR_BANNER_MS)
         return
       }
 
@@ -559,8 +546,9 @@ export default function Home() {
       </header>
 
       {initConfirmFailed && (
-        <div className="shrink-0 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
-          {UI_TEXT.initialConfirmation.generationError}
+        <div className="shrink-0 flex items-center gap-2 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
+          <span className="flex-1">{UI_TEXT.initialConfirmation.generationError}</span>
+          <button onClick={() => setInitConfirmFailed(false)} className="shrink-0 text-amber-500 hover:text-amber-700 transition-colors cursor-pointer">✕</button>
         </div>
       )}
 
@@ -592,6 +580,8 @@ export default function Home() {
             retryingQuestionId={retryingQuestionId}
             answerLLMErrorQuestionId={answerLLMErrorId}
             skipLLMErrorQuestionId={skipLLMErrorId}
+            onDismissAnswerLLMError={() => setAnswerLLMErrorId(null)}
+            onDismissSkipLLMError={() => setSkipLLMErrorId(null)}
             onAddQuestions={() => { void handleGenerateTimeline() }}
             onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
             skipReasons={effectiveSkipReasons}
@@ -599,6 +589,7 @@ export default function Home() {
             onRetryQuestion={(qId) => { void handleRetryQuestion(qId) }}
             onConfirmInitial={handleConfirmInitial}
             confirmLLMErrorQuestionId={confirmLLMErrorId}
+            onDismissConfirmLLMError={() => setConfirmLLMErrorId(null)}
             onNext={handleNext}
           />
         </div>

@@ -169,6 +169,7 @@ function InitialConfirmationCard({
   isFormatting,
   isRetrying,
   hasLLMError,
+  onDismissLLMError,
   onConfirm,
   onSkip,
   onRetry,
@@ -178,6 +179,7 @@ function InitialConfirmationCard({
   isFormatting: boolean
   isRetrying: boolean
   hasLLMError: boolean
+  onDismissLLMError: () => void
   onConfirm: (answer: string) => void
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
@@ -300,9 +302,10 @@ function InitialConfirmationCard({
           {question.status === 'open' && (
             <>
               {hasLLMError && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  {UI_TEXT.initialConfirmation.answerLLMError}
-                </p>
+                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  <span className="flex-1">{UI_TEXT.initialConfirmation.answerLLMError}</span>
+                  <button onClick={onDismissLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+                </div>
               )}
               {!showSkip ? (
                 <>
@@ -371,8 +374,11 @@ type Props = {
   onRetryQuestion: (questionId: string) => void
   onConfirmInitial: (questionId: string, answer: string, sectionTitle: string) => void
   confirmLLMErrorQuestionId: string | null
+  onDismissConfirmLLMError: () => void
   answerLLMErrorQuestionId: string | null
   skipLLMErrorQuestionId: string | null
+  onDismissAnswerLLMError: () => void
+  onDismissSkipLLMError: () => void
   onNext: () => void
 }
 
@@ -383,6 +389,8 @@ function QuestionCard({
   isRetrying,
   hasAnswerLLMError,
   hasSkipLLMError,
+  onDismissAnswerLLMError,
+  onDismissSkipLLMError,
   onAnswer,
   onSkip,
   onRetry,
@@ -393,6 +401,8 @@ function QuestionCard({
   isRetrying: boolean
   hasAnswerLLMError: boolean
   hasSkipLLMError: boolean
+  onDismissAnswerLLMError: () => void
+  onDismissSkipLLMError: () => void
   onAnswer: (answer: string) => void
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
@@ -512,14 +522,16 @@ function QuestionCard({
           {question.status === 'open' && (
             <>
               {hasAnswerLLMError && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  {UI_TEXT.interview.answerLLMError}
-                </p>
+                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  <span className="flex-1">{UI_TEXT.interview.answerLLMError}</span>
+                  <button onClick={onDismissAnswerLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+                </div>
               )}
               {hasSkipLLMError && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  {UI_TEXT.interview.skipLLMError}
-                </p>
+                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+                  <span className="flex-1">{UI_TEXT.interview.skipLLMError}</span>
+                  <button onClick={onDismissSkipLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+                </div>
               )}
               {!showSkip ? (
                 <>
@@ -592,8 +604,11 @@ export default function InterviewPanel({
   onRetryQuestion,
   onConfirmInitial,
   confirmLLMErrorQuestionId,
+  onDismissConfirmLLMError,
   answerLLMErrorQuestionId,
   skipLLMErrorQuestionId,
+  onDismissAnswerLLMError,
+  onDismissSkipLLMError,
   onNext,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -685,6 +700,7 @@ export default function InterviewPanel({
                       isFormatting={formattingQuestionId === q.id}
                       isRetrying={retryingQuestionId === q.id}
                       hasLLMError={confirmLLMErrorQuestionId === q.id}
+                      onDismissLLMError={onDismissConfirmLLMError}
                       onConfirm={(answer) => { void onConfirmInitial(q.id, answer, q.sectionTitle) }}
                       onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                       onRetry={() => onRetryQuestion(q.id)}
@@ -709,6 +725,8 @@ export default function InterviewPanel({
                     isRetrying={retryingQuestionId === q.id}
                     hasAnswerLLMError={answerLLMErrorQuestionId === q.id}
                     hasSkipLLMError={skipLLMErrorQuestionId === q.id}
+                    onDismissAnswerLLMError={onDismissAnswerLLMError}
+                    onDismissSkipLLMError={onDismissSkipLLMError}
                     onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
                     onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
                     onRetry={() => onRetryQuestion(q.id)}
