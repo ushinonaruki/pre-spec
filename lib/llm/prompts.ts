@@ -91,15 +91,12 @@ ${memoSection}${logSection}
 - ユーザーが言ったことを正確に反映する
 - 確定事項と推測を混在させない
 - 既存コンテンツと重複しないようにする
-- 未解決事項・不確実な内容が含まれる場合は "openQuestionInsertions" に入れる (プレフィックスなしの文字列)
 - 日本語で記述する
 - 追記内容は簡潔・アクション可能に (箇条書き推奨)
 
 有効な JSON のみを返してください (マークダウンコードフェンス・説明文不要):
 {
-  "specInsertionMarkdown": "- ...",
-  "aggregationLogSummary": "...",
-  "openQuestionInsertions": []
+  "specInsertionMarkdown": "- ..."
 }`
 }
 
@@ -171,9 +168,7 @@ ${proposedSection}
 
 有効な JSON のみを返してください (マークダウンコードフェンス・説明文不要):
 {
-  "specInsertionMarkdown": "- ...",
-  "aggregationLogSummary": "...",
-  "openQuestionInsertions": []
+  "specInsertionMarkdown": "- ..."
 }`
 }
 
