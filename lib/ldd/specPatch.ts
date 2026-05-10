@@ -18,7 +18,7 @@ export function applyProposedMarkdown(
   params: { sectionTitle: string; markdown: string },
 ): Project {
   const newSpec = insertUnderHeading(project.spec, params.sectionTitle, params.markdown)
-  return { ...project, spec: newSpec, updatedAt: new Date().toISOString() }
+  return { ...project, spec: newSpec }
 }
 
 export function applySkip(
