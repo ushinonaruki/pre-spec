@@ -102,7 +102,6 @@ export default function Home() {
   const [isGeneratingTimeline, setIsGeneratingTimeline] = useState(false)
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
-  const [initConfirmFailed, setInitConfirmFailed] = useState(false)
   const [confirmLLMErrorId, setConfirmLLMErrorId] = useState<string | null>(null)
   const [answerLLMErrorId, setAnswerLLMErrorId] = useState<string | null>(null)
   const [skipLLMErrorId, setSkipLLMErrorId] = useState<string | null>(null)
@@ -164,14 +163,20 @@ export default function Home() {
     [],
   )
 
-  const handleCreate = useCallback(async (inputs: CreateProjectInputs) => {
+  const handleCreate = useCallback(async (inputs: CreateProjectInputs): Promise<{ ok: true } | { ok: false; error?: string }> => {
     const slug = generateProjectSlug(inputs.projectName)
-    const target = await pickSaveTarget(`${slug}.pre-spec.json`)
-    setSaveTarget(target)
+
+    let pickedTarget: ProjectSaveTarget
+    try {
+      pickedTarget = await pickSaveTarget(`${slug}.pre-spec.json`)
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return { ok: false }
+      return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
+    }
 
     const p = createProjectFromInputs(inputs)
-
     let baseProject: Project = p
+
     try {
       const text = await callLLM(
         buildInitialConfirmationQuestionsPrompt({
@@ -208,7 +213,7 @@ export default function Home() {
       const withPhase = addPhaseMarker(p)
       baseProject = addQuestionsToTimeline(withPhase, questions)
     } catch {
-      setInitConfirmFailed(true)
+      return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
     }
 
     for (const src of inputs.relatedSources ?? []) {
@@ -216,7 +221,10 @@ export default function Home() {
       const content = src.kind === 'file' ? src.content : src.url
       const source = src.kind === 'file' ? rawName : src.url
       const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
-      if (result?.status === 'ok' && result.content) {
+      if (result === null) {
+        return { ok: false, error: UI_TEXT.startScreen.createErrorRelatedSource }
+      }
+      if (result.status === 'ok' && result.content) {
         const now = new Date().toISOString()
         const existingNames = [...baseProject.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
         const name = resolveSourceName(existingNames, rawName)
@@ -229,6 +237,8 @@ export default function Home() {
     }
 
     setProject(baseProject)
+    setSaveTarget(pickedTarget)
+    return { ok: true }
   }, [])
 
   const handleConfirmInitial = useCallback(
@@ -545,13 +555,6 @@ export default function Home() {
           </button>
         </div>
       </header>
-
-      {initConfirmFailed && (
-        <div className="shrink-0 flex items-center gap-2 px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
-          <span className="flex-1">{UI_TEXT.initialConfirmation.generationError}</span>
-          <button onClick={() => setInitConfirmFailed(false)} className="shrink-0 text-amber-500 hover:text-amber-700 transition-colors cursor-pointer">✕</button>
-        </div>
-      )}
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left column: spec editor + bottom tabs */}
