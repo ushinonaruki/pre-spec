@@ -72,7 +72,6 @@ export function answerQuestion(
         status: 'answered' as const,
         answer: params.answer,
         answeredAt: now,
-        reflectedToSpec: true,
         reflectedMarkdown: params.reflectedMarkdown,
       }
     }
@@ -167,7 +166,6 @@ export function answerInitialConfirmation(
         status: 'answered' as const,
         answer: params.answerMarkdown,
         answeredAt: now,
-        reflectedToSpec: true,
         reflectedMarkdown: params.reflectedMarkdown,
       }
     }
@@ -247,7 +245,6 @@ export function skipQuestion(
         skipReason: params.skipReason,
         skipCustomText: params.skipCustomText,
         skippedAt: now,
-        reflectedToSpec: params.reflectedMarkdown !== undefined,
         reflectedMarkdown: params.reflectedMarkdown,
       }
     }
