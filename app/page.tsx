@@ -545,7 +545,7 @@ export default function Home() {
     }
     const filenames = getProjectFilenames(project.fileBase)
     downloadFile(filenames.spec, project.spec)
-    setTimeout(() => downloadFile(filenames.references, project.referencesMarkdown || '# References\n\n(empty)\n'), DOWNLOAD_STAGGER_MS)
+    setTimeout(() => downloadFile(filenames.references, project.referencesMarkdown), DOWNLOAD_STAGGER_MS)
     setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
   }
 
