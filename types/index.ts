@@ -97,15 +97,6 @@ export type AnswerFormatResult = {
 
 export type RelatedSourceKind = 'file' | 'url'
 
-export type RelatedSource = {
-  id: string
-  kind: RelatedSourceKind
-  name: string
-  note?: string
-  url?: string
-  addedAt: string
-}
-
 export type MarkerDefinition = {
   label: string
   instruction: string
