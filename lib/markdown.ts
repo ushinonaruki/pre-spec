@@ -41,7 +41,6 @@ export function extractSections(markdown: string): Section[] {
       sections.push({
         id: `s-${slug}-${occurrence}`,
         title,
-        level: 2,
         order: order++,
       })
     }
