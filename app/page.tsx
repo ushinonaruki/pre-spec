@@ -167,7 +167,7 @@ export default function Home() {
     [],
   )
 
-  const handleCreate = useCallback(async (inputs: CreateProjectInputs): Promise<{ ok: true } | { ok: false; error?: string }> => {
+  const handleCreateProject = useCallback(async (inputs: CreateProjectInputs): Promise<{ ok: true } | { ok: false; error?: string }> => {
     let pickedTarget: ProjectSaveTarget
     try {
       pickedTarget = await pickSaveTarget(`${inputs.projectFileBase}.pre-spec.json`)
@@ -555,7 +555,7 @@ export default function Home() {
 
   if (!project) return (
     <StartScreen
-      onCreate={(inputs) => handleCreate(inputs)}
+      onCreate={(inputs) => handleCreateProject(inputs)}
       onOpenProject={handleOpenProject}
     />
   )
