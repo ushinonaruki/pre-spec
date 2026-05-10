@@ -1,5 +1,4 @@
 import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
-import { extractSections } from '@/lib/markdown'
 import { TIMELINE_TEXT } from '@/lib/text/timelineText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
@@ -38,18 +37,15 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
 
 export function preSpecProjectToProject(file: PreSpecProject): Project {
   const ws = file.workspace
-  const referencesMarkdown = (ws.referencesMarkdown ?? '') as string
-  const sections = ws.sections.length > 0 ? ws.sections : extractSections(ws.draftSpecMarkdown)
-  const slug = file.project.slug || 'untitled-project'
   return {
     id: file.project.id,
-    slug,
+    slug: file.project.slug,
     createdAt: file.project.createdAt,
     updatedAt: file.project.updatedAt,
-    requirementMemo: file.inputs?.requirementMemo ?? '',
+    requirementMemo: file.inputs.requirementMemo,
     spec: ws.draftSpecMarkdown,
-    referencesMarkdown,
-    sections,
+    referencesMarkdown: ws.referencesMarkdown,
+    sections: ws.sections,
     currentSectionId: ws.currentSectionId,
     timeline: ws.timeline,
   }
@@ -64,8 +60,13 @@ export function validatePreSpecProject(raw: unknown): raw is PreSpecProject {
   const proj = r.project as Record<string, unknown> | undefined
   if (!proj || typeof proj !== 'object') return false
   if (typeof proj.id !== 'string') return false
+  if (typeof proj.slug !== 'string' || !proj.slug) return false
   if (typeof proj.createdAt !== 'string') return false
   if (typeof proj.updatedAt !== 'string') return false
+
+  const inputs = r.inputs as Record<string, unknown> | undefined
+  if (!inputs || typeof inputs !== 'object') return false
+  if (typeof inputs.requirementMemo !== 'string') return false
 
   const ws = r.workspace as Record<string, unknown> | undefined
   if (!ws || typeof ws !== 'object') return false
