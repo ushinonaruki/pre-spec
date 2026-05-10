@@ -131,7 +131,7 @@ export default function BottomTabs({ referencesMarkdown, onAddReference }: Props
                 disabled={isReviewing}
                 className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
-                ✕
+                {UI_TEXT.bottomTabs.addRefCloseButton}
               </button>
             </div>
 
