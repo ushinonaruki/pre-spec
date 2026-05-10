@@ -30,6 +30,7 @@ import ReferencesPanel from '@/components/ReferencesPanel'
 
 const LOG_TAIL_CHARS = 1500
 const DOWNLOAD_STAGGER_MS = 100
+const AUTOSAVE_DEBOUNCE_MS = 500
 
 type RawQuestion = {
   text: string
@@ -147,7 +148,7 @@ export default function Home() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       void saveTarget.write(project)
-    }, 500)
+    }, AUTOSAVE_DEBOUNCE_MS)
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     }
