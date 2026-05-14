@@ -540,6 +540,7 @@ export default function Home() {
         return {
           ...prev,
           referencesMarkdown: newReferencesMarkdown,
+          updatedAt: now,
         }
       })
       return { ok: true }
