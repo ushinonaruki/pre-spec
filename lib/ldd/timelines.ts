@@ -80,14 +80,6 @@ export function answerQuestion(
   return { ...project, timeline, updatedAt: now }
 }
 
-function simpleHash(s: string): string {
-  let h = 0
-  for (let i = 0; i < s.length; i++) {
-    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0
-  }
-  return (h >>> 0).toString(16).padStart(8, '0')
-}
-
 function extractSectionContents(markdown: string): Record<string, string> {
   const lines = markdown.split('\n')
   const result: Record<string, string> = {}
@@ -131,8 +123,6 @@ export function addManualEdit(
     type: 'manual_edit',
     createdAt: new Date().toISOString(),
     memo: params.memo,
-    beforeHash: simpleHash(params.beforeMarkdown),
-    afterHash: simpleHash(params.afterMarkdown),
     affectedSectionIds: estimateAffectedSections(params.beforeMarkdown, params.afterMarkdown),
   }
   return {

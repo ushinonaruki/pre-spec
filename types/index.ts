@@ -37,8 +37,6 @@ export type ManualEdit = {
   type: 'manual_edit'
   createdAt: string
   memo?: string
-  beforeHash: string
-  afterHash: string
   affectedSectionIds: string[]
 }
 
