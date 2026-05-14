@@ -594,8 +594,8 @@ export default function Home() {
             />
           </div>
           <div className="flex-1 min-h-0 border-t border-stone-200 overflow-hidden">
-            <ReferencesSection
-              project={project}
+            <ReferencesPanel
+              referencesMarkdown={project.referencesMarkdown}
               onAddReference={handleAddReference}
             />
           </div>
@@ -632,20 +632,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  )
-}
-
-function ReferencesSection({
-  project,
-  onAddReference,
-}: {
-  project: Project
-  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
-}) {
-  return (
-    <ReferencesPanel
-      referencesMarkdown={project.referencesMarkdown}
-      onAddReference={onAddReference}
-    />
   )
 }
