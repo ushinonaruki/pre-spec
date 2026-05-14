@@ -149,8 +149,6 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
           .join(', ')
         lines.push(`- affected: ${titles}`)
       }
-      lines.push(`- beforeHash: ${me.beforeHash}`)
-      lines.push(`- afterHash: ${me.afterHash}`)
       lines.push('')
     }
   }
