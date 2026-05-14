@@ -319,8 +319,8 @@ type Props = {
   timeline: TimelineItem[]
   skipReasons: EffectiveSkipReason[]
   isGenerating: boolean
-  generateTimelineError: boolean
-  onDismissGenerateTimelineError: () => void
+  addQuestionError: boolean
+  onDismissAddQuestionError: () => void
   formattingQuestionId: string | null
   skippingQuestionId: string | null
   retryingQuestionId: string | null
@@ -566,8 +566,8 @@ export default function InterviewPanel({
   timeline,
   skipReasons,
   isGenerating,
-  generateTimelineError,
-  onDismissGenerateTimelineError,
+  addQuestionError,
+  onDismissAddQuestionError,
   formattingQuestionId,
   skippingQuestionId,
   retryingQuestionId,
@@ -642,10 +642,10 @@ export default function InterviewPanel({
             </span>
           </div>
         </div>
-        {generateTimelineError && (
+        {addQuestionError && (
           <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
             <span className="flex-1">{UI_TEXT.interview.generateQuestionsError}</span>
-            <button onClick={onDismissGenerateTimelineError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+            <button onClick={onDismissAddQuestionError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
           </div>
         )}
       </div>
