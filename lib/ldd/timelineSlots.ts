@@ -57,7 +57,7 @@ export function buildTimelineSlots(timeline: TimelineItem[]): TimelineSlot[] {
   flushPhase()
   flushSection()
 
-  return slots.reverse().map((slot): TimelineSlot => {
+  return [...slots].reverse().map((slot): TimelineSlot => {
     if (slot.type === 'block') {
       return { ...slot, data: { ...slot.data, questions: slot.data.questions.slice().reverse() } }
     }
