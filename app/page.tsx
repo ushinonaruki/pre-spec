@@ -107,7 +107,7 @@ export default function Home() {
   const [confirmLLMErrorId, setConfirmLLMErrorId] = useState<string | null>(null)
   const [answerLLMErrorId, setAnswerLLMErrorId] = useState<string | null>(null)
   const [skipLLMErrorId, setSkipLLMErrorId] = useState<string | null>(null)
-  const [generateTimelineError, setGenerateTimelineError] = useState(false)
+  const [addQuestionError, setAddQuestionError] = useState(false)
   const [retryLLMErrorQuestionId, setRetryLLMErrorQuestionId] = useState<string | null>(null)
   const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -323,7 +323,7 @@ export default function Home() {
       .filter((item): item is Question => item.type === 'question' && item.sectionId === project.currentSectionId)
       .map((q) => q.text)
 
-    setGenerateTimelineError(false)
+    setAddQuestionError(false)
     setIsGeneratingTimeline(true)
     try {
       const markerContexts = extractMarkerContexts(project.spec, markerDefinitions)
@@ -361,7 +361,7 @@ export default function Home() {
         return addQuestionsToTimeline(withMarker, newQuestions)
       })
     } catch {
-      setGenerateTimelineError(true)
+      setAddQuestionError(true)
     } finally {
       setIsGeneratingTimeline(false)
     }
@@ -608,8 +608,8 @@ export default function Home() {
             sections={project.sections}
             timeline={project.timeline}
             isGenerating={isGeneratingTimeline}
-            generateTimelineError={generateTimelineError}
-            onDismissGenerateTimelineError={() => setGenerateTimelineError(false)}
+            addQuestionError={addQuestionError}
+            onDismissAddQuestionError={() => setAddQuestionError(false)}
             formattingQuestionId={formattingQuestionId}
             skippingQuestionId={skippingQuestionId}
             retryingQuestionId={retryingQuestionId}
