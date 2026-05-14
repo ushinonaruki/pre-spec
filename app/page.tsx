@@ -430,7 +430,7 @@ export default function Home() {
       if (!hasSectionHeading(project.spec, sectionTitle)) {
         updateProject((prev) => failQuestion(prev, {
           questionId,
-          attemptedSkip: { reason, customText: customText ?? undefined },
+          attemptedSkip: { reason, customText },
         }))
         return
       }
@@ -460,7 +460,7 @@ export default function Home() {
 
       updateProject((prev) => {
         if (!hasSectionHeading(prev.spec, sectionTitle)) {
-          return failQuestion(prev, { questionId, attemptedSkip: { reason, customText: customText ?? undefined } })
+          return failQuestion(prev, { questionId, attemptedSkip: { reason, customText } })
         }
         const { project: withSpec, reflectedMarkdown } = applySkip(prev, { sectionTitle, markerBody, reason })
         return skipQuestion(withSpec, { questionId, skipReason: reason, skipCustomText: isCustom ? customText : undefined, reflectedMarkdown })
