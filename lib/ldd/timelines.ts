@@ -8,7 +8,7 @@ export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: n
   for (const q of items) {
     if (q.status === 'answered') {
       lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
-      lines.push(`  → ${q.answer ?? ''}`)
+      lines.push(`  → ${q.answer}`)
       if (q.reflectedMarkdown) lines.push(`  反映: ${q.reflectedMarkdown}`)
     } else if (q.status === 'skipped') {
       const detail = q.skipCustomText ? ` (${q.skipCustomText})` : ''

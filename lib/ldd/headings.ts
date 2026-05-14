@@ -1,15 +1,14 @@
 import type { Project, SectionMarker } from '@/types'
-import { extractSections, mergeSections } from '@/lib/markdown'
+import { extractSections } from '@/lib/markdown'
 
 export function replaceSpecMarkdownAndRefreshSections(project: Project, specMarkdown: string): Project {
   const freshSections = extractSections(specMarkdown)
-  const merged = mergeSections(freshSections)
-  const currentStillExists = merged.some((s) => s.id === project.currentSectionId)
+  const currentStillExists = freshSections.some((s) => s.id === project.currentSectionId)
   return {
     ...project,
     spec: specMarkdown,
-    sections: merged,
-    currentSectionId: currentStillExists ? project.currentSectionId : (merged[0]?.id ?? null),
+    sections: freshSections,
+    currentSectionId: currentStillExists ? project.currentSectionId : (freshSections[0]?.id ?? null),
   }
 }
 
