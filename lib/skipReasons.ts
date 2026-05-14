@@ -2,7 +2,6 @@ import type { SkipReasonDefinition, SkipReasonDefinitionFile } from '@/types'
 
 export const CUSTOM_REASON = 'custom' as const
 export const CUSTOM_REASON_LABEL = '理由を入力'
-export const CUSTOM_REASON_INSTRUCTION = 'ユーザーが入力したテキストを未決事項の説明として反映してください。'
 
 export const SKIP_REASON_KEY_CHARS = '[a-z0-9_]'
 export const SKIP_REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)

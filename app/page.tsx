@@ -19,7 +19,7 @@ import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
-import { CUSTOM_REASON, CUSTOM_REASON_INSTRUCTION, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
+import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
 import { buildRelatedSourceBlock, resolveSourceName } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
@@ -437,8 +437,8 @@ export default function Home() {
 
       const isCustom = reason === CUSTOM_REASON
       const skipInstruction = isCustom
-        ? (customText?.trim() ?? CUSTOM_REASON_INSTRUCTION)
-        : (skipReasonDefinitions?.skipReasons[reason]?.instruction ?? CUSTOM_REASON_INSTRUCTION)
+        ? customText!
+        : skipReasonDefinitions!.skipReasons[reason].instruction
 
       setSkipLLMErrorId(null)
       setSkippingQuestionId(questionId)
