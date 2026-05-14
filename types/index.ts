@@ -12,7 +12,6 @@ export type SkipReasonDefinitionFile = {
 export type Section = {
   id: string
   title: string
-  order: number
 }
 
 import type { QuestionKind, QuestionPriority } from '@/lib/config/questionTaxonomy'

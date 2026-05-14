@@ -29,7 +29,6 @@ export function extractSections(markdown: string): Section[] {
   const lines = markdown.split('\n')
   const sections: Section[] = []
   const occurrenceCount: Record<string, number> = {}
-  let order = 0
 
   for (const line of lines) {
     const match = line.match(/^## (.+)$/)
@@ -41,18 +40,14 @@ export function extractSections(markdown: string): Section[] {
       sections.push({
         id: `s-${slug}-${occurrence}`,
         title,
-        order: order++,
       })
     }
   }
   return sections
 }
 
-export function mergeSections(existing: Section[], fresh: Section[]): Section[] {
-  return fresh.map((s) => {
-    const found = existing.find((e) => e.id === s.id)
-    return found ? { ...s, order: found.order } : s
-  })
+export function mergeSections(fresh: Section[]): Section[] {
+  return fresh
 }
 
 export function hasSectionHeading(markdown: string, headingTitle: string): boolean {

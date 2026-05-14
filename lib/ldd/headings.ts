@@ -3,7 +3,7 @@ import { extractSections, mergeSections } from '@/lib/markdown'
 
 export function replaceSpecMarkdownAndRefreshSections(project: Project, specMarkdown: string): Project {
   const freshSections = extractSections(specMarkdown)
-  const merged = mergeSections(project.sections, freshSections)
+  const merged = mergeSections(freshSections)
   const currentStillExists = merged.some((s) => s.id === project.currentSectionId)
   return {
     ...project,
