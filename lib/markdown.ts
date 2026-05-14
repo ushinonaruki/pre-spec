@@ -46,10 +46,6 @@ export function extractSections(markdown: string): Section[] {
   return sections
 }
 
-export function mergeSections(fresh: Section[]): Section[] {
-  return fresh
-}
-
 export function hasSectionHeading(markdown: string, headingTitle: string): boolean {
   return markdown.split('\n').some((line) => {
     const m = line.match(/^## (.+)$/)
