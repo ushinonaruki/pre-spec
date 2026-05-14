@@ -395,14 +395,20 @@ export default function Home() {
         }),
       )
       const formatResult = extractJSON<AnswerFormatResult>(text)
-      if (!formatResult?.specInsertionMarkdown) throw new Error('Invalid format result')
+      const rawSpecInsertionMarkdown = (formatResult as Record<string, unknown> | null)?.specInsertionMarkdown
+      if (typeof rawSpecInsertionMarkdown !== 'string') {
+        throw new Error('Invalid format result')
+      }
+      const specInsertionMarkdown = rawSpecInsertionMarkdown
 
       updateProject((prev) => {
-        if (!hasSectionHeading(prev.spec, sectionTitle)) {
+        if (specInsertionMarkdown && !hasSectionHeading(prev.spec, sectionTitle)) {
           return failQuestion(prev, { questionId, attemptedAnswer: answer })
         }
-        const withSpec = applyFormattedAnswer(prev, { sectionTitle, formatResult })
-        return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: formatResult.specInsertionMarkdown })
+        const withSpec = specInsertionMarkdown
+          ? applyFormattedAnswer(prev, { sectionTitle, formatResult: { specInsertionMarkdown } })
+          : prev
+        return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: specInsertionMarkdown })
       })
     } catch {
       setAnswerLLMErrorId(questionId)
