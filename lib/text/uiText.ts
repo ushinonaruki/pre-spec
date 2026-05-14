@@ -51,8 +51,8 @@ export const UI_TEXT = {
 
   manualEdit: {
     label: 'spec.md を手動編集しました',
-    affected: 'affected',
-    memo: 'memo',
+    affected: '変更セクション',
+    memo: 'メモ',
   },
 
   bottomTabs: {

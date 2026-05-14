@@ -19,7 +19,7 @@ import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
-import { CUSTOM_REASON, CUSTOM_REASON_INSTRUCTION, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
+import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
 import { buildRelatedSourceBlock, resolveSourceName } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
@@ -430,15 +430,15 @@ export default function Home() {
       if (!hasSectionHeading(project.spec, sectionTitle)) {
         updateProject((prev) => failQuestion(prev, {
           questionId,
-          attemptedSkip: { reason, customText: customText ?? undefined },
+          attemptedSkip: { reason, customText },
         }))
         return
       }
 
       const isCustom = reason === CUSTOM_REASON
       const skipInstruction = isCustom
-        ? (customText?.trim() ?? CUSTOM_REASON_INSTRUCTION)
-        : (skipReasonDefinitions?.skipReasons[reason]?.instruction ?? CUSTOM_REASON_INSTRUCTION)
+        ? customText!
+        : skipReasonDefinitions!.skipReasons[reason].instruction
 
       setSkipLLMErrorId(null)
       setSkippingQuestionId(questionId)
@@ -460,7 +460,7 @@ export default function Home() {
 
       updateProject((prev) => {
         if (!hasSectionHeading(prev.spec, sectionTitle)) {
-          return failQuestion(prev, { questionId, attemptedSkip: { reason, customText: customText ?? undefined } })
+          return failQuestion(prev, { questionId, attemptedSkip: { reason, customText } })
         }
         const { project: withSpec, reflectedMarkdown } = applySkip(prev, { sectionTitle, markerBody, reason })
         return skipQuestion(withSpec, { questionId, skipReason: reason, skipCustomText: isCustom ? customText : undefined, reflectedMarkdown })
@@ -594,8 +594,8 @@ export default function Home() {
             />
           </div>
           <div className="flex-1 min-h-0 border-t border-stone-200 overflow-hidden">
-            <ReferencesSection
-              project={project}
+            <ReferencesPanel
+              referencesMarkdown={project.referencesMarkdown}
               onAddReference={handleAddReference}
             />
           </div>
@@ -632,20 +632,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  )
-}
-
-function ReferencesSection({
-  project,
-  onAddReference,
-}: {
-  project: Project
-  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
-}) {
-  return (
-    <ReferencesPanel
-      referencesMarkdown={project.referencesMarkdown}
-      onAddReference={onAddReference}
-    />
   )
 }
