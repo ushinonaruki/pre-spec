@@ -550,7 +550,7 @@ export default function InterviewPanel({
                   <span className="text-xs text-stone-400 shrink-0 px-1">{slot.data.marker.sectionTitle}</span>
                   <div className="flex-1 border-t border-stone-200" />
                 </div>
-                {slot.data.questions.map((q: Question) => (
+                {slot.data.questions.map((q) => (
                   <Fragment key={q.id}>{renderQuestionCard(q)}</Fragment>
                 ))}
               </div>
