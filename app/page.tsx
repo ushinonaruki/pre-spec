@@ -321,7 +321,7 @@ export default function Home() {
       (item): item is Question => item.type === 'question' && item.id === questionId,
     )
     if (!questionItem) return
-    const { sectionTitle, text: questionText, proposedMarkdown } = questionItem
+    const { sectionTitle, text: questionText, questionType, proposedMarkdown } = questionItem
 
     if (!hasSectionHeading(project.spec, sectionTitle)) {
       updateProject((prev) => failQuestion(prev, { questionId, attemptedAnswer: answer }))
@@ -333,7 +333,7 @@ export default function Home() {
 
     try {
       const text = await callLLM(
-        proposedMarkdown
+        questionType === 'initial_confirmation'
           ? buildInitialConfirmationAnswerFormatPrompt({
               sectionTitle,
               questionText,
