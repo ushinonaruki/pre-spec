@@ -14,6 +14,96 @@ function resolveSkipLabel(skipReason: string | undefined, skipReasons: Effective
   return skipReasons.find((r) => r.reason === skipReason)?.label ?? skipReason
 }
 
+function QuestionErrorBanner({ text, onDismiss }: { text: string; onDismiss: () => void }) {
+  return (
+    <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+      <span className="flex-1">{text}</span>
+      <button onClick={onDismiss} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
+    </div>
+  )
+}
+
+function QuestionStatusBadge({ status, openColor = 'text-stone-400' }: { status: Question['status']; openColor?: string }) {
+  if (status === 'answered') return <span className="text-xs text-green-700 font-medium shrink-0">{UI_TEXT.interview.statusAnswered}</span>
+  if (status === 'skipped') return <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusSkipped}</span>
+  if (status === 'failed') return <span className="text-xs text-red-600 font-medium shrink-0">{UI_TEXT.interview.statusFailed}</span>
+  return <span className={`text-xs font-medium shrink-0 ${openColor}`}>{UI_TEXT.interview.statusOpen}</span>
+}
+
+function QuestionKindPriorityBadges({ priority, kinds }: { priority?: Question['priority']; kinds?: Question['kinds'] }) {
+  if (!priority && !kinds?.length) return null
+  return (
+    <div className="flex gap-1 flex-wrap">
+      {priority && (
+        <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${QUESTION_PRIORITY_COLORS[priority]}`}>
+          {QUESTION_PRIORITY_LABELS[priority]}
+        </span>
+      )}
+      {kinds?.map((k) => (
+        <span key={k} className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
+          {QUESTION_KIND_LABELS[k]}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function QuestionSkippedContent({
+  skipReason,
+  skipCustomText,
+  reflectedMarkdown,
+  skipReasons,
+}: {
+  skipReason?: string
+  skipCustomText?: string
+  reflectedMarkdown?: string
+  skipReasons: EffectiveSkipReason[]
+}) {
+  return (
+    <div className="space-y-1 pt-2">
+      {skipReason && (
+        <p className="text-xs text-stone-500">
+          {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(skipReason, skipReasons)}
+        </p>
+      )}
+      {skipCustomText && (
+        <p className="text-xs text-stone-500 italic">{skipCustomText}</p>
+      )}
+      {reflectedMarkdown && (
+        <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
+          {reflectedMarkdown}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function QuestionFailedContent({
+  attemptedAnswer,
+  attemptedSkip,
+  skipReasons,
+}: {
+  attemptedAnswer?: string
+  attemptedSkip?: { reason: string; customText?: string }
+  skipReasons: EffectiveSkipReason[]
+}) {
+  return (
+    <div className="space-y-1 pt-2 border-t border-red-100">
+      <p className="text-xs font-medium text-red-600">{UI_TEXT.interview.failedBadge}</p>
+      <p className="text-xs text-red-500">{UI_TEXT.interview.failedReason}</p>
+      {attemptedAnswer && (
+        <p className="text-xs text-stone-600 bg-red-50 rounded p-2">{attemptedAnswer}</p>
+      )}
+      {attemptedSkip && (
+        <p className="text-xs text-stone-500 italic">
+          {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(attemptedSkip.reason, skipReasons)}
+          {attemptedSkip.customText ? ` — ${attemptedSkip.customText}` : ''}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Section[] }) {
   const affectedTitles = edit.affectedSectionIds
     .map((id) => sections.find((s) => s.id === id)?.title ?? id)
@@ -112,6 +202,8 @@ function InitialConfirmationCard({
   isRetrying,
   hasLLMError,
   onDismissLLMError,
+  hasSkipLLMError,
+  onDismissSkipLLMError,
   hasRetryLLMError,
   onDismissRetryLLMError,
   onConfirm,
@@ -125,6 +217,8 @@ function InitialConfirmationCard({
   isRetrying: boolean
   hasLLMError: boolean
   onDismissLLMError: () => void
+  hasSkipLLMError: boolean
+  onDismissSkipLLMError: () => void
   hasRetryLLMError: boolean
   onDismissRetryLLMError: () => void
   onConfirm: (answer: string) => void
@@ -144,44 +238,13 @@ function InitialConfirmationCard({
           ? 'border-red-200 bg-red-50'
           : 'border-blue-200 bg-blue-50'
 
-  const statusIcon =
-    question.status === 'answered' ? (
-      <span className="text-xs text-green-700 font-medium shrink-0">{UI_TEXT.interview.statusAnswered}</span>
-    ) : question.status === 'skipped' ? (
-      <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusSkipped}</span>
-    ) : question.status === 'failed' ? (
-      <span className="text-xs text-red-600 font-medium shrink-0">{UI_TEXT.interview.statusFailed}</span>
-    ) : (
-      <span className="text-xs text-blue-500 font-medium shrink-0">{UI_TEXT.interview.statusOpen}</span>
-    )
-
-  const kindPriorityLabels =
-    question.priority ?? question.kinds?.length ? (
-      <div className="flex gap-1 flex-wrap">
-        {question.priority && (
-          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${QUESTION_PRIORITY_COLORS[question.priority]}`}>
-            {QUESTION_PRIORITY_LABELS[question.priority]}
-          </span>
-        )}
-        {question.kinds?.map((k) => (
-          <span key={k} className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
-            {QUESTION_KIND_LABELS[k]}
-          </span>
-        ))}
-      </div>
-    ) : null
-
   return (
     <div className={`border rounded-lg overflow-hidden ${headerBg}`}>
       <button onClick={() => setIsOpen((v) => !v)} className="w-full text-left p-3 space-y-1 cursor-pointer">
         <div className="flex items-start gap-2">
-          {statusIcon}
+          <QuestionStatusBadge status={question.status} openColor="text-blue-500" />
           <div className="flex-1 min-w-0 space-y-1">
-            {kindPriorityLabels && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {kindPriorityLabels}
-              </div>
-            )}
+            <QuestionKindPriorityBadges priority={question.priority} kinds={question.kinds} />
             <p className={`text-sm ${question.status === 'skipped' ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
               {question.text}
             </p>
@@ -213,52 +276,32 @@ function InitialConfirmationCard({
           )}
 
           {question.status === 'skipped' && (
-            <div className="space-y-1 pt-2">
-              {question.skipReason && (
-                <p className="text-xs text-stone-500">
-                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.skipReason, skipReasons)}
-                </p>
-              )}
-              {question.skipCustomText && (
-                <p className="text-xs text-stone-500 italic">{question.skipCustomText}</p>
-              )}
-              {question.reflectedMarkdown && (
-                <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
-                  {question.reflectedMarkdown}
-                </p>
-              )}
-            </div>
+            <QuestionSkippedContent
+              skipReason={question.skipReason}
+              skipCustomText={question.skipCustomText}
+              reflectedMarkdown={question.reflectedMarkdown}
+              skipReasons={skipReasons}
+            />
           )}
 
           {question.status === 'failed' && (
-            <div className="space-y-1 pt-2 border-t border-red-100">
-              <p className="text-xs font-medium text-red-600">{UI_TEXT.interview.failedBadge}</p>
-              <p className="text-xs text-red-500">{UI_TEXT.interview.failedReason}</p>
-              {question.attemptedAnswer && (
-                <p className="text-xs text-stone-600 bg-red-50 rounded p-2">{question.attemptedAnswer}</p>
-              )}
-              {question.attemptedSkip && (
-                <p className="text-xs text-stone-500 italic">
-                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.attemptedSkip.reason, skipReasons)}
-                  {question.attemptedSkip.customText ? ` — ${question.attemptedSkip.customText}` : ''}
-                </p>
-              )}
-            </div>
+            <QuestionFailedContent
+              attemptedAnswer={question.attemptedAnswer}
+              attemptedSkip={question.attemptedSkip}
+              skipReasons={skipReasons}
+            />
           )}
 
           {question.status === 'open' && (
             <>
               {hasLLMError && (
-                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  <span className="flex-1">{UI_TEXT.initialConfirmation.answerLLMError}</span>
-                  <button onClick={onDismissLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
-                </div>
+                <QuestionErrorBanner text={UI_TEXT.initialConfirmation.answerLLMError} onDismiss={onDismissLLMError} />
+              )}
+              {hasSkipLLMError && (
+                <QuestionErrorBanner text={UI_TEXT.interview.skipLLMError} onDismiss={onDismissSkipLLMError} />
               )}
               {hasRetryLLMError && (
-                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  <span className="flex-1">{UI_TEXT.interview.retryLLMError}</span>
-                  <button onClick={onDismissRetryLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
-                </div>
+                <QuestionErrorBanner text={UI_TEXT.interview.retryLLMError} onDismiss={onDismissRetryLLMError} />
               )}
               {!showSkip ? (
                 <>
@@ -375,33 +418,6 @@ function QuestionCard({
   const [answer, setAnswer] = useState('')
   const [showSkip, setShowSkip] = useState(false)
 
-  const kindPriorityLabels =
-    question.priority ?? question.kinds?.length ? (
-      <div className="flex gap-1 flex-wrap">
-        {question.priority && (
-          <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${QUESTION_PRIORITY_COLORS[question.priority]}`}>
-            {QUESTION_PRIORITY_LABELS[question.priority]}
-          </span>
-        )}
-        {question.kinds?.map((k) => (
-          <span key={k} className="text-xs bg-stone-100 text-stone-600 px-1.5 py-0.5 rounded font-mono">
-            {QUESTION_KIND_LABELS[k]}
-          </span>
-        ))}
-      </div>
-    ) : null
-
-  const statusIcon =
-    question.status === 'answered' ? (
-      <span className="text-xs text-green-700 font-medium shrink-0">{UI_TEXT.interview.statusAnswered}</span>
-    ) : question.status === 'skipped' ? (
-      <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusSkipped}</span>
-    ) : question.status === 'failed' ? (
-      <span className="text-xs text-red-600 font-medium shrink-0">{UI_TEXT.interview.statusFailed}</span>
-    ) : (
-      <span className="text-xs text-stone-400 font-medium shrink-0">{UI_TEXT.interview.statusOpen}</span>
-    )
-
   const headerBg =
     question.status === 'answered'
       ? 'border-green-200 bg-green-50'
@@ -418,9 +434,9 @@ function QuestionCard({
         className="w-full text-left p-3 space-y-1 cursor-pointer"
       >
         <div className="flex items-start gap-2">
-          {statusIcon}
+          <QuestionStatusBadge status={question.status} />
           <div className="flex-1 min-w-0 space-y-1">
-            {kindPriorityLabels}
+            <QuestionKindPriorityBadges priority={question.priority} kinds={question.kinds} />
             <p className={`text-sm ${question.status === 'skipped' ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
               {question.text}
             </p>
@@ -450,58 +466,32 @@ function QuestionCard({
           )}
 
           {question.status === 'skipped' && (
-            <div className="space-y-1 pt-2">
-              {question.skipReason && (
-                <p className="text-xs text-stone-500">
-                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.skipReason, skipReasons)}
-                </p>
-              )}
-              {question.skipCustomText && (
-                <p className="text-xs text-stone-500 italic">{question.skipCustomText}</p>
-              )}
-              {question.reflectedMarkdown && (
-                <p className="text-xs font-mono text-stone-400 bg-stone-50 rounded px-2 py-1">
-                  {question.reflectedMarkdown}
-                </p>
-              )}
-            </div>
+            <QuestionSkippedContent
+              skipReason={question.skipReason}
+              skipCustomText={question.skipCustomText}
+              reflectedMarkdown={question.reflectedMarkdown}
+              skipReasons={skipReasons}
+            />
           )}
 
           {question.status === 'failed' && (
-            <div className="space-y-1 pt-2 border-t border-red-100">
-              <p className="text-xs font-medium text-red-600">{UI_TEXT.interview.failedBadge}</p>
-              <p className="text-xs text-red-500">{UI_TEXT.interview.failedReason}</p>
-              {question.attemptedAnswer && (
-                <p className="text-xs text-stone-600 bg-red-50 rounded p-2">{question.attemptedAnswer}</p>
-              )}
-              {question.attemptedSkip && (
-                <p className="text-xs text-stone-500 italic">
-                  {UI_TEXT.interview.skipReasonLabel}: {resolveSkipLabel(question.attemptedSkip.reason, skipReasons)}
-                  {question.attemptedSkip.customText ? ` — ${question.attemptedSkip.customText}` : ''}
-                </p>
-              )}
-            </div>
+            <QuestionFailedContent
+              attemptedAnswer={question.attemptedAnswer}
+              attemptedSkip={question.attemptedSkip}
+              skipReasons={skipReasons}
+            />
           )}
 
           {question.status === 'open' && (
             <>
               {hasAnswerLLMError && (
-                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  <span className="flex-1">{UI_TEXT.interview.answerLLMError}</span>
-                  <button onClick={onDismissAnswerLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
-                </div>
+                <QuestionErrorBanner text={UI_TEXT.interview.answerLLMError} onDismiss={onDismissAnswerLLMError} />
               )}
               {hasSkipLLMError && (
-                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  <span className="flex-1">{UI_TEXT.interview.skipLLMError}</span>
-                  <button onClick={onDismissSkipLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
-                </div>
+                <QuestionErrorBanner text={UI_TEXT.interview.skipLLMError} onDismiss={onDismissSkipLLMError} />
               )}
               {hasRetryLLMError && (
-                <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-                  <span className="flex-1">{UI_TEXT.interview.retryLLMError}</span>
-                  <button onClick={onDismissRetryLLMError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
-                </div>
+                <QuestionErrorBanner text={UI_TEXT.interview.retryLLMError} onDismiss={onDismissRetryLLMError} />
               )}
               {!showSkip ? (
                 <>
@@ -643,10 +633,7 @@ export default function InterviewPanel({
           </div>
         </div>
         {addQuestionError && (
-          <div className="flex items-center gap-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1.5">
-            <span className="flex-1">{UI_TEXT.interview.generateQuestionsError}</span>
-            <button onClick={onDismissAddQuestionError} className="shrink-0 text-red-400 hover:text-red-600 transition-colors cursor-pointer">✕</button>
-          </div>
+          <QuestionErrorBanner text={UI_TEXT.interview.generateQuestionsError} onDismiss={onDismissAddQuestionError} />
         )}
       </div>
 
@@ -682,6 +669,8 @@ export default function InterviewPanel({
                       isRetrying={retryingQuestionId === q.id}
                       hasLLMError={confirmLLMErrorQuestionId === q.id}
                       onDismissLLMError={onDismissConfirmLLMError}
+                      hasSkipLLMError={skipLLMErrorQuestionId === q.id}
+                      onDismissSkipLLMError={onDismissSkipLLMError}
                       hasRetryLLMError={retryLLMErrorQuestionId === q.id}
                       onDismissRetryLLMError={onDismissRetryLLMError}
                       onConfirm={(answer) => { void onConfirmInitial(q.id, answer, q.sectionTitle) }}
