@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       messages.push({ role: 'user', content: toolResults })
     }
 
-    return Response.json({ error: 'Failed to process web fetch request' }, { status: 502 })
+    return Response.json({ error: 'Failed to complete tool use' }, { status: 502 })
   } catch {
     return Response.json({ error: 'Failed to call Anthropic API' }, { status: 502 })
   }
