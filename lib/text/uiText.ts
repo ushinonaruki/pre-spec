@@ -35,6 +35,7 @@ export const UI_TEXT = {
     backButton: '戻る',
     createErrorGeneration: '初期反映質問の生成に失敗しました。APIキーを確認してください。',
     createErrorRelatedSource: '関連資料の確認に失敗しました。APIキーを確認してください。',
+    createErrorRelatedSourceUnreadable: (reason: string) => `関連資料を読み込めません: ${reason}`,
   },
 
   specEditor: {

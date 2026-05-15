@@ -225,15 +225,22 @@ export default function Home() {
       if (result === null) {
         return { ok: false, error: UI_TEXT.startScreen.createErrorRelatedSource }
       }
-      if (result.status === 'ok' && result.content) {
-        const now = new Date().toISOString()
-        const existingNames = [...baseProject.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
-        const name = resolveSourceName(existingNames, rawName)
-        const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, now)
-        baseProject = {
-          ...baseProject,
-          referencesMarkdown: baseProject.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n',
-        }
+      if (result.status === 'unreadable') {
+        const error = result.reason
+          ? UI_TEXT.startScreen.createErrorRelatedSourceUnreadable(result.reason)
+          : UI_TEXT.startScreen.createErrorRelatedSource
+        return { ok: false, error }
+      }
+      if (!result.content) {
+        return { ok: false, error: UI_TEXT.startScreen.createErrorRelatedSource }
+      }
+      const now = new Date().toISOString()
+      const existingNames = [...baseProject.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
+      const name = resolveSourceName(existingNames, rawName)
+      const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, now)
+      baseProject = {
+        ...baseProject,
+        referencesMarkdown: baseProject.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n',
       }
     }
 
