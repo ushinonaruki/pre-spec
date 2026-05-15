@@ -121,4 +121,8 @@ export const UI_TEXT = {
     answerLLMError: '整形に失敗しました。再度回答してください。',
   },
 
+  skipReasons: {
+    customLabel: '理由を入力',
+  },
+
 }

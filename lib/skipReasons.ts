@@ -1,7 +1,7 @@
 import type { SkipReasonDefinition, SkipReasonDefinitionFile } from '@/types'
+import { UI_TEXT } from '@/lib/text/uiText'
 
 export const CUSTOM_REASON = 'custom' as const
-export const CUSTOM_REASON_LABEL = '理由を入力'
 
 export const SKIP_REASON_KEY_CHARS = '[a-z0-9_]'
 export const SKIP_REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)
@@ -39,6 +39,6 @@ export function getEffectiveSkipReasons(file: SkipReasonDefinitionFile | null): 
       reasons.push({ reason: id, label: def.label, instruction: def.instruction, isCustom: false })
     }
   }
-  reasons.push({ reason: CUSTOM_REASON, label: CUSTOM_REASON_LABEL, isCustom: true })
+  reasons.push({ reason: CUSTOM_REASON, label: UI_TEXT.skipReasons.customLabel, isCustom: true })
   return reasons
 }
