@@ -34,7 +34,6 @@ const AUTOSAVE_DEBOUNCE_MS = 500
 
 type RawQuestion = {
   text: string
-  reason?: string
   kinds?: string[]
   priority?: string
   aiGuess?: { value: string; rationale: string }
@@ -43,7 +42,6 @@ type RawQuestion = {
 type RawInitialQuestion = {
   sectionTitle: string
   text: string
-  reason?: string
   kinds?: string[]
   priority?: string
   proposedMarkdown?: string
@@ -208,7 +206,6 @@ export default function Home() {
           sectionId: section.id,
           sectionTitle: q.sectionTitle,
           text: q.text,
-          reason: q.reason,
           kinds: q.kinds as QuestionKind[] | undefined,
           priority: q.priority as QuestionPriority | undefined,
           proposedMarkdown: q.proposedMarkdown,
@@ -258,11 +255,10 @@ export default function Home() {
     setSaveTarget(target)
   }, [])
 
-  const handleSpecSave = useCallback((newSpec: string, memo?: string) => {
+  const handleSpecSave = useCallback((newSpec: string) => {
     updateProject((prev) => {
-      const beforeMarkdown = prev.spec
       const withUpdatedSpec = replaceSpecMarkdownAndRefreshSections(prev, newSpec)
-      return addManualEdit(withUpdatedSpec, { beforeMarkdown, afterMarkdown: newSpec, memo })
+      return addManualEdit(withUpdatedSpec)
     })
   }, [updateProject])
 
@@ -300,7 +296,6 @@ export default function Home() {
         sectionId: section.id,
         sectionTitle: section.title,
         text: q.text,
-        reason: q.reason,
         kinds: q.kinds as QuestionKind[] | undefined,
         priority: q.priority as QuestionPriority | undefined,
         aiGuess: q.aiGuess,
@@ -460,7 +455,6 @@ export default function Home() {
           sectionId: questionItem.sectionId,
           sectionTitle: questionItem.sectionTitle,
           text: raw.text.trim(),
-          reason: raw.reason,
           kinds: raw.kinds as Question['kinds'],
           priority: raw.priority as Question['priority'],
           aiGuess: raw.aiGuess,
@@ -518,7 +512,7 @@ export default function Home() {
     const filenames = getProjectFilenames(project.fileBase)
     downloadFile(filenames.spec, project.spec)
     setTimeout(() => downloadFile(filenames.references, project.referencesMarkdown), DOWNLOAD_STAGGER_MS)
-    setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
+    setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline)), DOWNLOAD_STAGGER_MS * 2)
   }
 
   if (!project) return (
@@ -566,7 +560,6 @@ export default function Home() {
         <div className="flex flex-col w-1/2 min-w-0 overflow-hidden">
           <InterviewPanel
             currentSection={currentSection}
-            sections={project.sections}
             timeline={project.timeline}
             isGenerating={isGeneratingTimeline}
             addQuestionError={addQuestionError}

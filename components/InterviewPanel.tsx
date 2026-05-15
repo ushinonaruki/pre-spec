@@ -104,24 +104,10 @@ function QuestionFailedContent({
   )
 }
 
-function ManualEditCard({ edit, sections }: { edit: ManualEdit; sections: Section[] }) {
-  const affectedTitles = edit.affectedSectionIds
-    .map((id) => sections.find((s) => s.id === id)?.title ?? id)
-    .join(', ')
-
+function ManualEditCard({ edit }: { edit: ManualEdit }) {
   return (
     <div className="border border-stone-200 rounded-lg px-3 py-2 bg-stone-50 space-y-0.5">
       <p className="text-xs font-medium text-stone-600">✎ {UI_TEXT.manualEdit.label}</p>
-      {edit.memo && (
-        <p className="text-xs text-stone-500">
-          {UI_TEXT.manualEdit.memo}: {edit.memo}
-        </p>
-      )}
-      {affectedTitles && (
-        <p className="text-xs text-stone-400">
-          {UI_TEXT.manualEdit.affected}: {affectedTitles}
-        </p>
-      )}
       <p className="text-xs text-stone-300">
         {new Date(edit.createdAt).toLocaleString(APP_LOCALE, { timeZone: APP_TIMEZONE })}
       </p>
@@ -267,9 +253,6 @@ function QuestionCard({
 
       {isOpen && (
         <div className={`px-3 pb-3 space-y-2 border-t ${openBorderColor}`}>
-          {question.reason && (
-            <p className="text-xs text-stone-400 italic pt-2">{question.reason}</p>
-          )}
 
           {question.proposedMarkdown && (
             <div className="space-y-1">
@@ -390,7 +373,6 @@ function QuestionCard({
 
 type Props = {
   currentSection: Section | null
-  sections: Section[]
   timeline: TimelineItem[]
   skipReasons: EffectiveSkipReason[]
   isGenerating: boolean
@@ -414,7 +396,6 @@ type Props = {
 
 export default function InterviewPanel({
   currentSection,
-  sections,
   timeline,
   skipReasons,
   isGenerating,
@@ -525,7 +506,7 @@ export default function InterviewPanel({
         ) : (
           slots.map((slot) => {
             if (slot.type === 'manual_edit') {
-              return <ManualEditCard key={slot.id} edit={slot.data} sections={sections} />
+              return <ManualEditCard key={slot.id} edit={slot.data} />
             }
             if (slot.type === 'phase_block') {
               return (

@@ -1,4 +1,4 @@
-import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, Section, SectionMarker, TimelineItem } from '@/types'
+import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, SectionMarker, TimelineItem } from '@/types'
 import { TIMELINE_TEXT } from '@/lib/text/timelineText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
@@ -87,7 +87,7 @@ function formatTimestamp(iso: string): string {
   }
 }
 
-export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Section[] = []): string {
+export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
   if (timeline.length === 0) return `${TIMELINE_TEXT.heading}\n\n${TIMELINE_TEXT.empty}\n`
 
   const lines: string[] = [TIMELINE_TEXT.heading, '']
@@ -109,7 +109,6 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
         ? `${TIMELINE_TEXT.questionPrefixFailed} ${q.sectionTitle}`
         : q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
       lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
-      if (q.reason) lines.push(`*${TIMELINE_TEXT.reasonLabel}: ${q.reason}*`)
       if (q.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${q.aiGuess.value}*`)
       if (q.proposedMarkdown) lines.push(`*${TIMELINE_TEXT.proposedLabel}: ${q.proposedMarkdown}*`)
 
@@ -142,13 +141,6 @@ export function generateTimelineMarkdown(timeline: TimelineItem[], sections: Sec
       lines.push(`\n${TIMELINE_TEXT.manualEditHeading}`)
       lines.push('')
       lines.push(`- createdAt: ${formatTimestamp(me.createdAt)}`)
-      if (me.memo) lines.push(`- memo: ${me.memo}`)
-      if (me.affectedSectionIds.length > 0) {
-        const titles = me.affectedSectionIds
-          .map((id) => sections.find((s) => s.id === id)?.title ?? id)
-          .join(', ')
-        lines.push(`- affected: ${titles}`)
-      }
       lines.push('')
     }
   }

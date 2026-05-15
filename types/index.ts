@@ -36,8 +36,6 @@ export type ManualEdit = {
   id: string
   type: 'manual_edit'
   createdAt: string
-  memo?: string
-  affectedSectionIds: string[]
 }
 
 export type Question = {
@@ -47,7 +45,6 @@ export type Question = {
   sectionId: string
   sectionTitle: string
   text: string
-  reason?: string
   kinds?: QuestionKind[]
   priority?: QuestionPriority
   aiGuess?: {

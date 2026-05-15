@@ -46,7 +46,6 @@ priority 候補: ${PRIORITY_CANDIDATES}
     {
       "sectionTitle": "(セクション名)",
       "text": "(セクション名) に以下を置いてよいですか？",
-      "reason": "要件定義メモから読み取れるため",
       "kinds": ["scope"],
       "priority": "high",
       "proposedMarkdown": "- ..."
@@ -266,7 +265,6 @@ ${proposedSection}${aiGuessSection}
 
 export type RetryQuestionResult = {
   text: string
-  reason?: string
   kinds?: string[]
   priority?: string
   aiGuess?: { value: string; rationale: string }
@@ -275,7 +273,7 @@ export type RetryQuestionResult = {
 
 export function buildRetryQuestionPrompt(params: {
   sectionTitle: string
-  originalQuestion: Pick<Question, 'text' | 'questionType' | 'kinds' | 'priority' | 'aiGuess' | 'reason' | 'proposedMarkdown'>
+  originalQuestion: Pick<Question, 'text' | 'questionType' | 'kinds' | 'priority' | 'aiGuess' | 'proposedMarkdown'>
   spec: string
   referencesMarkdown: string
 }): string {
@@ -289,7 +287,6 @@ export function buildRetryQuestionPrompt(params: {
   const aiGuessStr = originalQuestion.aiGuess
     ? `\nAI推定値: ${originalQuestion.aiGuess.value}\n推定根拠: ${originalQuestion.aiGuess.rationale}`
     : ''
-  const reasonStr = originalQuestion.reason ? `\n質問の意図: ${originalQuestion.reason}` : ''
   const proposedStr = isInitial && originalQuestion.proposedMarkdown?.trim()
     ? `\n提案 Markdown:\n${originalQuestion.proposedMarkdown}`
     : ''
@@ -297,14 +294,12 @@ export function buildRetryQuestionPrompt(params: {
   const outputFormat = isInitial
     ? `{
   "text": "...",
-  "reason": "...",
   "kinds": ["scope"],
   "priority": "high",
   "proposedMarkdown": "- ..."
 }`
     : `{
   "text": "...",
-  "reason": "...",
   "kinds": ["scope"],
   "priority": "high",
   "aiGuess": {
@@ -321,7 +316,7 @@ export function buildRetryQuestionPrompt(params: {
 ## 元の質問情報
 
 セクション: ## ${sectionTitle}
-質問文: ${originalQuestion.text}${reasonStr}
+質問文: ${originalQuestion.text}
 kinds: ${kindsStr}
 priority: ${priorityStr}${aiGuessStr}${proposedStr}
 
@@ -398,7 +393,6 @@ priority 候補: ${PRIORITY_CANDIDATES}
   "questions": [
     {
       "text": "...",
-      "reason": "...",
       "kinds": ["scope"],
       "priority": "high",
       "aiGuess": {
