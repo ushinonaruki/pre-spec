@@ -132,7 +132,7 @@ function buildMarkerContextSection(contexts: MarkerContext[]): string {
 export function buildInitialConfirmationAnswerFormatPrompt(params: {
   sectionTitle: string
   questionText: string
-  proposedMarkdown: string
+  proposedMarkdown?: string
   answer: string
   currentSpec: string
   referencesMarkdown: string
@@ -140,7 +140,7 @@ export function buildInitialConfirmationAnswerFormatPrompt(params: {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
-  const proposedSection = params.proposedMarkdown.trim()
+  const proposedSection = (params.proposedMarkdown?.trim() ?? '')
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
     : ''
   return `あなたは pre-spec の初期反映回答整形エンジンです。
