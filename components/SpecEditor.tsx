@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { markdownToHtml } from '@/lib/markdown'
+import { findDuplicateSectionTitles, markdownToHtml } from '@/lib/markdown'
 import { UI_TEXT } from '@/lib/text/uiText'
 
 type ViewMode = 'preview' | 'source' | 'edit'
@@ -15,19 +15,28 @@ export default function SpecEditor({ value, onSave }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('source')
   const [draft, setDraft] = useState('')
   const [memo, setMemo] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   function handleEnterEdit() {
     setDraft(value)
     setMemo('')
+    setSaveError(null)
     setViewMode('edit')
   }
 
   function handleSave() {
+    const duplicates = findDuplicateSectionTitles(draft)
+    if (duplicates.length > 0) {
+      setSaveError(UI_TEXT.specEditor.duplicateSectionTitles(duplicates))
+      return
+    }
+    setSaveError(null)
     onSave(draft, memo.trim() || undefined)
     setViewMode('source')
   }
 
   function handleCancel() {
+    setSaveError(null)
     setViewMode('source')
   }
 
@@ -105,6 +114,11 @@ export default function SpecEditor({ value, onSave }: Props) {
               className="flex-1 min-h-0 resize-none p-3 text-sm font-mono text-stone-800 bg-white focus:outline-none"
               spellCheck={false}
             />
+            {saveError && (
+              <div className="shrink-0 border-t border-red-200 bg-red-50 px-3 py-2">
+                <p className="text-xs text-red-600">{saveError}</p>
+              </div>
+            )}
             <div className="shrink-0 border-t border-stone-200 px-3 py-2">
               <input
                 value={memo}

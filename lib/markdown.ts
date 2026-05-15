@@ -46,6 +46,20 @@ export function extractSections(markdown: string): Section[] {
   return sections
 }
 
+export function findDuplicateSectionTitles(markdown: string): string[] {
+  const seen = new Set<string>()
+  const duplicates = new Set<string>()
+  for (const line of markdown.split('\n')) {
+    const match = line.match(/^## (.+)$/)
+    if (match) {
+      const title = match[1].trim()
+      if (seen.has(title)) duplicates.add(title)
+      else seen.add(title)
+    }
+  }
+  return [...duplicates]
+}
+
 export function hasSectionHeading(markdown: string, headingTitle: string): boolean {
   return markdown.split('\n').some((line) => {
     const m = line.match(/^## (.+)$/)
