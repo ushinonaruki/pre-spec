@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSourceKind, SkipReasonDefinitionFile, TimelineItem } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
-import type { CreateProjectInputs } from '@/lib/ldd/project'
+import type { CreateProjectRequest } from '@/lib/ldd/project'
 
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
@@ -167,7 +167,7 @@ export default function Home() {
     [],
   )
 
-  const handleCreateProject = useCallback(async (inputs: CreateProjectInputs): Promise<{ ok: true } | { ok: false; error?: string }> => {
+  const handleCreateProject = useCallback(async (inputs: CreateProjectRequest): Promise<{ ok: true } | { ok: false; error?: string }> => {
     let pickedTarget: ProjectSaveTarget
     try {
       pickedTarget = await pickSaveTarget(`${inputs.projectFileBase}.pre-spec.json`)

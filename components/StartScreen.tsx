@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import type { Project } from '@/types'
-import type { CreateProjectInputs, InitialRelatedSource } from '@/lib/ldd/project'
+import type { CreateProjectRequest, InitialRelatedSource } from '@/lib/ldd/project'
 import { validateProjectFileBase } from '@/lib/ldd/fileBase'
 import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
@@ -29,7 +29,7 @@ function emptyEntry(): RelatedEntry {
 }
 
 type Props = {
-  onCreate: (inputs: CreateProjectInputs) => Promise<{ ok: true } | { ok: false; error?: string }>
+  onCreate: (inputs: CreateProjectRequest) => Promise<{ ok: true } | { ok: false; error?: string }>
   onOpenProject: (project: Project, saveTarget: ProjectSaveTarget) => void
 }
 
