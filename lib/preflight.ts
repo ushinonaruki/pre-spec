@@ -1,16 +1,11 @@
 import type { MarkerDefinitionFile, Project, Question } from '@/types'
 import { SKIP_REASON_KEY_CHARS } from '@/lib/skipReasons'
 
-export type PreflightWarning = {
-  type: string
-  count: number
-}
-
 export type PreflightCheckResult = {
   openQuestions: number
   skipMarkers: number
   markerCounts: Record<string, number>
-  warnings: PreflightWarning[]
+  hasWarnings: boolean
 }
 
 function countPattern(text: string, pattern: RegExp): number {
@@ -39,22 +34,11 @@ export function runPreflightCheck(
     }
   }
 
-  const warnings: PreflightWarning[] = []
+  const hasMarkerWarnings = markerDefinitions
+    ? Object.values(markerCounts).some((c) => c > 0)
+    : false
 
-  if (openQuestions > 0) {
-    warnings.push({ type: 'open_questions', count: openQuestions })
-  }
-  if (skipMarkers > 0) {
-    warnings.push({ type: 'skip_markers', count: skipMarkers })
-  }
-  if (markerDefinitions) {
-    for (const [name] of Object.entries(markerDefinitions.markers)) {
-      const count = markerCounts[name] ?? 0
-      if (count > 0) {
-        warnings.push({ type: name, count })
-      }
-    }
-  }
+  const hasWarnings = openQuestions > 0 || skipMarkers > 0 || hasMarkerWarnings
 
-  return { openQuestions, skipMarkers, markerCounts, warnings }
+  return { openQuestions, skipMarkers, markerCounts, hasWarnings }
 }
