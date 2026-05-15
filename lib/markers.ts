@@ -43,7 +43,6 @@ export function extractMarkerContexts(
   for (const [name, def] of Object.entries(markerDefinitions.markers)) {
     const targets: MarkerTarget[] = []
 
-    // inline: - [pre-spec:{name}] {text}
     const inlineRe = new RegExp(`^\\s*-\\s*\\[pre-spec:${name}\\]\\s*(.+)$`)
     for (const line of lines) {
       const m = line.match(inlineRe)
@@ -52,7 +51,6 @@ export function extractMarkerContexts(
       }
     }
 
-    // range: <!-- pre-spec:{name}:start --> ... <!-- pre-spec:{name}:end -->
     const startRe = new RegExp(`^\\s*<!--\\s*pre-spec:${name}:start\\s*-->\\s*$`)
     const endRe = new RegExp(`^\\s*<!--\\s*pre-spec:${name}:end\\s*-->\\s*$`)
     let rangeStart: number | null = null
