@@ -1,4 +1,4 @@
-import type { Project, SectionMarker } from '@/types'
+import type { Project } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { buildInitialRequirementMemoBlock } from '@/lib/references'
 
@@ -35,16 +35,6 @@ export function createProjectFromInputs({
   memoParts.push('')
   const referencesMarkdown = memoParts.join('\n')
 
-  const initialMarker: SectionMarker | null = firstSection
-    ? {
-        id: crypto.randomUUID(),
-        type: 'section_marker',
-        sectionId: firstSection.id,
-        sectionTitle: firstSection.title,
-        createdAt: now,
-      }
-    : null
-
   return {
     id: crypto.randomUUID(),
     fileBase: projectFileBase,
@@ -55,6 +45,6 @@ export function createProjectFromInputs({
     referencesMarkdown,
     sections,
     currentSectionId: firstSection?.id ?? null,
-    timeline: initialMarker ? [initialMarker] : [],
+    timeline: [],
   }
 }
