@@ -56,7 +56,7 @@ export const UI_TEXT = {
   },
 
   bottomTabs: {
-    memoTab: 'References',
+    referencesTitle: 'References',
     addRefButton: '+ 追加',
     addRefFile: 'ファイル',
     addRefUrl: 'URL',

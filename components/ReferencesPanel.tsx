@@ -104,7 +104,7 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center border-b border-stone-200 bg-stone-50 shrink-0 px-2">
-        <span className="text-xs text-stone-500 py-2">{UI_TEXT.bottomTabs.memoTab}</span>
+        <span className="text-xs text-stone-500 py-2">{UI_TEXT.bottomTabs.referencesTitle}</span>
         {addMode === null && (
           <button
             onClick={openAddForm}
