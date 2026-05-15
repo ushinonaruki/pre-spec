@@ -1,15 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSourceKind, SkipReasonDefinitionFile, TimelineItem } from '@/types'
+import type { AnswerFormatResult, MarkerDefinitionFile, Project, Question, QuestionKind, QuestionPriority, RelatedSourceKind, SkipReasonDefinitionFile } from '@/types'
 import { createProjectFromInputs } from '@/lib/ldd/project'
 import type { CreateProjectRequest } from '@/lib/ldd/project'
 
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
 import { replaceSpecMarkdownAndRefreshSections, advanceCurrentSection } from '@/lib/ldd/headings'
-import { applyFormattedAnswer, applyProposedMarkdown, applySkip } from '@/lib/ldd/specPatch'
-import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerInitialConfirmation, answerQuestion, buildRecentLogFromTimeline, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { applyFormattedAnswer, applySkip } from '@/lib/ldd/specPatch'
+import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerQuestion, buildRecentLogFromTimeline, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt, buildRetryQuestionPrompt, buildSkipMarkerBodyPrompt } from '@/lib/llm/prompts'
 import type { RelatedSourceReviewResult, RetryQuestionResult } from '@/lib/llm/prompts'
@@ -104,7 +104,6 @@ export default function Home() {
   const [formattingQuestionId, setFormattingQuestionId] = useState<string | null>(null)
   const [skippingQuestionId, setSkippingQuestionId] = useState<string | null>(null)
   const [retryingQuestionId, setRetryingQuestionId] = useState<string | null>(null)
-  const [confirmLLMErrorId, setConfirmLLMErrorId] = useState<string | null>(null)
   const [answerLLMErrorId, setAnswerLLMErrorId] = useState<string | null>(null)
   const [skipLLMErrorId, setSkipLLMErrorId] = useState<string | null>(null)
   const [addQuestionError, setAddQuestionError] = useState(false)
@@ -243,64 +242,6 @@ export default function Home() {
     return { ok: true }
   }, [])
 
-  const handleConfirmInitial = useCallback(
-    async (questionId: string, answer: string, sectionTitle: string) => {
-      if (!project) return
-      const questionItem = project.timeline.find(
-        (item: TimelineItem): item is Question => item.type === 'question' && item.id === questionId,
-      )
-      if (!questionItem) return
-
-      if (!hasSectionHeading(project.spec, sectionTitle)) {
-        updateProject((prev) => failQuestion(prev, { questionId, attemptedAnswer: answer }))
-        return
-      }
-
-      setConfirmLLMErrorId(null)
-      setFormattingQuestionId(questionId)
-
-      try {
-        const text = await callLLM(
-          buildInitialConfirmationAnswerFormatPrompt({
-            sectionTitle,
-            questionText: questionItem.text,
-            proposedMarkdown: questionItem.proposedMarkdown ?? '',
-            answer,
-            currentSpec: project.spec,
-            referencesMarkdown: project.referencesMarkdown,
-          }),
-        )
-        const formatResult = extractJSON<AnswerFormatResult>(text)
-        if (!formatResult) throw new Error('Invalid format result')
-
-        const rawSpecInsertionMarkdown = (formatResult as Record<string, unknown>).specInsertionMarkdown
-        if (typeof rawSpecInsertionMarkdown !== 'string') {
-          throw new Error('Invalid format result')
-        }
-
-        const specInsertionMarkdown = rawSpecInsertionMarkdown
-        updateProject((prev: Project) => {
-          if (specInsertionMarkdown && !hasSectionHeading(prev.spec, sectionTitle)) {
-            return failQuestion(prev, { questionId, attemptedAnswer: answer })
-          }
-          const withSpec = specInsertionMarkdown
-            ? applyProposedMarkdown(prev, { sectionTitle, markdown: specInsertionMarkdown })
-            : prev
-          return answerInitialConfirmation(withSpec, {
-            questionId,
-            answerMarkdown: answer,
-            reflectedMarkdown: specInsertionMarkdown,
-          })
-        })
-      } catch {
-        setConfirmLLMErrorId(questionId)
-      } finally {
-        setFormattingQuestionId(null)
-      }
-    },
-    [project, updateProject],
-  )
-
   const handleOpenProject = useCallback((p: Project, target: ProjectSaveTarget) => {
     setProject(p)
     setSaveTarget(target)
@@ -373,7 +314,7 @@ export default function Home() {
       (item): item is Question => item.type === 'question' && item.id === questionId,
     )
     if (!questionItem) return
-    const { sectionTitle, text: questionText } = questionItem
+    const { sectionTitle, text: questionText, proposedMarkdown } = questionItem
 
     if (!hasSectionHeading(project.spec, sectionTitle)) {
       updateProject((prev) => failQuestion(prev, { questionId, attemptedAnswer: answer }))
@@ -385,14 +326,23 @@ export default function Home() {
 
     try {
       const text = await callLLM(
-        buildAnswerFormatPrompt({
-          currentHeading: sectionTitle,
-          question: questionText,
-          answer,
-          currentSpec: project.spec,
-          referencesMarkdown: project.referencesMarkdown,
-          recentTimelineLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
-        }),
+        proposedMarkdown
+          ? buildInitialConfirmationAnswerFormatPrompt({
+              sectionTitle,
+              questionText,
+              proposedMarkdown,
+              answer,
+              currentSpec: project.spec,
+              referencesMarkdown: project.referencesMarkdown,
+            })
+          : buildAnswerFormatPrompt({
+              currentHeading: sectionTitle,
+              question: questionText,
+              answer,
+              currentSpec: project.spec,
+              referencesMarkdown: project.referencesMarkdown,
+              recentTimelineLog: buildRecentLogFromTimeline(project.timeline, LOG_TAIL_CHARS),
+            }),
       )
       const formatResult = extractJSON<AnswerFormatResult>(text)
       const rawSpecInsertionMarkdown = (formatResult as Record<string, unknown> | null)?.specInsertionMarkdown
@@ -624,9 +574,6 @@ export default function Home() {
             skipReasons={effectiveSkipReasons}
             onSkipQuestion={handleSkipQuestion}
             onRetryQuestion={(qId) => { void handleRetryQuestion(qId) }}
-            onConfirmInitial={handleConfirmInitial}
-            confirmLLMErrorQuestionId={confirmLLMErrorId}
-            onDismissConfirmLLMError={() => setConfirmLLMErrorId(null)}
             onNext={handleNext}
           />
         </div>
