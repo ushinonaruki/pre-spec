@@ -551,7 +551,7 @@ export default function Home() {
   const handleDownloadAll = () => {
     if (!project) return
     const result = runPreflightCheck(project, markerDefinitions)
-    if (result.warnings.length > 0) {
+    if (result.hasWarnings) {
       if (!window.confirm(buildDownloadConfirmMessage(result, markerDefinitions))) return
     }
     const filenames = getProjectFilenames(project.fileBase)
