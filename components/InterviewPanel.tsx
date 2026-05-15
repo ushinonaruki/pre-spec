@@ -293,7 +293,7 @@ function QuestionCard({
               <p className="text-xs text-stone-600 bg-green-50 rounded p-2">{question.answer}</p>
               {question.reflectedMarkdown && (
                 <div className="text-xs bg-green-50 rounded p-2">
-                  <p className="font-medium text-green-700 mb-1">{UI_TEXT.initialConfirmation.applyNote}</p>
+                  <p className="font-medium text-green-700 mb-1">{UI_TEXT.interview.answeredApplyNote}</p>
                   <pre className="font-mono whitespace-pre-wrap text-stone-600">{question.reflectedMarkdown}</pre>
                 </div>
               )}
