@@ -145,26 +145,6 @@ export function addPhaseMarker(project: Project): Project {
   return { ...project, timeline: [...project.timeline, marker] }
 }
 
-export function answerInitialConfirmation(
-  project: Project,
-  params: { questionId: string; answerMarkdown: string; reflectedMarkdown: string },
-): Project {
-  const now = new Date().toISOString()
-  const timeline = project.timeline.map((item): TimelineItem => {
-    if (item.type === 'question' && item.id === params.questionId) {
-      return {
-        ...item,
-        status: 'answered' as const,
-        answer: params.answerMarkdown,
-        answeredAt: now,
-        reflectedMarkdown: params.reflectedMarkdown,
-      }
-    }
-    return item
-  })
-  return { ...project, timeline, updatedAt: now }
-}
-
 export function retryQuestion(
   project: Project,
   params: { questionId: string; newQuestion: Question },
