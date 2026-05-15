@@ -120,6 +120,7 @@ export function markdownToHtml(md: string): string {
     text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
       .replace(/`([^`]+)`/g, '<code class="bg-stone-100 px-1 rounded text-sm font-mono">$1</code>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
