@@ -253,9 +253,6 @@ function QuestionCard({
 
       {isOpen && (
         <div className={`px-3 pb-3 space-y-2 border-t ${openBorderColor}`}>
-          {question.reason && (
-            <p className="text-xs text-stone-400 italic pt-2">{question.reason}</p>
-          )}
 
           {question.proposedMarkdown && (
             <div className="space-y-1">

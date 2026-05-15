@@ -5,7 +5,6 @@ export const TIMELINE_TEXT = {
   questionPrefix: '**Q**',
   questionPrefixFailed: '**[failed]**',
   metaSeparator: '・',
-  reasonLabel: '理由',
   aiGuessLabel: 'AI推定',
   proposedLabel: '提案',
   statusAnswered: '→ ✓ 反映済み',

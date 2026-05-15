@@ -109,7 +109,6 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
         ? `${TIMELINE_TEXT.questionPrefixFailed} ${q.sectionTitle}`
         : q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
       lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
-      if (q.reason) lines.push(`*${TIMELINE_TEXT.reasonLabel}: ${q.reason}*`)
       if (q.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${q.aiGuess.value}*`)
       if (q.proposedMarkdown) lines.push(`*${TIMELINE_TEXT.proposedLabel}: ${q.proposedMarkdown}*`)
 
