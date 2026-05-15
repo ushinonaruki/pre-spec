@@ -35,6 +35,7 @@ export const UI_TEXT = {
     backButton: '戻る',
     createErrorSaveTarget: '作業ファイルの保存先を指定できませんでした。',
     createErrorGeneration: '初期反映質問の生成に失敗しました。APIキーを確認してください。',
+    createErrorNoInitialQuestions: '初期反映質問を生成できませんでした。要件定義メモの内容を確認してください。',
     createErrorRelatedSource: '関連資料の確認に失敗しました。APIキーを確認してください。',
     createErrorRelatedSourceUnreadable: (reason: string) => `関連資料を読み込めません: ${reason}`,
   },
