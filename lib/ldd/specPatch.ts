@@ -13,14 +13,6 @@ export function applyFormattedAnswer(
   return { ...project, spec: newSpec }
 }
 
-export function applyProposedMarkdown(
-  project: Project,
-  params: { sectionTitle: string; markdown: string },
-): Project {
-  const newSpec = insertUnderHeading(project.spec, params.sectionTitle, params.markdown)
-  return { ...project, spec: newSpec }
-}
-
 export function applySkip(
   project: Project,
   params: { sectionTitle: string; markerBody: string; reason: string },
