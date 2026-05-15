@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import type { ManualEdit, Question, Section, TimelineItem } from '@/types'
 import { CUSTOM_REASON } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
@@ -451,6 +451,25 @@ export default function InterviewPanel({
 
   const slots = buildTimelineSlots(timeline)
 
+  const renderQuestionCard = (q: Question) => (
+    <QuestionCard
+      question={q}
+      skipReasons={skipReasons}
+      isFormatting={formattingQuestionId === q.id}
+      isSkipping={skippingQuestionId === q.id}
+      isRetrying={retryingQuestionId === q.id}
+      hasAnswerLLMError={answerLLMErrorQuestionId === q.id}
+      hasSkipLLMError={skipLLMErrorQuestionId === q.id}
+      hasRetryLLMError={retryLLMErrorQuestionId === q.id}
+      onDismissAnswerLLMError={onDismissAnswerLLMError}
+      onDismissSkipLLMError={onDismissSkipLLMError}
+      onDismissRetryLLMError={onDismissRetryLLMError}
+      onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
+      onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
+      onRetry={() => onRetryQuestion(q.id)}
+    />
+  )
+
   const disabledTitle =
     openCount > 0 ? UI_TEXT.interview.openQuestionsWarning : undefined
 
@@ -519,23 +538,7 @@ export default function InterviewPanel({
                     <div className="flex-1 border-t border-blue-200" />
                   </div>
                   {slot.data.questions.map((q) => (
-                    <QuestionCard
-                      key={q.id}
-                      question={q}
-                      skipReasons={skipReasons}
-                      isFormatting={formattingQuestionId === q.id}
-                      isSkipping={skippingQuestionId === q.id}
-                      isRetrying={retryingQuestionId === q.id}
-                      hasAnswerLLMError={answerLLMErrorQuestionId === q.id}
-                      hasSkipLLMError={skipLLMErrorQuestionId === q.id}
-                      hasRetryLLMError={retryLLMErrorQuestionId === q.id}
-                      onDismissAnswerLLMError={onDismissAnswerLLMError}
-                      onDismissSkipLLMError={onDismissSkipLLMError}
-                      onDismissRetryLLMError={onDismissRetryLLMError}
-                      onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
-                      onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
-                      onRetry={() => onRetryQuestion(q.id)}
-                    />
+                    <Fragment key={q.id}>{renderQuestionCard(q)}</Fragment>
                   ))}
                 </div>
               )
@@ -548,23 +551,7 @@ export default function InterviewPanel({
                   <div className="flex-1 border-t border-stone-200" />
                 </div>
                 {slot.data.questions.map((q: Question) => (
-                  <QuestionCard
-                    key={q.id}
-                    question={q}
-                    skipReasons={skipReasons}
-                    isFormatting={formattingQuestionId === q.id}
-                    isSkipping={skippingQuestionId === q.id}
-                    isRetrying={retryingQuestionId === q.id}
-                    hasAnswerLLMError={answerLLMErrorQuestionId === q.id}
-                    hasSkipLLMError={skipLLMErrorQuestionId === q.id}
-                    hasRetryLLMError={retryLLMErrorQuestionId === q.id}
-                    onDismissAnswerLLMError={onDismissAnswerLLMError}
-                    onDismissSkipLLMError={onDismissSkipLLMError}
-                    onDismissRetryLLMError={onDismissRetryLLMError}
-                    onAnswer={(ans) => onAnswerQuestion(q.id, ans)}
-                    onSkip={(reason, customText) => onSkipQuestion(q.id, reason, customText)}
-                    onRetry={() => onRetryQuestion(q.id)}
-                  />
+                  <Fragment key={q.id}>{renderQuestionCard(q)}</Fragment>
                 ))}
               </div>
             )
