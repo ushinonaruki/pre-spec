@@ -37,7 +37,6 @@ export type ManualEdit = {
   type: 'manual_edit'
   createdAt: string
   memo?: string
-  affectedSectionIds: string[]
 }
 
 export type Question = {

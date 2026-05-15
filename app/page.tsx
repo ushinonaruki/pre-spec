@@ -260,9 +260,8 @@ export default function Home() {
 
   const handleSpecSave = useCallback((newSpec: string, memo?: string) => {
     updateProject((prev) => {
-      const beforeMarkdown = prev.spec
       const withUpdatedSpec = replaceSpecMarkdownAndRefreshSections(prev, newSpec)
-      return addManualEdit(withUpdatedSpec, { beforeMarkdown, afterMarkdown: newSpec, memo })
+      return addManualEdit(withUpdatedSpec, { memo })
     })
   }, [updateProject])
 
@@ -518,7 +517,7 @@ export default function Home() {
     const filenames = getProjectFilenames(project.fileBase)
     downloadFile(filenames.spec, project.spec)
     setTimeout(() => downloadFile(filenames.references, project.referencesMarkdown), DOWNLOAD_STAGGER_MS)
-    setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline, project.sections)), DOWNLOAD_STAGGER_MS * 2)
+    setTimeout(() => downloadFile(filenames.timeline, generateTimelineMarkdown(project.timeline)), DOWNLOAD_STAGGER_MS * 2)
   }
 
   if (!project) return (
@@ -566,7 +565,6 @@ export default function Home() {
         <div className="flex flex-col w-1/2 min-w-0 overflow-hidden">
           <InterviewPanel
             currentSection={currentSection}
-            sections={project.sections}
             timeline={project.timeline}
             isGenerating={isGeneratingTimeline}
             addQuestionError={addQuestionError}
