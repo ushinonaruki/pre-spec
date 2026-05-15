@@ -34,6 +34,7 @@ export const UI_TEXT = {
     startButtonLoading: '開始中…',
     backButton: '戻る',
     createErrorGeneration: '初期反映質問の生成に失敗しました。APIキーを確認してください。',
+    createErrorNoInitialQuestions: '初期反映質問を生成できませんでした。要件定義メモの内容を確認してください。',
     createErrorRelatedSource: '関連資料の確認に失敗しました。APIキーを確認してください。',
     createErrorRelatedSourceUnreadable: (reason: string) => `関連資料を読み込めません: ${reason}`,
   },

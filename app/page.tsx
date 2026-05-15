@@ -178,6 +178,7 @@ export default function Home() {
     const p = createProjectFromInputs(inputs)
     let baseProject: Project = p
 
+    let raw: { questions: RawInitialQuestion[] } | null = null
     try {
       const text = await callLLM(
         buildInitialConfirmationQuestionsPrompt({
@@ -186,36 +187,39 @@ export default function Home() {
           sections: p.sections,
         }),
       )
-      const raw = extractJSON<{ questions: RawInitialQuestion[] }>(text)
-      if (!raw?.questions?.length) throw new Error('No questions')
-
-      const now = new Date().toISOString()
-      const questions: Question[] = raw.questions
-        .map((q): Question | null => {
-          const section = p.sections.find((s) => s.title === q.sectionTitle)
-          if (!section) return null
-          return {
-            id: crypto.randomUUID(),
-            type: 'question' as const,
-            questionType: 'initial_confirmation' as const,
-            sectionId: section.id,
-            sectionTitle: q.sectionTitle,
-            text: q.text,
-            reason: q.reason,
-            kinds: q.kinds as QuestionKind[] | undefined,
-            priority: q.priority as QuestionPriority | undefined,
-            proposedMarkdown: q.proposedMarkdown,
-            status: 'open' as const,
-            createdAt: now,
-          }
-        })
-        .filter((q): q is Question => q !== null)
-
-      const withPhase = addPhaseMarker(p)
-      baseProject = addQuestionsToTimeline(withPhase, questions)
+      raw = extractJSON<{ questions: RawInitialQuestion[] }>(text)
     } catch {
       return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
     }
+
+    if (!raw?.questions?.length) {
+      return { ok: false, error: UI_TEXT.startScreen.createErrorNoInitialQuestions }
+    }
+
+    const now = new Date().toISOString()
+    const questions: Question[] = raw.questions
+      .map((q): Question | null => {
+        const section = p.sections.find((s) => s.title === q.sectionTitle)
+        if (!section) return null
+        return {
+          id: crypto.randomUUID(),
+          type: 'question' as const,
+          questionType: 'initial_confirmation' as const,
+          sectionId: section.id,
+          sectionTitle: q.sectionTitle,
+          text: q.text,
+          reason: q.reason,
+          kinds: q.kinds as QuestionKind[] | undefined,
+          priority: q.priority as QuestionPriority | undefined,
+          proposedMarkdown: q.proposedMarkdown,
+          status: 'open' as const,
+          createdAt: now,
+        }
+      })
+      .filter((q): q is Question => q !== null)
+
+    const withPhase = addPhaseMarker(p)
+    baseProject = addQuestionsToTimeline(withPhase, questions)
 
     for (const src of inputs.relatedSources ?? []) {
       const rawName = src.kind === 'file' ? src.filename : 'url-source'
