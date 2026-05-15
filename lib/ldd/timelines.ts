@@ -28,9 +28,11 @@ export function addSectionMarkerIfNeeded(project: Project): Project {
 
   let lastSectionMarkerIndex = -1
   let lastPhaseMarkerIndex = -1
+  let lastManualEditIndex = -1
   for (let i = 0; i < timeline.length; i++) {
     if (timeline[i].type === 'section_marker') lastSectionMarkerIndex = i
     if (timeline[i].type === 'phase_marker') lastPhaseMarkerIndex = i
+    if (timeline[i].type === 'manual_edit') lastManualEditIndex = i
   }
 
   const lastSectionMarker =
@@ -39,7 +41,8 @@ export function addSectionMarkerIfNeeded(project: Project): Project {
   const needsMarker =
     !lastSectionMarker ||
     lastSectionMarker.sectionId !== currentSectionId ||
-    lastPhaseMarkerIndex > lastSectionMarkerIndex
+    lastPhaseMarkerIndex > lastSectionMarkerIndex ||
+    lastManualEditIndex > lastSectionMarkerIndex
 
   if (!needsMarker) return project
 
