@@ -10,6 +10,9 @@ export type CreateProjectInputs = {
   projectFileBase: string
   requirementMemo: string
   requirementMemoFilename?: string
+}
+
+export type CreateProjectRequest = CreateProjectInputs & {
   relatedSources?: InitialRelatedSource[]
 }
 
