@@ -226,10 +226,6 @@ ${params.content}
 ${suffix}`
 }
 
-export type SkipMarkerBodyResult = {
-  markerBody: string
-}
-
 export function buildSkipMarkerBodyPrompt(params: {
   sectionTitle: string
   questionText: string
