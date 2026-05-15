@@ -114,6 +114,11 @@ export default function SpecEditor({ value, onSave }: Props) {
               className="flex-1 min-h-0 resize-none p-3 text-sm font-mono text-stone-800 bg-white focus:outline-none"
               spellCheck={false}
             />
+            {saveError && (
+              <div className="shrink-0 border-t border-red-200 bg-red-50 px-3 py-2">
+                <p className="text-xs text-red-600">{saveError}</p>
+              </div>
+            )}
             <div className="shrink-0 border-t border-stone-200 px-3 py-2">
               <input
                 value={memo}
@@ -121,9 +126,6 @@ export default function SpecEditor({ value, onSave }: Props) {
                 placeholder={UI_TEXT.specEditor.memoPlaceholder}
                 className="w-full border border-stone-300 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
-              {saveError && (
-                <p className="text-xs text-red-600 mt-1.5">{saveError}</p>
-              )}
             </div>
           </div>
         )}
