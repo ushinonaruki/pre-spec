@@ -103,6 +103,7 @@ export const UI_TEXT = {
     failedBadge: '反映失敗',
     failedReason: 'セクションが見つかりません',
     answeredApplyNote: 'この内容を反映します',
+    targetSectionLabel: '反映先セクション',
   },
 
   preflight: {

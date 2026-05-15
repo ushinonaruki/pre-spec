@@ -240,6 +240,9 @@ function QuestionCard({
           <QuestionStatusBadge status={question.status} openColor={isInitial ? 'text-blue-500' : 'text-stone-400'} />
           <div className="flex-1 min-w-0 space-y-1">
             <QuestionKindPriorityBadges priority={question.priority} kinds={question.kinds} />
+            <p className="text-xs text-stone-400">
+              {UI_TEXT.interview.targetSectionLabel}: {question.sectionTitle}
+            </p>
             <p className={`text-sm ${question.status === 'skipped' ? 'text-stone-400 line-through' : 'text-stone-800'}`}>
               {question.text}
             </p>
