@@ -102,6 +102,7 @@ export const UI_TEXT = {
     statusFailed: '✗',
     failedBadge: '反映失敗',
     failedReason: 'セクションが見つかりません',
+    answeredApplyNote: 'この内容を反映します',
   },
 
   preflight: {
@@ -117,7 +118,6 @@ export const UI_TEXT = {
     phaseLabel: 'Initial Setup',
     proposedMarkdownLabel: '提案 Markdown',
     answerPlaceholder: 'OK / このままでよい / 以下のように修正…',
-    applyNote: 'この内容を反映します',
     answerLLMError: '整形に失敗しました。再度回答してください。',
   },
 
