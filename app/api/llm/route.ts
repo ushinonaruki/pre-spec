@@ -1,4 +1,5 @@
 import type { LlmProvider } from '@/lib/llm/providers'
+import { evaluateUrlFetchPolicy } from '@/lib/urlFetchPolicy'
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001'
@@ -124,7 +125,10 @@ export async function POST(request: Request) {
       for (const block of data.content) {
         if (block.type === 'tool_use' && block.name === 'web_fetch') {
           const fetchTarget = (block.input.url as string | undefined) ?? ''
-          const content = await fetchUrlAsText(fetchTarget)
+          const policy = evaluateUrlFetchPolicy(fetchTarget)
+          const content = policy.allowed
+            ? await fetchUrlAsText(fetchTarget)
+            : `URL fetch was blocked by URL fetch policy: ${policy.reason}`
           toolResults.push({ type: 'tool_result', tool_use_id: block.id, content })
         }
       }
