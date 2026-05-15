@@ -103,6 +103,19 @@ export function markdownToHtml(md: string): string {
     if (inOl) { result.push('</ol>'); inOl = false }
   }
 
+  const isSafeHref = (href: string): boolean => {
+    // 制御文字を含む場合は拒否
+    if (/[\x00-\x1f\x7f]/.test(href)) return false
+    // scheme を持つ場合は許可リストでチェック
+    const schemeMatch = href.match(/^([a-zA-Z][a-zA-Z0-9+\-.]*):/)
+    if (schemeMatch) {
+      const scheme = schemeMatch[1].toLowerCase()
+      return scheme === 'http' || scheme === 'https' || scheme === 'mailto'
+    }
+    // scheme なし（相対パス・アンカー）は許可
+    return true
+  }
+
   const inline = (text: string) =>
     text
       .replace(/&/g, '&amp;')
@@ -110,7 +123,11 @@ export function markdownToHtml(md: string): string {
       .replace(/`([^`]+)`/g, '<code class="bg-stone-100 px-1 rounded text-sm font-mono">$1</code>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline" target="_blank">$1</a>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, linkText: string, href: string) => {
+        if (!isSafeHref(href)) return linkText
+        const escapedHref = href.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        return `<a href="${escapedHref}" class="text-blue-600 underline" target="_blank">${linkText}</a>`
+      })
 
   for (const line of lines) {
     if (line.match(/^# /)) {
