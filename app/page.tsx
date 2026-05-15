@@ -172,7 +172,7 @@ export default function Home() {
       pickedTarget = await pickSaveTarget(`${inputs.projectFileBase}.pre-spec.json`)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return { ok: false }
-      return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
+      return { ok: false, error: UI_TEXT.startScreen.createErrorSaveTarget }
     }
 
     const p = createProjectFromInputs(inputs)
