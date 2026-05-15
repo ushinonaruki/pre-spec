@@ -83,15 +83,11 @@ export function answerQuestion(
   return { ...project, timeline, updatedAt: now }
 }
 
-export function addManualEdit(
-  project: Project,
-  params: { memo?: string },
-): Project {
+export function addManualEdit(project: Project): Project {
   const manualEdit: ManualEdit = {
     id: crypto.randomUUID(),
     type: 'manual_edit',
     createdAt: new Date().toISOString(),
-    memo: params.memo,
   }
   return {
     ...project,

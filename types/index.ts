@@ -36,7 +36,6 @@ export type ManualEdit = {
   id: string
   type: 'manual_edit'
   createdAt: string
-  memo?: string
 }
 
 export type Question = {

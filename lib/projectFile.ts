@@ -142,7 +142,6 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       lines.push(`\n${TIMELINE_TEXT.manualEditHeading}`)
       lines.push('')
       lines.push(`- createdAt: ${formatTimestamp(me.createdAt)}`)
-      if (me.memo) lines.push(`- memo: ${me.memo}`)
       lines.push('')
     }
   }

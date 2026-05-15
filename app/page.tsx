@@ -258,10 +258,10 @@ export default function Home() {
     setSaveTarget(target)
   }, [])
 
-  const handleSpecSave = useCallback((newSpec: string, memo?: string) => {
+  const handleSpecSave = useCallback((newSpec: string) => {
     updateProject((prev) => {
       const withUpdatedSpec = replaceSpecMarkdownAndRefreshSections(prev, newSpec)
-      return addManualEdit(withUpdatedSpec, { memo })
+      return addManualEdit(withUpdatedSpec)
     })
   }, [updateProject])
 

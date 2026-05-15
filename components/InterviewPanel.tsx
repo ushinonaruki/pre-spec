@@ -108,11 +108,6 @@ function ManualEditCard({ edit }: { edit: ManualEdit }) {
   return (
     <div className="border border-stone-200 rounded-lg px-3 py-2 bg-stone-50 space-y-0.5">
       <p className="text-xs font-medium text-stone-600">✎ {UI_TEXT.manualEdit.label}</p>
-      {edit.memo && (
-        <p className="text-xs text-stone-500">
-          {UI_TEXT.manualEdit.memo}: {edit.memo}
-        </p>
-      )}
       <p className="text-xs text-stone-300">
         {new Date(edit.createdAt).toLocaleString(APP_LOCALE, { timeZone: APP_TIMEZONE })}
       </p>

@@ -8,18 +8,16 @@ type ViewMode = 'preview' | 'source' | 'edit'
 
 type Props = {
   value: string
-  onSave: (value: string, memo?: string) => void
+  onSave: (value: string) => void
 }
 
 export default function SpecEditor({ value, onSave }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('source')
   const [draft, setDraft] = useState('')
-  const [memo, setMemo] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
 
   function handleEnterEdit() {
     setDraft(value)
-    setMemo('')
     setSaveError(null)
     setViewMode('edit')
   }
@@ -31,7 +29,7 @@ export default function SpecEditor({ value, onSave }: Props) {
       return
     }
     setSaveError(null)
-    onSave(draft, memo.trim() || undefined)
+    onSave(draft)
     setViewMode('source')
   }
 
@@ -119,14 +117,6 @@ export default function SpecEditor({ value, onSave }: Props) {
                 <p className="text-xs text-red-600">{saveError}</p>
               </div>
             )}
-            <div className="shrink-0 border-t border-stone-200 px-3 py-2">
-              <input
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                placeholder={UI_TEXT.specEditor.memoPlaceholder}
-                className="w-full border border-stone-300 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-stone-400"
-              />
-            </div>
           </div>
         )}
       </div>
