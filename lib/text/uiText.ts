@@ -50,6 +50,7 @@ export const UI_TEXT = {
     editModeNote:
       '直接編集モードです。この編集は質問への回答ではなく、manual_edit としてタイムラインに記録されます。',
     memoPlaceholder: '編集メモ (任意)',
+    duplicateSectionTitles: (titles: string[]) => `同じ ## 見出しが複数あります: ${titles.join(', ')}`,
   },
 
   manualEdit: {

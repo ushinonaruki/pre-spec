@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { markdownToHtml } from '@/lib/markdown'
+import { findDuplicateSectionTitles, markdownToHtml } from '@/lib/markdown'
 import { UI_TEXT } from '@/lib/text/uiText'
 
 type ViewMode = 'preview' | 'source' | 'edit'
@@ -15,19 +15,28 @@ export default function SpecEditor({ value, onSave }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('source')
   const [draft, setDraft] = useState('')
   const [memo, setMemo] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   function handleEnterEdit() {
     setDraft(value)
     setMemo('')
+    setSaveError(null)
     setViewMode('edit')
   }
 
   function handleSave() {
+    const duplicates = findDuplicateSectionTitles(draft)
+    if (duplicates.length > 0) {
+      setSaveError(UI_TEXT.specEditor.duplicateSectionTitles(duplicates))
+      return
+    }
+    setSaveError(null)
     onSave(draft, memo.trim() || undefined)
     setViewMode('source')
   }
 
   function handleCancel() {
+    setSaveError(null)
     setViewMode('source')
   }
 
@@ -112,6 +121,9 @@ export default function SpecEditor({ value, onSave }: Props) {
                 placeholder={UI_TEXT.specEditor.memoPlaceholder}
                 className="w-full border border-stone-300 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
+              {saveError && (
+                <p className="text-xs text-red-600 mt-1.5">{saveError}</p>
+              )}
             </div>
           </div>
         )}
