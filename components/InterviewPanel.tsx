@@ -7,7 +7,6 @@ import type { EffectiveSkipReason } from '@/lib/skipReasons'
 import { QUESTION_KIND_LABELS, QUESTION_PRIORITY_COLORS, QUESTION_PRIORITY_LABELS } from '@/lib/config/questionTaxonomy'
 import { UI_TEXT } from '@/lib/text/uiText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
-import { buildTimelineSlots } from '@/lib/ldd/timelineSlots'
 
 function resolveSkipLabel(skipReason: string | undefined, skipReasons: EffectiveSkipReason[]): string {
   if (!skipReason) return ''
@@ -433,7 +432,7 @@ export default function InterviewPanel({
     (item): item is Question => item.type === 'question' && item.status === 'open',
   ).length
 
-  const slots = buildTimelineSlots(timeline)
+  const reversedTimeline = [...timeline].reverse()
 
   const renderQuestionCard = (q: Question) => (
     <QuestionCard
@@ -501,44 +500,37 @@ export default function InterviewPanel({
 
       {/* Timeline */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-4 bg-stone-50 border border-stone-200 rounded-lg p-3" ref={scrollRef}>
-        {slots.length === 0 ? (
+        {timeline.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-stone-400">
             <p className="text-sm">{UI_TEXT.interview.timelineEmpty}</p>
             <p className="text-xs">{UI_TEXT.interview.timelineEmptyHint}</p>
           </div>
         ) : (
-          slots.map((slot) => {
-            if (slot.type === 'manual_edit') {
-              return <ManualEditCard key={slot.id} edit={slot.data} />
+          reversedTimeline.map((item) => {
+            if (item.type === 'manual_edit') {
+              return <ManualEditCard key={item.id} edit={item} />
             }
-            if (slot.type === 'phase_block') {
+            if (item.type === 'phase_marker') {
               return (
-                <div key={slot.id} className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 border-t border-blue-200" />
-                    <span className="text-xs text-blue-400 shrink-0 px-1 font-medium">
-                      {UI_TEXT.initialConfirmation.phaseLabel}
-                    </span>
-                    <div className="flex-1 border-t border-blue-200" />
-                  </div>
-                  {slot.data.questions.map((q) => (
-                    <Fragment key={q.id}>{renderQuestionCard(q)}</Fragment>
-                  ))}
+                <div key={item.id} className="flex items-center gap-2">
+                  <div className="flex-1 border-t border-blue-200" />
+                  <span className="text-xs text-blue-400 shrink-0 px-1 font-medium">
+                    {UI_TEXT.initialConfirmation.phaseLabel}
+                  </span>
+                  <div className="flex-1 border-t border-blue-200" />
                 </div>
               )
             }
-            return (
-              <div key={slot.id} className="space-y-2">
-                <div className="flex items-center gap-2">
+            if (item.type === 'section_marker') {
+              return (
+                <div key={item.id} className="flex items-center gap-2">
                   <div className="flex-1 border-t border-stone-200" />
-                  <span className="text-xs text-stone-400 shrink-0 px-1">{slot.data.marker.sectionTitle}</span>
+                  <span className="text-xs text-stone-400 shrink-0 px-1">{item.sectionTitle}</span>
                   <div className="flex-1 border-t border-stone-200" />
                 </div>
-                {slot.data.questions.map((q) => (
-                  <Fragment key={q.id}>{renderQuestionCard(q)}</Fragment>
-                ))}
-              </div>
-            )
+              )
+            }
+            return <Fragment key={item.id}>{renderQuestionCard(item)}</Fragment>
           })
         )}
       </div>
