@@ -216,8 +216,8 @@ export default function Home() {
       return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
     }
 
-    if (!raw?.questions?.length) {
-      return { ok: false, error: UI_TEXT.startScreen.createErrorNoInitialQuestions }
+    if (!Array.isArray(raw?.questions)) {
+      return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
     }
 
     const now = new Date().toISOString()
@@ -240,6 +240,10 @@ export default function Home() {
         }
       })
       .filter((q): q is Question => q !== null)
+
+    if (questions.length === 0) {
+      return { ok: false, error: UI_TEXT.startScreen.createErrorNoInitialQuestions }
+    }
 
     const withPhase = addPhaseMarker(baseProject)
     baseProject = addQuestionsToTimeline(withPhase, questions)
