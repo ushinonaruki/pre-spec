@@ -4,12 +4,13 @@ import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
 const CURRENT_VERSION = '1'
 
+export const PRE_SPEC_PROJECT_FILE_SUFFIX = '.pre-spec.json'
+
 export function getProjectFilenames(fileBase: string) {
   return {
     spec: `${fileBase}.spec.md`,
     references: `${fileBase}.references.md`,
     timeline: `${fileBase}.timeline.md`,
-    project: `${fileBase}.pre-spec.json`,
   }
 }
 
@@ -92,35 +93,34 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       lines.push(TIMELINE_TEXT.sectionMarker(item.sectionTitle, formatTimestamp(item.createdAt)))
       lines.push('')
     } else if (item.type === 'question') {
-      const q = item
-      const kindStr = q.kinds?.length ? q.kinds.join(' / ') : undefined
-      const meta = [q.priority, kindStr].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
-      const prefix = q.status === 'failed'
-        ? `${TIMELINE_TEXT.questionPrefixFailed} ${q.sectionTitle}`
-        : q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
-      lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
-      if (q.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${q.aiGuess.value}*`)
-      if (q.proposedMarkdown) lines.push(`*${TIMELINE_TEXT.proposedLabel}: ${q.proposedMarkdown}*`)
+      const kindStr = item.kinds?.length ? item.kinds.join(' / ') : undefined
+      const meta = [item.priority, kindStr].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
+      const prefix = item.status === 'failed'
+        ? `${TIMELINE_TEXT.questionPrefixFailed} ${item.sectionTitle}`
+        : item.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
+      lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${item.text}`)
+      if (item.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${item.aiGuess.value}*`)
+      if (item.proposedMarkdown) lines.push(`*${TIMELINE_TEXT.proposedLabel}: ${item.proposedMarkdown}*`)
 
-      if (q.status === 'answered') {
+      if (item.status === 'answered') {
         lines.push(TIMELINE_TEXT.statusAnswered)
-        if (q.reflectedMarkdown) lines.push(`  ${q.reflectedMarkdown}`)
-        if (q.answeredAt) lines.push(`  *${formatTimestamp(q.answeredAt)}*`)
-      } else if (q.status === 'skipped') {
+        if (item.reflectedMarkdown) lines.push(`  ${item.reflectedMarkdown}`)
+        if (item.answeredAt) lines.push(`  *${formatTimestamp(item.answeredAt)}*`)
+      } else if (item.status === 'skipped') {
         lines.push(TIMELINE_TEXT.statusSkipped)
-        if (q.skipReason) lines.push(`  - reason: ${q.skipReason}`)
-        if (q.skipCustomText) lines.push(`  - detail: ${q.skipCustomText}`)
-        if (q.reflectedMarkdown) {
+        if (item.skipReason) lines.push(`  - reason: ${item.skipReason}`)
+        if (item.skipCustomText) lines.push(`  - detail: ${item.skipCustomText}`)
+        if (item.reflectedMarkdown) {
           lines.push(`  - reflected:`)
-          lines.push(`    ${q.reflectedMarkdown}`)
+          lines.push(`    ${item.reflectedMarkdown}`)
         }
-      } else if (q.status === 'failed') {
+      } else if (item.status === 'failed') {
         lines.push(TIMELINE_TEXT.statusFailed)
-        if (q.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${q.failureReason}`)
-        if (q.failedAt) lines.push(`  - failedAt: ${formatTimestamp(q.failedAt)}`)
-        if (q.attemptedAnswer) lines.push(`  - ${TIMELINE_TEXT.attemptedAnswerLabel}: ${q.attemptedAnswer}`)
-        if (q.attemptedSkip) {
-          lines.push(`  - ${TIMELINE_TEXT.attemptedSkipLabel}: reason=${q.attemptedSkip.reason}${q.attemptedSkip.customText ? ` / ${q.attemptedSkip.customText}` : ''}`)
+        if (item.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${item.failureReason}`)
+        if (item.failedAt) lines.push(`  - failedAt: ${formatTimestamp(item.failedAt)}`)
+        if (item.attemptedAnswer) lines.push(`  - ${TIMELINE_TEXT.attemptedAnswerLabel}: ${item.attemptedAnswer}`)
+        if (item.attemptedSkip) {
+          lines.push(`  - ${TIMELINE_TEXT.attemptedSkipLabel}: reason=${item.attemptedSkip.reason}${item.attemptedSkip.customText ? ` / ${item.attemptedSkip.customText}` : ''}`)
         }
       } else {
         lines.push(TIMELINE_TEXT.statusOpen)

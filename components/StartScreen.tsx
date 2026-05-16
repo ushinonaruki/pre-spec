@@ -4,12 +4,10 @@ import { useRef, useState } from 'react'
 import type { Project } from '@/types'
 import type { CreateProjectRequest, InitialRelatedSource } from '@/lib/ldd/project'
 import { validateProjectFileBase } from '@/lib/ldd/fileBase'
-import { validatePreSpecProject, preSpecProjectToProject } from '@/lib/projectFile'
+import { validatePreSpecProject, preSpecProjectToProject, PRE_SPEC_PROJECT_FILE_SUFFIX } from '@/lib/projectFile'
 import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
 import { pickOpenTarget } from '@/lib/storage/fsaSaveTarget'
 import { UI_TEXT } from '@/lib/text/uiText'
-
-const PRE_SPEC_PROJECT_FILE_SUFFIX = '.pre-spec.json'
 
 type View = 'landing' | 'new_project'
 
