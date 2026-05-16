@@ -80,7 +80,10 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
     e.target.value = ''
     try {
       const content = await file.text()
-      if (!content.trim()) return
+      if (!content.trim()) {
+        setReviewError(UI_TEXT.bottomTabs.addRefEmptyFile(file.name))
+        return
+      }
       setFileContent(content)
       setFileName(file.name)
       setReviewError(null)

@@ -262,7 +262,16 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
                 {isCreating ? UI_TEXT.startScreen.startButtonLoading : UI_TEXT.startScreen.startButton}
               </button>
               <button
-                onClick={() => setView('landing')}
+                onClick={() => {
+                  setFileBase('')
+                  setRequirementMemoContent(null)
+                  setRequirementMemoFilename(null)
+                  setRelatedEntries([])
+                  setNameError(null)
+                  setMemoError(null)
+                  setCreateError(null)
+                  setView('landing')
+                }}
                 disabled={isCreating}
                 className="px-4 py-2.5 border border-stone-300 text-stone-600 text-sm rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >

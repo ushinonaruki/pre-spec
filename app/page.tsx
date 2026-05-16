@@ -404,7 +404,7 @@ export default function Home() {
       let markerBody: string
       try {
         const text = await callLLM(
-          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, proposedMarkdown, aiGuess, skipReason: reason, skipInstruction, isCustom }),
+          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, proposedMarkdown, aiGuess, skipReason: reason, skipInstruction }),
         )
         const result = extractJSON<{ markerBody: string }>(text)
         if (!result?.markerBody?.trim()) throw new Error('Invalid result')
