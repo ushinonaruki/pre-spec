@@ -383,7 +383,7 @@ export default function Home() {
       )
       if (!questionItem) return
 
-      const { sectionTitle, text: questionText, questionType, proposedMarkdown, aiGuess } = questionItem
+      const { sectionTitle, text: questionText, proposedMarkdown, aiGuess } = questionItem
 
       if (!hasSectionHeading(project.spec, sectionTitle)) {
         updateProject((prev) => failQuestion(prev, {
@@ -404,7 +404,7 @@ export default function Home() {
       let markerBody: string
       try {
         const text = await callLLM(
-          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, questionType, proposedMarkdown, aiGuess, skipReason: reason, skipInstruction, isCustom }),
+          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, proposedMarkdown, aiGuess, skipReason: reason, skipInstruction, isCustom }),
         )
         const result = extractJSON<{ markerBody: string }>(text)
         if (!result?.markerBody?.trim()) throw new Error('Invalid result')

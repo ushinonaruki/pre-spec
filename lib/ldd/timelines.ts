@@ -85,14 +85,15 @@ export function answerQuestion(
 }
 
 export function addManualEdit(project: Project): Project {
+  const now = new Date().toISOString()
   const manualEdit: ManualEdit = {
     id: crypto.randomUUID(),
     type: 'manual_edit',
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   }
   return {
     ...project,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
     timeline: [...project.timeline, manualEdit],
   }
 }
@@ -135,7 +136,7 @@ export function failQuestion(
   const now = new Date().toISOString()
   const timeline = project.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
-      const baseQuestion = { ...(item as Question) }
+      const baseQuestion = { ...item }
       delete baseQuestion.answer
       delete baseQuestion.answeredAt
       delete baseQuestion.skipReason
