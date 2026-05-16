@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import type { RelatedSourceKind } from '@/types'
+import { URL_SOURCE_NAME } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
 
 type AddMode = 'file' | 'url'
@@ -62,7 +63,7 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
     setIsReviewing(true)
     setReviewError(null)
     try {
-      const result = await onAddReference('url', 'url-source', urlInput.trim(), noteInput.trim() || undefined)
+      const result = await onAddReference('url', URL_SOURCE_NAME, urlInput.trim(), noteInput.trim() || undefined)
       if (result.ok) {
         closeAddForm()
       } else {
