@@ -9,6 +9,7 @@ export type ImportedBlockParams = {
 export function buildInitialRequirementMemoBlock(content: string, checkedAt: string, filename: string): string {
   return [
     '## Initial Requirement Memo',
+    '',
     `source: ${filename}`,
     `checkedAt: ${checkedAt}`,
     'content:',
