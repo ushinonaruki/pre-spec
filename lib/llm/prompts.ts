@@ -218,7 +218,7 @@ ${noteSection}${suffix}`
 以下の関連資料を読んで、仕様化に使える知識・制約・注意点を整理してください。
 
 資料名: ${params.name}
-種別: ${params.kind === 'file' ? 'user upload' : 'user input'}
+種別: user upload
 ${noteSection}
 資料本文:
 ${params.content}
