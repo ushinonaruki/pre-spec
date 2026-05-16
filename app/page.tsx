@@ -354,11 +354,10 @@ export default function Home() {
             }),
       )
       const formatResult = extractJSON<AnswerFormatResult>(text)
-      const rawSpecInsertionMarkdown = (formatResult as Record<string, unknown> | null)?.specInsertionMarkdown
-      if (typeof rawSpecInsertionMarkdown !== 'string') {
+      const specInsertionMarkdown = formatResult?.specInsertionMarkdown
+      if (typeof specInsertionMarkdown !== 'string') {
         throw new Error('Invalid format result')
       }
-      const specInsertionMarkdown = rawSpecInsertionMarkdown
 
       updateProject((prev) => {
         if (specInsertionMarkdown && !hasSectionHeading(prev.spec, sectionTitle)) {
