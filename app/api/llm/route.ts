@@ -67,8 +67,8 @@ async function fetchUrlAsText(url: string): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { prompt?: string; url?: string }
-  const { prompt, url } = body
+  const body = (await request.json()) as { prompt?: string; enableWebFetch?: boolean }
+  const { prompt, enableWebFetch } = body
 
   if (!prompt || typeof prompt !== 'string') {
     return Response.json({ error: 'prompt is required' }, { status: 400 })
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
           model: ANTHROPIC_MODEL,
           max_tokens: ANTHROPIC_MAX_TOKENS,
           messages,
-          ...(url ? { tools: [webFetchTool] } : {}),
+          ...(enableWebFetch ? { tools: [webFetchTool] } : {}),
         }),
       })
 

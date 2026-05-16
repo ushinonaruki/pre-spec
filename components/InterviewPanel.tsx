@@ -515,7 +515,7 @@ export default function InterviewPanel({
                 <div key={item.id} className="flex items-center gap-2">
                   <div className="flex-1 border-t border-blue-200" />
                   <span className="text-xs text-blue-400 shrink-0 px-1 font-medium">
-                    {UI_TEXT.initialConfirmation.phaseLabel}
+                    {item.label}
                   </span>
                   <div className="flex-1 border-t border-blue-200" />
                 </div>

@@ -1,12 +1,12 @@
 export async function callLLM(
   prompt: string,
-  options?: { url?: string },
+  options?: { enableWebFetch?: boolean },
 ): Promise<string> {
-  const { url } = options ?? {}
+  const { enableWebFetch } = options ?? {}
   const res = await fetch('/api/llm', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ prompt, url }),
+    body: JSON.stringify({ prompt, enableWebFetch }),
   })
   const data = (await res.json()) as { text?: string; error?: string }
   if (!res.ok) {

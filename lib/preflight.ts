@@ -14,7 +14,7 @@ function countPattern(text: string, pattern: RegExp): number {
 
 export function runPreflightCheck(
   project: Project,
-  markerDefinitions?: MarkerDefinitionFile | null,
+  markerDefinitions: MarkerDefinitionFile | null,
 ): PreflightCheckResult {
   const spec = project.spec
 
