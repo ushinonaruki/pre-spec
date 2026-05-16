@@ -98,13 +98,14 @@ export function addManualEdit(project: Project): Project {
 }
 
 export function addPhaseMarker(project: Project): Project {
+  const now = new Date().toISOString()
   const marker: PhaseMarker = {
     id: crypto.randomUUID(),
     type: 'phase_marker',
     label: 'Initial Setup',
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   }
-  return { ...project, timeline: [...project.timeline, marker] }
+  return { ...project, timeline: [...project.timeline, marker], updatedAt: now }
 }
 
 export function retryQuestion(
