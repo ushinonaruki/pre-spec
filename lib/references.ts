@@ -1,4 +1,4 @@
-export type ImportedBlockParams = {
+type ImportedBlockParams = {
   name: string
   source: string
   note?: string
