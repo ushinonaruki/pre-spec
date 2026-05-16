@@ -21,7 +21,7 @@ import type { PreflightCheckResult } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
 import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
-import { buildRelatedSourceBlock, resolveSourceName } from '@/lib/relatedSources'
+import { buildRelatedSourceBlock, resolveSourceName, URL_SOURCE_NAME } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -176,7 +176,7 @@ export default function Home() {
     let baseProject: Project = createProjectFromInputs(inputs)
 
     for (const src of inputs.relatedSources ?? []) {
-      const rawName = src.kind === 'file' ? src.filename : 'url-source'
+      const rawName = src.kind === 'file' ? src.filename : URL_SOURCE_NAME
       const content = src.kind === 'file' ? src.content : src.url
       const source = src.kind === 'file' ? rawName : src.url
       const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
