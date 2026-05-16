@@ -232,7 +232,6 @@ export function buildSkipMarkerBodyPrompt(params: {
   aiGuess?: { value: string; rationale: string }
   skipReason: string
   skipInstruction: string
-  isCustom: boolean
 }): string {
   const proposedSection = params.proposedMarkdown?.trim()
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
