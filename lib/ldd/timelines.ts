@@ -49,14 +49,15 @@ export function addSectionMarkerIfNeeded(project: Project): Project {
   const section = project.sections.find((s) => s.id === currentSectionId)
   if (!section) return project
 
+  const now = new Date().toISOString()
   const marker: SectionMarker = {
     id: crypto.randomUUID(),
     type: 'section_marker',
     sectionId: section.id,
     sectionTitle: section.title,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
   }
-  return { ...project, timeline: [...timeline, marker] }
+  return { ...project, timeline: [...timeline, marker], updatedAt: now }
 }
 
 export function addQuestionsToTimeline(project: Project, questions: Question[]): Project {
