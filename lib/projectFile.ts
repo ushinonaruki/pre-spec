@@ -114,6 +114,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
           lines.push(`  - reflected:`)
           lines.push(`    ${item.reflectedMarkdown}`)
         }
+        if (item.skippedAt) lines.push(`  - skippedAt: ${formatTimestamp(item.skippedAt)}`)
       } else if (item.status === 'failed') {
         lines.push(TIMELINE_TEXT.statusFailed)
         if (item.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${item.failureReason}`)
