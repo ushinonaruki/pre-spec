@@ -86,7 +86,7 @@ async function runRelatedSourceReview(
   try {
     const text = await callLLM(
       buildRelatedSourceReviewPrompt({ name: rawName, kind, content, note }),
-      kind === 'url' ? { url: content } : undefined,
+      kind === 'url' ? { enableWebFetch: true } : undefined,
     )
     return extractJSON<RelatedSourceReviewResult>(text)
   } catch {
