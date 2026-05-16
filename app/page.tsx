@@ -173,50 +173,7 @@ export default function Home() {
       return { ok: false, error: UI_TEXT.startScreen.createErrorSaveTarget }
     }
 
-    const p = createProjectFromInputs(inputs)
-    let baseProject: Project = p
-
-    let raw: { questions: RawInitialQuestion[] } | null = null
-    try {
-      const text = await callLLM(
-        buildInitialConfirmationQuestionsPrompt({
-          requirementMemo: inputs.requirementMemo,
-          referencesMarkdown: p.referencesMarkdown,
-          sections: p.sections,
-        }),
-      )
-      raw = extractJSON<{ questions: RawInitialQuestion[] }>(text)
-    } catch {
-      return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
-    }
-
-    if (!raw?.questions?.length) {
-      return { ok: false, error: UI_TEXT.startScreen.createErrorNoInitialQuestions }
-    }
-
-    const now = new Date().toISOString()
-    const questions: Question[] = raw.questions
-      .map((q): Question | null => {
-        const section = p.sections.find((s) => s.title === q.sectionTitle)
-        if (!section) return null
-        return {
-          id: crypto.randomUUID(),
-          type: 'question' as const,
-          questionType: 'initial_confirmation' as const,
-          sectionId: section.id,
-          sectionTitle: q.sectionTitle,
-          text: q.text,
-          kinds: q.kinds as QuestionKind[] | undefined,
-          priority: q.priority as QuestionPriority | undefined,
-          proposedMarkdown: q.proposedMarkdown,
-          status: 'open' as const,
-          createdAt: now,
-        }
-      })
-      .filter((q): q is Question => q !== null)
-
-    const withPhase = addPhaseMarker(p)
-    baseProject = addQuestionsToTimeline(withPhase, questions)
+    let baseProject: Project = createProjectFromInputs(inputs)
 
     for (const src of inputs.relatedSources ?? []) {
       const rawName = src.kind === 'file' ? src.filename : 'url-source'
@@ -244,6 +201,48 @@ export default function Home() {
         referencesMarkdown: baseProject.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n',
       }
     }
+
+    let raw: { questions: RawInitialQuestion[] } | null = null
+    try {
+      const text = await callLLM(
+        buildInitialConfirmationQuestionsPrompt({
+          requirementMemo: inputs.requirementMemo,
+          referencesMarkdown: baseProject.referencesMarkdown,
+          sections: baseProject.sections,
+        }),
+      )
+      raw = extractJSON<{ questions: RawInitialQuestion[] }>(text)
+    } catch {
+      return { ok: false, error: UI_TEXT.startScreen.createErrorGeneration }
+    }
+
+    if (!raw?.questions?.length) {
+      return { ok: false, error: UI_TEXT.startScreen.createErrorNoInitialQuestions }
+    }
+
+    const now = new Date().toISOString()
+    const questions: Question[] = raw.questions
+      .map((q): Question | null => {
+        const section = baseProject.sections.find((s) => s.title === q.sectionTitle)
+        if (!section) return null
+        return {
+          id: crypto.randomUUID(),
+          type: 'question' as const,
+          questionType: 'initial_confirmation' as const,
+          sectionId: section.id,
+          sectionTitle: q.sectionTitle,
+          text: q.text,
+          kinds: q.kinds as QuestionKind[] | undefined,
+          priority: q.priority as QuestionPriority | undefined,
+          proposedMarkdown: q.proposedMarkdown,
+          status: 'open' as const,
+          createdAt: now,
+        }
+      })
+      .filter((q): q is Question => q !== null)
+
+    const withPhase = addPhaseMarker(baseProject)
+    baseProject = addQuestionsToTimeline(withPhase, questions)
 
     setProject(baseProject)
     setSaveTarget(pickedTarget)
