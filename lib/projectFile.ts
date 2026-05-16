@@ -1,4 +1,4 @@
-import type { ManualEdit, PhaseMarker, PreSpecProject, Project, Question, SectionMarker, TimelineItem } from '@/types'
+import type { PreSpecProject, Project, TimelineItem } from '@/types'
 import { TIMELINE_TEXT } from '@/lib/text/timelineText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
 
@@ -86,15 +86,13 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
 
   for (const item of timeline) {
     if (item.type === 'phase_marker') {
-      const pm = item as PhaseMarker
-      lines.push(`\n## ${pm.label}`)
+      lines.push(`\n## ${item.label}`)
       lines.push('')
     } else if (item.type === 'section_marker') {
-      const marker = item as SectionMarker
-      lines.push(TIMELINE_TEXT.sectionMarker(marker.sectionTitle, formatTimestamp(marker.createdAt)))
+      lines.push(TIMELINE_TEXT.sectionMarker(item.sectionTitle, formatTimestamp(item.createdAt)))
       lines.push('')
     } else if (item.type === 'question') {
-      const q = item as Question
+      const q = item
       const kindStr = q.kinds?.length ? q.kinds.join(' / ') : undefined
       const meta = [q.priority, kindStr].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
       const prefix = q.status === 'failed'
@@ -129,10 +127,9 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       }
       lines.push('')
     } else if (item.type === 'manual_edit') {
-      const me = item as ManualEdit
       lines.push(`\n${TIMELINE_TEXT.manualEditHeading}`)
       lines.push('')
-      lines.push(`- createdAt: ${formatTimestamp(me.createdAt)}`)
+      lines.push(`- createdAt: ${formatTimestamp(item.createdAt)}`)
       lines.push('')
     }
   }
