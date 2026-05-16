@@ -32,7 +32,6 @@ export function createProjectFromInputs({
     buildInitialRequirementMemoBlock(requirementMemo, now, requirementMemoFilename ?? 'initial.md'),
   ]
 
-  memoParts.push('')
   const referencesMarkdown = memoParts.join('\n')
 
   return {

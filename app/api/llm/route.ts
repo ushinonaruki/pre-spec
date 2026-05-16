@@ -1,4 +1,3 @@
-import type { LlmProvider } from '@/lib/llm/providers'
 import { evaluateUrlFetchPolicy } from '@/lib/urlFetchPolicy'
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
@@ -68,15 +67,11 @@ async function fetchUrlAsText(url: string): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { prompt?: string; provider?: LlmProvider; url?: string }
-  const { prompt, provider = 'anthropic', url } = body
+  const body = (await request.json()) as { prompt?: string; url?: string }
+  const { prompt, url } = body
 
   if (!prompt || typeof prompt !== 'string') {
     return Response.json({ error: 'prompt is required' }, { status: 400 })
-  }
-
-  if (provider !== 'anthropic') {
-    return Response.json({ error: `Unsupported provider: ${provider}` }, { status: 400 })
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY
