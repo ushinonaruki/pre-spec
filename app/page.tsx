@@ -15,7 +15,7 @@ import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, bu
 import type { RelatedSourceReviewResult, RetryQuestionResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { hasSectionHeading } from '@/lib/markdown'
-import { generateTimelineMarkdown, getProjectFilenames } from '@/lib/projectFile'
+import { generateTimelineMarkdown, getProjectFilenames, PRE_SPEC_PROJECT_FILE_SUFFIX } from '@/lib/projectFile'
 import { runPreflightCheck } from '@/lib/preflight'
 import type { PreflightCheckResult } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
@@ -167,7 +167,7 @@ export default function Home() {
   const handleCreateProject = useCallback(async (inputs: CreateProjectRequest): Promise<{ ok: true } | { ok: false; error?: string }> => {
     let pickedTarget: ProjectSaveTarget
     try {
-      pickedTarget = await pickSaveTarget(`${inputs.projectFileBase}.pre-spec.json`)
+      pickedTarget = await pickSaveTarget(`${inputs.projectFileBase}${PRE_SPEC_PROJECT_FILE_SUFFIX}`)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return { ok: false }
       return { ok: false, error: UI_TEXT.startScreen.createErrorSaveTarget }
