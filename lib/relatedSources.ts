@@ -2,7 +2,7 @@ import { buildImportedBlock } from '@/lib/references'
 
 export const URL_SOURCE_NAME = 'url-source'
 
-export type RelatedSourceInput = {
+type RelatedSourceInput = {
   name: string
   source: string
   content: string
