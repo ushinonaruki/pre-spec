@@ -228,7 +228,6 @@ ${suffix}`
 export function buildSkipMarkerBodyPrompt(params: {
   sectionTitle: string
   questionText: string
-  questionType?: 'initial_confirmation' | 'section_question'
   proposedMarkdown?: string
   aiGuess?: { value: string; rationale: string }
   skipReason: string
