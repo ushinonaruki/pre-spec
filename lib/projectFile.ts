@@ -22,9 +22,6 @@ export function projectToPreSpecProject(project: Project): PreSpecProject {
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     },
-    inputs: {
-      requirementMemo: project.requirementMemo,
-    },
     workspace: {
       draftSpecMarkdown: project.spec,
       referencesMarkdown: project.referencesMarkdown,
@@ -42,7 +39,6 @@ export function preSpecProjectToProject(file: PreSpecProject): Project {
     fileBase: file.project.fileBase,
     createdAt: file.project.createdAt,
     updatedAt: file.project.updatedAt,
-    requirementMemo: file.inputs.requirementMemo,
     spec: ws.draftSpecMarkdown,
     referencesMarkdown: ws.referencesMarkdown,
     sections: ws.sections,
@@ -63,10 +59,6 @@ export function validatePreSpecProject(raw: unknown): raw is PreSpecProject {
   if (typeof proj.fileBase !== 'string' || !proj.fileBase) return false
   if (typeof proj.createdAt !== 'string') return false
   if (typeof proj.updatedAt !== 'string') return false
-
-  const inputs = r.inputs as Record<string, unknown> | undefined
-  if (!inputs || typeof inputs !== 'object') return false
-  if (typeof inputs.requirementMemo !== 'string') return false
 
   const ws = r.workspace as Record<string, unknown> | undefined
   if (!ws || typeof ws !== 'object') return false
