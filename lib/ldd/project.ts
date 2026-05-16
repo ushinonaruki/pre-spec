@@ -40,7 +40,6 @@ export function createProjectFromInputs({
     fileBase: projectFileBase,
     createdAt: now,
     updatedAt: now,
-    requirementMemo,
     spec,
     referencesMarkdown,
     sections,

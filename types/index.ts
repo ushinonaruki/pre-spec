@@ -73,7 +73,6 @@ export type Project = {
   fileBase: string
   createdAt: string
   updatedAt: string
-  requirementMemo: string
   spec: string
   referencesMarkdown: string
   sections: Section[]
@@ -115,9 +114,6 @@ export type PreSpecProject = {
     fileBase: string
     createdAt: string
     updatedAt: string
-  }
-  inputs: {
-    requirementMemo: string
   }
   workspace: {
     draftSpecMarkdown: string
