@@ -116,7 +116,6 @@ export const UI_TEXT = {
   },
 
   initialConfirmation: {
-    phaseLabel: 'Initial Setup',
     proposedMarkdownLabel: '提案 Markdown',
     answerPlaceholder: 'OK / このままでよい / 以下のように修正…',
     answerLLMError: '整形に失敗しました。再度回答してください。',
