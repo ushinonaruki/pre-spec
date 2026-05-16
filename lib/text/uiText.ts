@@ -91,7 +91,7 @@ export const UI_TEXT = {
     answerButtonFormatting: '整形中…',
     retryButton: '↻',
     retryButtonTitle: '質問を作り直す',
-    skipButton: 'スキップ ▾',
+    skipButton: 'スキップ',
     skipReasonLabel: 'スキップ理由',
     skipCustomPlaceholder: '理由を入力（必須）',
     skipConfirmButton: 'スキップして記録',
