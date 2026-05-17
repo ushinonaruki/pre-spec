@@ -6,7 +6,7 @@ export type InitialRelatedSource =
   | { kind: 'file'; filename: string; content: string; note?: string }
   | { kind: 'url'; url: string; note?: string }
 
-export type CreateProjectInputs = {
+type CreateProjectInputs = {
   projectFileBase: string
   requirementMemo: string
   requirementMemoFilename?: string
