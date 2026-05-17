@@ -22,6 +22,7 @@ import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/marke
 import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
 import { buildRelatedSourceBlock, resolveSourceName, URL_SOURCE_NAME } from '@/lib/relatedSources'
+import { buildCheckedAt } from '@/lib/locale'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
 import SpecEditor from '@/components/SpecEditor'
@@ -192,10 +193,9 @@ export default function Home() {
       if (!result.content) {
         return { ok: false, error: UI_TEXT.startScreen.createErrorRelatedSource }
       }
-      const now = new Date().toISOString()
       const existingNames = [...baseProject.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
       const name = resolveSourceName(existingNames, rawName)
-      const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, now)
+      const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, buildCheckedAt())
       baseProject = {
         ...baseProject,
         referencesMarkdown: baseProject.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n',
@@ -325,12 +325,13 @@ export default function Home() {
     if (!questionItem) return false
     const { sectionTitle, text: questionText, questionType, proposedMarkdown } = questionItem
 
+    setAnswerLLMErrorId(null)
+
     if (!hasSectionHeading(project.spec, sectionTitle)) {
       updateProject((prev) => failQuestion(prev, { questionId, attemptedAnswer: answer }))
       return true
     }
 
-    setAnswerLLMErrorId(null)
     setFormattingQuestionId(questionId)
 
     try {
@@ -490,16 +491,15 @@ export default function Home() {
       if (!aiContent) return { ok: false }
 
       updateProject((prev: Project) => {
-        const now = new Date().toISOString()
         const existingNames = [...prev.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
         const name = resolveSourceName(existingNames, rawName)
         const source = kind === 'url' ? content : rawName
-        const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, now)
+        const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, buildCheckedAt())
         const newReferencesMarkdown = prev.referencesMarkdown.replace(/\n+$/, '') + '\n\n' + block + '\n'
         return {
           ...prev,
           referencesMarkdown: newReferencesMarkdown,
-          updatedAt: now,
+          updatedAt: new Date().toISOString(),
         }
       })
       return { ok: true }

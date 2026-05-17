@@ -1,6 +1,7 @@
 import type { Project } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
 import { buildInitialRequirementMemoBlock } from '@/lib/references'
+import { buildCheckedAt } from '@/lib/locale'
 
 export type InitialRelatedSource =
   | { kind: 'file'; filename: string; content: string; note?: string }
@@ -29,7 +30,7 @@ export function createProjectFromInputs({
   const memoParts: string[] = [
     '# References',
     '',
-    buildInitialRequirementMemoBlock(requirementMemo, now, requirementMemoFilename ?? 'initial.md'),
+    buildInitialRequirementMemoBlock(requirementMemo, buildCheckedAt(), requirementMemoFilename ?? 'initial.md'),
   ]
 
   const referencesMarkdown = memoParts.join('\n')
