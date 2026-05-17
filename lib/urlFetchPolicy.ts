@@ -1,4 +1,4 @@
-export type UrlFetchPolicyDecision =
+type UrlFetchPolicyDecision =
   | { allowed: true }
   | { allowed: false; reason: string }
 
