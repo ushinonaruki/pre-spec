@@ -4,7 +4,7 @@ import { UI_TEXT } from '@/lib/text/uiText'
 export const CUSTOM_REASON = 'custom' as const
 
 export const SKIP_REASON_KEY_CHARS = '[a-z0-9_]'
-export const SKIP_REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)
+const SKIP_REASON_KEY_RE = new RegExp(`^${SKIP_REASON_KEY_CHARS}+$`)
 
 export type EffectiveSkipReason =
   | { reason: string; label: string; instruction: string; isCustom: false }
