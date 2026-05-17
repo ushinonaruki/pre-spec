@@ -8,6 +8,7 @@ export const UI_TEXT = {
     name: 'pre-spec',
     tagline: 'Spec Interview Workbench',
     downloadAll: '📥',
+    autosaveError: '作業状態の自動保存に失敗しました。保存先ファイルへの書き込み権限やファイル状態を確認してください。',
   },
 
   startScreen: {
