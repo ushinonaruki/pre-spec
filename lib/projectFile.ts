@@ -87,7 +87,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
 
   for (const item of timeline) {
     if (item.type === 'phase_marker') {
-      lines.push(`\n## ${item.label}`)
+      lines.push(`## ${item.label}`)
       lines.push('')
     } else if (item.type === 'section_marker') {
       lines.push(TIMELINE_TEXT.sectionMarker(item.sectionTitle, formatTimestamp(item.createdAt)))
@@ -128,7 +128,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       }
       lines.push('')
     } else if (item.type === 'manual_edit') {
-      lines.push(`\n${TIMELINE_TEXT.manualEditHeading}`)
+      lines.push(TIMELINE_TEXT.manualEditHeading)
       lines.push('')
       lines.push(`- createdAt: ${formatTimestamp(item.createdAt)}`)
       lines.push('')

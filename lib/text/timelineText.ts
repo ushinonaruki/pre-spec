@@ -14,6 +14,6 @@ export const TIMELINE_TEXT = {
   failureReasonLabel: 'failureReason',
   attemptedAnswerLabel: 'attemptedAnswer',
   attemptedSkipLabel: 'attemptedSkip',
-  sectionMarker: (title: string, timestamp: string) => `\n─── ${title} ─── *${timestamp}*`,
+  sectionMarker: (title: string, timestamp: string) => `─── ${title} ─── *${timestamp}*`,
   manualEditHeading: '## Manual Edit',
 }
