@@ -21,7 +21,7 @@ import type { PreflightCheckResult } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
 import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
-import { buildRelatedSourceBlock, resolveSourceName, URL_SOURCE_NAME } from '@/lib/relatedSources'
+import { buildRelatedSourceBlock, extractImportedNames, resolveSourceName, URL_SOURCE_NAME } from '@/lib/relatedSources'
 import { buildCheckedAt } from '@/lib/locale'
 import { UI_TEXT } from '@/lib/text/uiText'
 import StartScreen from '@/components/StartScreen'
@@ -193,7 +193,7 @@ export default function Home() {
       if (!result.content) {
         return { ok: false, error: UI_TEXT.startScreen.createErrorRelatedSource }
       }
-      const existingNames = [...baseProject.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
+      const existingNames = extractImportedNames(baseProject.referencesMarkdown)
       const name = resolveSourceName(existingNames, rawName)
       const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, buildCheckedAt())
       baseProject = {
@@ -492,7 +492,7 @@ export default function Home() {
       if (!aiContent) return { ok: false }
 
       updateProject((prev: Project) => {
-        const existingNames = [...prev.referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
+        const existingNames = extractImportedNames(prev.referencesMarkdown)
         const name = resolveSourceName(existingNames, rawName)
         const source = kind === 'url' ? content : rawName
         const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, buildCheckedAt())

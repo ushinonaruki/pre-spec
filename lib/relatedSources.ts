@@ -2,6 +2,10 @@ import { buildImportedBlock } from '@/lib/references'
 
 export const URL_SOURCE_NAME = 'url-source'
 
+export function extractImportedNames(referencesMarkdown: string): string[] {
+  return [...referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
+}
+
 type RelatedSourceInput = {
   name: string
   source: string
