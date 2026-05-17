@@ -274,11 +274,13 @@ export function buildRetryQuestionPrompt(params: {
   originalQuestion: Pick<Question, 'text' | 'questionType' | 'kinds' | 'priority' | 'aiGuess' | 'proposedMarkdown'>
   spec: string
   referencesMarkdown: string
+  markerContexts?: MarkerContext[]
 }): string {
   const { sectionTitle, originalQuestion, spec, referencesMarkdown } = params
   const isInitial = originalQuestion.questionType === 'initial_confirmation'
 
   const memoSection = referencesMarkdown.trim() ? `\nReferences:\n${referencesMarkdown}\n` : ''
+  const markerSection = buildMarkerContextSection(params.markerContexts ?? [])
 
   const kindsStr = originalQuestion.kinds?.length ? originalQuestion.kinds.join(' / ') : '(なし)'
   const priorityStr = originalQuestion.priority ?? '(なし)'
@@ -321,7 +323,7 @@ priority: ${priorityStr}${aiGuessStr}${proposedStr}
 ## 現在の spec.md
 
 ${spec}
-${memoSection}
+${memoSection}${markerSection}
 ## ルール
 
 - セクションは変えない（"## ${sectionTitle}" のみを対象にする）
