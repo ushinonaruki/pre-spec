@@ -77,6 +77,12 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
     e.target.value = ''
     try {
       const text = await file.text()
+      if (!text.trim()) {
+        setRequirementMemoContent(null)
+        setRequirementMemoFilename(null)
+        setMemoError(UI_TEXT.file.emptyFile(file.name))
+        return
+      }
       setRequirementMemoContent(text)
       setRequirementMemoFilename(file.name)
       setMemoError(null)
@@ -96,7 +102,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
       setNameError(UI_TEXT.startScreen.fileBaseInvalid)
       return
     }
-    if (!requirementMemoContent) {
+    if (!requirementMemoContent?.trim()) {
       setMemoError(UI_TEXT.startScreen.requirementMemoRequired)
       return
     }
@@ -307,7 +313,7 @@ function RelatedEntryRow({
     try {
       const content = await file.text()
       if (!content.trim()) {
-        setFileReadError(UI_TEXT.bottomTabs.addRefEmptyFile(file.name))
+        setFileReadError(UI_TEXT.file.emptyFile(file.name))
         return
       }
       onChange(entry.id, { fileContent: content, fileName: file.name })

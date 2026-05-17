@@ -1,4 +1,9 @@
 export const UI_TEXT = {
+  file: {
+    emptyFile: (filename: string) =>
+      `選択されたファイルは空です: ${filename}\n内容のある .md / .txt ファイルを選択してください。`,
+  },
+
   app: {
     name: 'pre-spec',
     tagline: 'Spec Interview Workbench',
@@ -69,8 +74,6 @@ export const UI_TEXT = {
     addRefUnreadable: (reason: string) => `読み込み不可: ${reason}`,
     addRefError: '確認に失敗しました',
     addRefFileReadError: '関連資料ファイルの読み込みに失敗しました。別のファイルを選択してください。',
-    addRefEmptyFile: (filename: string) =>
-      `選択されたファイルは空です: ${filename}\n内容のある .md / .txt ファイルを選択してください。`,
     addRefCloseButton: '✕',
   },
 
