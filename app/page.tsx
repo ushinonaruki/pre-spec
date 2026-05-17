@@ -388,6 +388,8 @@ export default function Home() {
 
       const { sectionTitle, text: questionText, proposedMarkdown, aiGuess } = questionItem
 
+      setSkipLLMErrorId(null)
+
       if (!hasSectionHeading(project.spec, sectionTitle)) {
         updateProject((prev) => failQuestion(prev, {
           questionId,
@@ -401,7 +403,6 @@ export default function Home() {
         ? customText!
         : skipReasonDefinitions!.skipReasons[reason].instruction
 
-      setSkipLLMErrorId(null)
       setSkippingQuestionId(questionId)
 
       let markerBody: string
