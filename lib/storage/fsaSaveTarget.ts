@@ -28,7 +28,7 @@ export async function pickSaveTarget(suggestedName: string): Promise<ProjectSave
   return createFSATarget(handle)
 }
 
-export type OpenResult = {
+type OpenResult = {
   fileName: string
   text: string
   saveTarget: ProjectSaveTarget
