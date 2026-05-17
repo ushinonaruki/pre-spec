@@ -1,145 +1,97 @@
 # pre-spec
 
-AI は質問し、人間が判断する。その判断を `spec.md` に積み上げ、AI 実装 / SDD に渡す仕様書を作る 1 人用 Markdown ワークベンチ。
+AI が質問し、人間が判断する。その対話を積み上げて仕様書 (`spec.md`) を作る 1 人用ワークベンチ。
+
+## これなに？
+
+SDD が注目されることで、高品質な仕様書 (`spec.md`) が求められる機会が増えてきた。
+このまま SDD が普及していくなら、世のITエンジニアたちの多くは「AIに渡す仕様書をせっせと作る」ことが業務の中心的なものとなるだろう。
+
+しかし、ここで疑問がある。
+
+【要件定義書】を作成する際、作り手（エンジニア）は**クライアントの曖昧な「要望」を「要件」とするために作り手側主導のヒアリング**を行うだろう。
+
+それなら、
+
+【仕様書】を作成する際、作り手（AI）は**エンジニアの曖昧な「実装案」を「仕様」とするために作り手側主導のヒアリング**を行うべきではないだろうか。
+
+GitHub Spec Kit の `clarify` なども、本質的には「エンジニアの脳内にある仕様書を聞き返す」仕組みに近い。  
+つまり、今の AI 実装ワークフローではエンジニアが最初から完成度の高い `spec.md` を書けることが前提になりがちである。
+だがこれは、クライアントに対して「最初から完璧な要件定義書を書ければ、仕様の認識ズレは起きないよね」と求めるのに近い状態ではないだろうか。
+
+そのため私は『 **AI による能動的なインタビューで進行し、作成中の仕様書に「曖昧さ」を許容する仕様書作成ツール**』を提案したい。
+
+pre-spec は、参考資料を読み込んだ AI が質問し、ユーザーが回答・スキップ・編集（・保存/再開）を積み上げ、それを何度も何度も周回することで仕様書としての完成度を上げていくアプローチをとる。
+
+## 必要なもの
+
+- Docker
+- Anthropic API キー
 
 ## セットアップ
 
-`.env.example` をコピーして `.env` を作成します。
-
 ```bash
 cp .env.example .env
+# .env の ANTHROPIC_API_KEY に Claude API キーを設定する
 ```
 
-`.env` の `ANTHROPIC_API_KEY` に Claude API キーを設定します。
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-それ以外の変数はデフォルトのままで動きます。
-
-## 起動方法 (Docker)
+## 起動
 
 ```bash
 docker compose up --build
 ```
 
-初回は `npm ci` でイメージをビルドするため数分かかります。
-2 回目以降はキャッシュが効くので高速です。
+ブラウザで <http://localhost:3000> を開く。
 
-ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
+## 使い方
 
-### よく使うコマンド
+### 新規プロジェクト
 
-```bash
-# 起動
-docker compose up --build
+1. **新規作成** を選んでファイル名ベースを入力し、要件定義メモ（.md / .txt）をアップロードする
+2. 関連資料（ファイル・URL）があれば追加する
+3. **開始** を押すと AI がメモを読んで初期反映の提案を出す
 
-# バックグラウンド起動
-docker compose up --build -d
+### インタビュー
 
-# 停止
-docker compose down
+- AI がセクションごとに質問を生成する
+- 回答するか、スキップして未決事項として残す
+- 全セクションを回ったらまた先頭に戻る（繰り返すことで spec.md を育てる）
+- **Edit** で `spec.md` を直接編集できる
+- 準備ができたら **📥** ボタンで成果物を出力する
 
-# node_modules volume ごと削除してクリーンリビルド
-docker compose down -v
-docker compose up --build
-```
+### 作業の再開
 
-### 依存パッケージを追加するとき
+**作業ファイルを開く** で `{ファイル名ベース}.pre-spec.json` を選んで読み込む。
 
-```bash
-# package.json を手動編集してから:
-docker compose down -v
-docker compose up --build
-```
-
-> `node_modules` はコンテナ内の Docker volume で管理しています。
-> ホスト側に `node_modules` は作成されません。
-
-## ワークフロー
-
-起動画面で **作業ファイルを開く**（`{slug}.pre-spec.json` を選んで再開）か **新規作成** を選ぶ。
-
-新規作成の流れ:
-
-1. **初期入力** — プロジェクト名と要件定義メモをファイルアップロードする。関連資料（ファイル・URL）があれば追加し、各資料に読み方メモを添えられる。AI が資料を確認して `references.md` に整理する。
-2. **初期反映** — AI が要件定義メモから各セクションへの配置案を質問形式で提示。回答・修正依頼・スキップによって反映する。
-3. **インタビュー** — セクションごとに AI が質問を生成。回答・スキップを繰り返して `spec.md` を育てる。
-4. **直接編集** — `[Edit]` で `spec.md` を手動編集。変更は `timeline.md` に記録される。
-5. **出力** — 未回答質問とマーカーがすべて 0 件ならそのまま出力。残留がある場合は件数を確認してから出力を選択する。
-
-## 作業ファイル
+## ファイル
 
 | ファイル | 内容 |
 | --- | --- |
-| `{slug}.pre-spec.json` | 作業ファイル（再開用） |
-
-## 出力ファイル
-
-| ファイル | 内容 |
-| --- | --- |
-| `{slug}.spec.md` | 育てた仕様書 |
-| `{slug}.references.md` | AI が整理した参照メモ |
-| `{slug}.timeline.md` | 質問・回答・編集の履歴 |
+| `{ファイル名ベース}.pre-spec.json` | 作業ファイル（再開用） |
+| `{ファイル名ベース}.spec.md` | 仕様書（GitHub Spec Kit テンプレート準拠） |
+| `{ファイル名ベース}.references.md` | 整理された参照メモ |
+| `{ファイル名ベース}.timeline.md` | 質問・回答・スキップ・編集の履歴 |
 
 ## マーカー
 
-`spec.md` 内でマーカーを使い、質問生成・出力前チェックの挙動を制御できます。
+`spec.md` 内にマーカーを記述して、AI の挙動や出力前チェックを制御できる。
 
-### 組み込みマーカー（skip）
-
-skip は組み込みマーカーです。`pre-spec.markers.json` に依存せず常に使用できます。
-
-| マーカー | 形式 | 用途 |
-| --- | --- | --- |
-| `[pre-spec:skip:{reason}]` | インライン | スキップ済み未決事項 |
-
-`{reason}` は `thinking` / `need_confirm` / `need_research` / `defer_to_implementation` / `low_priority` のいずれか。
-
-### マーカー定義ファイル
-
-`revisit` と `protected` は `public/pre-spec.markers.json` の初期設定として定義されています。
-
-| マーカー | 形式 | 用途 |
-| --- | --- | --- |
-| `[pre-spec:revisit]` | インライン / 範囲指定 | 再確認が必要な箇所の目印 |
-| `[pre-spec:protected]` | インライン / 範囲指定 | AI が自動変更提案してはならない箇所 |
-
-このファイルを編集することで、マーカーの追加・削除・説明の変更・AI への読み方指示の変更ができます。
-
-## 構成
+**skip マーカー**（組み込み）— スキップした未決事項をインラインに残す:
 
 ```text
-app/
-  page.tsx           メインワークベンチ画面
-  api/llm/route.ts   Anthropic API プロキシ
-components/          UI コンポーネント
-public/
-  pre-spec.markers.json  マーカー定義
-lib/
-  ldd/               LDD ワークフロー（project 初期化・spec 更新・timeline 管理）
-  llm/               LLM クライアント・プロンプト
-  text/              UI 文言定数
-  markdown.ts        Markdown パース
-  references.ts      references.md ブロックビルダー
-  relatedSources.ts  関連資料ビルダー
-  markers.ts         マーカー定義・抽出
-  preflight.ts       出力前チェック
-  projectFile.ts     作業ファイル変換・バリデーション
-types/               TypeScript 型定義
+- [pre-spec:skip:thinking] ...
+- [pre-spec:skip:need_confirm] ...
+- [pre-spec:skip:need_research] ...
+- [pre-spec:skip:defer_to_implementation] ...
+- [pre-spec:skip:low_priority] ...
+- [pre-spec:skip:custom] ...
 ```
 
-## VS Code Dev Containers での開発
+**その他のマーカー**（`public/pre-spec.markers.json` で定義）:
 
-TypeScript の型チェックをコンテナ内の `node_modules` で動かす場合は Dev Containers を使います。
+| マーカー | 用途 |
+| --- | --- |
+| `[pre-spec:revisit]` | 再確認が必要な箇所 |
+| `[pre-spec:protected]` | AI の自動変更から保護する箇所 |
 
-**前提**: VS Code 拡張機能 [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) をインストール済みであること。
-
-1. VS Code でこのフォルダを開く
-2. コマンドパレット (`Ctrl+Shift+P` / `Cmd+Shift+P`) → **Dev Containers: Reopen in Container**
-3. 初回はイメージビルドと `npm ci` が走るため数分かかります
-4. コンテナ起動後、`npm run dev` が自動的に開始します
-5. ブラウザで [http://localhost:3000](http://localhost:3000) を開く
-
-コンテナを閉じるには **Dev Containers: Reopen Folder Locally** でローカルに戻ります。
+`public/pre-spec.markers.json` を編集してマーカーの追加・変更ができる。
