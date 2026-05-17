@@ -108,6 +108,7 @@ export default function Home() {
   const [addQuestionError, setAddQuestionError] = useState(false)
   const [retryLLMErrorQuestionId, setRetryLLMErrorQuestionId] = useState<string | null>(null)
   const [saveTarget, setSaveTarget] = useState<ProjectSaveTarget | null>(null)
+  const [autosaveError, setAutosaveError] = useState<string | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -148,7 +149,9 @@ export default function Home() {
     if (!project || !saveTarget) return
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
-      void saveTarget.write(project)
+      saveTarget.write(project).catch(() => {
+        setAutosaveError(UI_TEXT.app.autosaveError)
+      })
     }, AUTOSAVE_DEBOUNCE_MS)
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
@@ -448,6 +451,7 @@ export default function Home() {
             originalQuestion: questionItem,
             spec: project.spec,
             referencesMarkdown: project.referencesMarkdown,
+            markerContexts: extractMarkerContexts(project.spec, markerDefinitions),
           }),
         )
         const raw = extractJSON<RetryQuestionResult>(text)
@@ -476,7 +480,7 @@ export default function Home() {
         setRetryingQuestionId(null)
       }
     },
-    [project, updateProject],
+    [project, updateProject, markerDefinitions],
   )
 
   const handleNext = () => {
@@ -543,6 +547,12 @@ export default function Home() {
           </button>
         </div>
       </header>
+      {autosaveError && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700">
+          <span className="flex-1">{autosaveError}</span>
+          <button onClick={() => setAutosaveError(null)} className="shrink-0 text-red-400 hover:text-red-700 transition-colors cursor-pointer">✕</button>
+        </div>
+      )}
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left column: spec editor + bottom tabs */}
