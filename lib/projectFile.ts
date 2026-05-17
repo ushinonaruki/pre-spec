@@ -104,7 +104,10 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
 
       if (item.status === 'answered') {
         lines.push(TIMELINE_TEXT.statusAnswered)
-        if (item.reflectedMarkdown) lines.push(`  ${item.reflectedMarkdown}`)
+        if (item.reflectedMarkdown) {
+          lines.push(`  - reflected:`)
+          lines.push(`    ${item.reflectedMarkdown}`)
+        }
         if (item.answeredAt) lines.push(`  - answeredAt: ${formatTimestamp(item.answeredAt)}`)
       } else if (item.status === 'skipped') {
         lines.push(TIMELINE_TEXT.statusSkipped)
