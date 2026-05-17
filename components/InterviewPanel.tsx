@@ -206,7 +206,7 @@ function QuestionCard({
   onDismissAnswerLLMError: () => void
   onDismissSkipLLMError: () => void
   onDismissRetryLLMError: () => void
-  onAnswer: (answer: string) => void
+  onAnswer: (answer: string) => Promise<boolean>
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
 }) {
@@ -329,8 +329,7 @@ function QuestionCard({
                     <button
                       onClick={() => {
                         if (!answer.trim()) return
-                        onAnswer(answer.trim())
-                        setAnswer('')
+                        void onAnswer(answer.trim()).then((ok) => { if (ok) setAnswer('') })
                       }}
                       disabled={!answer.trim() || isFormatting || isSkipping || isRetrying}
                       className="flex-1 py-1.5 bg-stone-800 text-white text-xs rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
@@ -386,7 +385,7 @@ type Props = {
   retryLLMErrorQuestionId: string | null
   onDismissRetryLLMError: () => void
   onAddQuestions: () => void
-  onAnswerQuestion: (questionId: string, answer: string) => void
+  onAnswerQuestion: (questionId: string, answer: string) => Promise<boolean>
   onSkipQuestion: (questionId: string, reason: string, customText?: string) => void
   onRetryQuestion: (questionId: string) => void
   answerLLMErrorQuestionId: string | null

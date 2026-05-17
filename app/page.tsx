@@ -317,17 +317,17 @@ export default function Home() {
     }
   }, [project, isGeneratingTimeline, updateProject, markerDefinitions])
 
-  const handleAnswerQuestion = useCallback(async (questionId: string, answer: string) => {
-    if (!project) return
+  const handleAnswerQuestion = useCallback(async (questionId: string, answer: string): Promise<boolean> => {
+    if (!project) return false
     const questionItem = project.timeline.find(
       (item): item is Question => item.type === 'question' && item.id === questionId,
     )
-    if (!questionItem) return
+    if (!questionItem) return false
     const { sectionTitle, text: questionText, questionType, proposedMarkdown } = questionItem
 
     if (!hasSectionHeading(project.spec, sectionTitle)) {
       updateProject((prev) => failQuestion(prev, { questionId, attemptedAnswer: answer }))
-      return
+      return true
     }
 
     setAnswerLLMErrorId(null)
@@ -368,8 +368,10 @@ export default function Home() {
           : prev
         return answerQuestion(withSpec, { questionId, answer, reflectedMarkdown: specInsertionMarkdown })
       })
+      return true
     } catch {
       setAnswerLLMErrorId(questionId)
+      return false
     } finally {
       setFormattingQuestionId(null)
     }
@@ -576,7 +578,7 @@ export default function Home() {
             onDismissAnswerLLMError={() => setAnswerLLMErrorId(null)}
             onDismissSkipLLMError={() => setSkipLLMErrorId(null)}
             onAddQuestions={() => { void handleGenerateTimeline() }}
-            onAnswerQuestion={(qId, ans) => { void handleAnswerQuestion(qId, ans) }}
+            onAnswerQuestion={handleAnswerQuestion}
             skipReasons={effectiveSkipReasons}
             onSkipQuestion={handleSkipQuestion}
             onRetryQuestion={(qId) => { void handleRetryQuestion(qId) }}
