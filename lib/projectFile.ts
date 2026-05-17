@@ -105,23 +105,23 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       if (item.status === 'answered') {
         lines.push(TIMELINE_TEXT.statusAnswered)
         if (item.reflectedMarkdown) {
-          lines.push(`  - reflected:`)
+          lines.push(`  - ${TIMELINE_TEXT.reflectedLabel}:`)
           lines.push(`    ${item.reflectedMarkdown}`)
         }
-        if (item.answeredAt) lines.push(`  - answeredAt: ${formatTimestamp(item.answeredAt)}`)
+        if (item.answeredAt) lines.push(`  - ${TIMELINE_TEXT.answeredAtLabel}: ${formatTimestamp(item.answeredAt)}`)
       } else if (item.status === 'skipped') {
         lines.push(TIMELINE_TEXT.statusSkipped)
-        if (item.skipReason) lines.push(`  - reason: ${item.skipReason}`)
-        if (item.skipCustomText) lines.push(`  - detail: ${item.skipCustomText}`)
+        if (item.skipReason) lines.push(`  - ${TIMELINE_TEXT.reasonLabel}: ${item.skipReason}`)
+        if (item.skipCustomText) lines.push(`  - ${TIMELINE_TEXT.detailLabel}: ${item.skipCustomText}`)
         if (item.reflectedMarkdown) {
-          lines.push(`  - reflected:`)
+          lines.push(`  - ${TIMELINE_TEXT.reflectedLabel}:`)
           lines.push(`    ${item.reflectedMarkdown}`)
         }
-        if (item.skippedAt) lines.push(`  - skippedAt: ${formatTimestamp(item.skippedAt)}`)
+        if (item.skippedAt) lines.push(`  - ${TIMELINE_TEXT.skippedAtLabel}: ${formatTimestamp(item.skippedAt)}`)
       } else if (item.status === 'failed') {
         lines.push(TIMELINE_TEXT.statusFailed)
         if (item.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${item.failureReason}`)
-        if (item.failedAt) lines.push(`  - failedAt: ${formatTimestamp(item.failedAt)}`)
+        if (item.failedAt) lines.push(`  - ${TIMELINE_TEXT.failedAtLabel}: ${formatTimestamp(item.failedAt)}`)
         if (item.attemptedAnswer) lines.push(`  - ${TIMELINE_TEXT.attemptedAnswerLabel}: ${item.attemptedAnswer}`)
         if (item.attemptedSkip) {
           lines.push(`  - ${TIMELINE_TEXT.attemptedSkipLabel}: reason=${item.attemptedSkip.reason}${item.attemptedSkip.customText ? ` / ${item.attemptedSkip.customText}` : ''}`)
