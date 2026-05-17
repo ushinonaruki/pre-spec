@@ -306,6 +306,10 @@ function RelatedEntryRow({
     e.target.value = ''
     try {
       const content = await file.text()
+      if (!content.trim()) {
+        setFileReadError(UI_TEXT.bottomTabs.addRefEmptyFile(file.name))
+        return
+      }
       onChange(entry.id, { fileContent: content, fileName: file.name })
       setFileReadError(null)
     } catch {
