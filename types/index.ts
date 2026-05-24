@@ -68,16 +68,25 @@ export type Question = {
 
 export type TimelineItem = PhaseMarker | SectionMarker | Question | ManualEdit
 
-export type Project = {
+export type Feature = {
   id: string
-  fileBase: string
-  createdAt: string
-  updatedAt: string
-  spec: string
-  referencesMarkdown: string
-  sections: Section[]
-  currentSectionId: string | null
+  slug: string
+  references: string
+
   timeline: TimelineItem[]
+  spec: string
+
+  sections: Section[]
+  currentSectionId?: string
+}
+
+export type Workspace = {
+  id: string
+  slug: string
+  references: string
+
+  features: Feature[]
+  activeFeatureId?: string
 }
 
 export type AnswerFormatResult = {
@@ -107,19 +116,21 @@ export type MarkerContext = {
   targets: MarkerTarget[]
 }
 
-export type PreSpecProject = {
+export type PreSpecWorkspace = {
   version: string
-  project: {
-    id: string
-    fileBase: string
-    createdAt: string
-    updatedAt: string
-  }
   workspace: {
-    draftSpecMarkdown: string
-    referencesMarkdown: string
-    currentSectionId: string | null
-    sections: Section[]
-    timeline: TimelineItem[]
+    id: string
+    slug: string
+    references: string
+    activeFeatureId?: string
+    features: Array<{
+      id: string
+      slug: string
+      references: string
+      spec: string
+      sections: Section[]
+      currentSectionId?: string
+      timeline: TimelineItem[]
+    }>
   }
 }

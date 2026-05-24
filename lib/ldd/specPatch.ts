@@ -1,23 +1,23 @@
-import type { AnswerFormatResult, Project } from '@/types'
+import type { AnswerFormatResult, Feature } from '@/types'
 import { insertUnderHeading } from '@/lib/markdown'
 
 export function applyFormattedAnswer(
-  project: Project,
+  feature: Feature,
   params: { sectionTitle: string; formatResult: AnswerFormatResult },
-): Project {
+): Feature {
   const newSpec = insertUnderHeading(
-    project.spec,
+    feature.spec,
     params.sectionTitle,
     params.formatResult.specInsertionMarkdown,
   )
-  return { ...project, spec: newSpec }
+  return { ...feature, spec: newSpec }
 }
 
 export function applySkip(
-  project: Project,
+  feature: Feature,
   params: { sectionTitle: string; markerBody: string; reason: string },
-): { project: Project; reflectedMarkdown: string } {
+): { feature: Feature; reflectedMarkdown: string } {
   const markerLine = `- [pre-spec:skip:${params.reason}] ${params.markerBody}`
-  const newSpec = insertUnderHeading(project.spec, params.sectionTitle, markerLine)
-  return { project: { ...project, spec: newSpec }, reflectedMarkdown: markerLine }
+  const newSpec = insertUnderHeading(feature.spec, params.sectionTitle, markerLine)
+  return { feature: { ...feature, spec: newSpec }, reflectedMarkdown: markerLine }
 }

@@ -1,4 +1,4 @@
-import type { ManualEdit, PhaseMarker, Project, Question, SectionMarker, TimelineItem } from '@/types'
+import type { Feature, ManualEdit, PhaseMarker, Question, SectionMarker, TimelineItem } from '@/types'
 
 export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: number): string {
   const items = timeline.filter(
@@ -23,8 +23,8 @@ export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: n
   return text.length <= maxChars ? text : text.slice(-maxChars)
 }
 
-export function addSectionMarkerIfNeeded(project: Project): Project {
-  const { timeline, currentSectionId } = project
+export function addSectionMarkerIfNeeded(feature: Feature): Feature {
+  const { timeline, currentSectionId } = feature
 
   let lastSectionMarkerIndex = -1
   let lastPhaseMarkerIndex = -1
@@ -44,32 +44,31 @@ export function addSectionMarkerIfNeeded(project: Project): Project {
     lastPhaseMarkerIndex > lastSectionMarkerIndex ||
     lastManualEditIndex > lastSectionMarkerIndex
 
-  if (!needsMarker) return project
+  if (!needsMarker) return feature
 
-  const section = project.sections.find((s) => s.id === currentSectionId)
-  if (!section) return project
+  const section = feature.sections.find((s) => s.id === currentSectionId)
+  if (!section) return feature
 
-  const now = new Date().toISOString()
   const marker: SectionMarker = {
     id: crypto.randomUUID(),
     type: 'section_marker',
     sectionId: section.id,
     sectionTitle: section.title,
-    createdAt: now,
+    createdAt: new Date().toISOString(),
   }
-  return { ...project, timeline: [...timeline, marker], updatedAt: now }
+  return { ...feature, timeline: [...timeline, marker] }
 }
 
-export function addQuestionsToTimeline(project: Project, questions: Question[]): Project {
-  return { ...project, timeline: [...project.timeline, ...questions], updatedAt: new Date().toISOString() }
+export function addQuestionsToTimeline(feature: Feature, questions: Question[]): Feature {
+  return { ...feature, timeline: [...feature.timeline, ...questions] }
 }
 
 export function answerQuestion(
-  project: Project,
+  feature: Feature,
   params: { questionId: string; answer: string; reflectedMarkdown?: string },
-): Project {
+): Feature {
   const now = new Date().toISOString()
-  const timeline = project.timeline.map((item): TimelineItem => {
+  const timeline = feature.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
       return {
         ...item,
@@ -81,60 +80,54 @@ export function answerQuestion(
     }
     return item
   })
-  return { ...project, timeline, updatedAt: now }
+  return { ...feature, timeline }
 }
 
-export function addManualEdit(project: Project): Project {
-  const now = new Date().toISOString()
+export function addManualEdit(feature: Feature): Feature {
   const manualEdit: ManualEdit = {
     id: crypto.randomUUID(),
     type: 'manual_edit',
-    createdAt: now,
+    createdAt: new Date().toISOString(),
   }
-  return {
-    ...project,
-    updatedAt: now,
-    timeline: [...project.timeline, manualEdit],
-  }
+  return { ...feature, timeline: [...feature.timeline, manualEdit] }
 }
 
-export function addPhaseMarker(project: Project): Project {
-  const now = new Date().toISOString()
+export function addPhaseMarker(feature: Feature): Feature {
   const marker: PhaseMarker = {
     id: crypto.randomUUID(),
     type: 'phase_marker',
     label: 'Initial Setup',
-    createdAt: now,
+    createdAt: new Date().toISOString(),
   }
-  return { ...project, timeline: [...project.timeline, marker], updatedAt: now }
+  return { ...feature, timeline: [...feature.timeline, marker] }
 }
 
 export function retryQuestion(
-  project: Project,
+  feature: Feature,
   params: { questionId: string; newQuestion: Question },
-): Project {
-  const idx = project.timeline.findIndex(
+): Feature {
+  const idx = feature.timeline.findIndex(
     (item) => item.type === 'question' && item.id === params.questionId,
   )
-  if (idx === -1) return project
+  if (idx === -1) return feature
   const timeline = [
-    ...project.timeline.slice(0, idx),
+    ...feature.timeline.slice(0, idx),
     params.newQuestion,
-    ...project.timeline.slice(idx + 1),
+    ...feature.timeline.slice(idx + 1),
   ]
-  return { ...project, timeline, updatedAt: new Date().toISOString() }
+  return { ...feature, timeline }
 }
 
 export function failQuestion(
-  project: Project,
+  feature: Feature,
   params: {
     questionId: string
     attemptedAnswer?: string
     attemptedSkip?: { reason: string; customText?: string }
   },
-): Project {
+): Feature {
   const now = new Date().toISOString()
-  const timeline = project.timeline.map((item): TimelineItem => {
+  const timeline = feature.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
       const baseQuestion = { ...item }
       delete baseQuestion.answer
@@ -154,20 +147,20 @@ export function failQuestion(
     }
     return item
   })
-  return { ...project, timeline, updatedAt: now }
+  return { ...feature, timeline }
 }
 
 export function skipQuestion(
-  project: Project,
+  feature: Feature,
   params: {
     questionId: string
     skipReason: string
     skipCustomText?: string
     reflectedMarkdown?: string
   },
-): Project {
+): Feature {
   const now = new Date().toISOString()
-  const timeline = project.timeline.map((item): TimelineItem => {
+  const timeline = feature.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
       return {
         ...item,
@@ -180,5 +173,5 @@ export function skipQuestion(
     }
     return item
   })
-  return { ...project, timeline, updatedAt: now }
+  return { ...feature, timeline }
 }

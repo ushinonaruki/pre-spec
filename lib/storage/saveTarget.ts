@@ -1,5 +1,5 @@
-import type { Project } from '@/types'
+import type { Workspace } from '@/types'
 
-export type ProjectSaveTarget = {
-  write(project: Project): Promise<void>
+export type WorkspaceSaveTarget = {
+  write(workspace: Workspace): Promise<void>
 }

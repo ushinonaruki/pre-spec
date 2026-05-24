@@ -1,73 +1,86 @@
-import type { PreSpecProject, Project, TimelineItem } from '@/types'
+import type { PreSpecWorkspace, Section, TimelineItem, Workspace } from '@/types'
 import { TIMELINE_TEXT } from '@/lib/text/timelineText'
 import { APP_LOCALE, APP_TIMEZONE } from '@/lib/locale'
+import type { Question } from '@/types'
 
-const CURRENT_VERSION = '1'
+const CURRENT_VERSION = '2'
 
 export const PRE_SPEC_PROJECT_FILE_SUFFIX = '.pre-spec.json'
 
-export function getProjectFilenames(fileBase: string) {
+export function getFeatureFilenames(featureSlug: string) {
   return {
-    spec: `${fileBase}.spec.md`,
-    references: `${fileBase}.references.md`,
-    timeline: `${fileBase}.timeline.md`,
+    spec: `specs/${featureSlug}/spec.md`,
+    references: `specs/${featureSlug}/references.md`,
+    timeline: `specs/${featureSlug}/timeline.md`,
   }
 }
 
-export function projectToPreSpecProject(project: Project): PreSpecProject {
+export function workspaceToPreSpecWorkspace(workspace: Workspace): PreSpecWorkspace {
   return {
     version: CURRENT_VERSION,
-    project: {
-      id: project.id,
-      fileBase: project.fileBase,
-      createdAt: project.createdAt,
-      updatedAt: project.updatedAt,
-    },
     workspace: {
-      draftSpecMarkdown: project.spec,
-      referencesMarkdown: project.referencesMarkdown,
-      currentSectionId: project.currentSectionId,
-      sections: project.sections,
-      timeline: project.timeline,
+      id: workspace.id,
+      slug: workspace.slug,
+      references: workspace.references,
+      activeFeatureId: workspace.activeFeatureId,
+      features: workspace.features.map((f) => ({
+        id: f.id,
+        slug: f.slug,
+        references: f.references,
+        spec: f.spec,
+        sections: f.sections,
+        currentSectionId: f.currentSectionId,
+        timeline: f.timeline,
+      })),
     },
   }
 }
 
-export function preSpecProjectToProject(file: PreSpecProject): Project {
+export function preSpecWorkspaceToWorkspace(file: PreSpecWorkspace): Workspace {
   const ws = file.workspace
   return {
-    id: file.project.id,
-    fileBase: file.project.fileBase,
-    createdAt: file.project.createdAt,
-    updatedAt: file.project.updatedAt,
-    spec: ws.draftSpecMarkdown,
-    referencesMarkdown: ws.referencesMarkdown,
-    sections: ws.sections,
-    currentSectionId: ws.currentSectionId,
-    timeline: ws.timeline,
+    id: ws.id,
+    slug: ws.slug,
+    references: ws.references,
+    activeFeatureId: ws.activeFeatureId,
+    features: ws.features.map((f) => ({
+      id: f.id,
+      slug: f.slug,
+      references: f.references,
+      spec: f.spec,
+      sections: f.sections as Section[],
+      currentSectionId: f.currentSectionId,
+      timeline: f.timeline as TimelineItem[],
+    })),
   }
 }
 
-export function validatePreSpecProject(raw: unknown): raw is PreSpecProject {
+export function validatePreSpecWorkspace(raw: unknown): raw is PreSpecWorkspace {
   if (!raw || typeof raw !== 'object') return false
   const r = raw as Record<string, unknown>
 
   if (typeof r.version !== 'string') return false
 
-  const proj = r.project as Record<string, unknown> | undefined
-  if (!proj || typeof proj !== 'object') return false
-  if (typeof proj.id !== 'string') return false
-  if (typeof proj.fileBase !== 'string' || !proj.fileBase) return false
-  if (typeof proj.createdAt !== 'string') return false
-  if (typeof proj.updatedAt !== 'string') return false
-
   const ws = r.workspace as Record<string, unknown> | undefined
   if (!ws || typeof ws !== 'object') return false
-  if (typeof ws.draftSpecMarkdown !== 'string') return false
-  if (typeof ws.referencesMarkdown !== 'string') return false
-  if (!Array.isArray(ws.sections)) return false
-  if (!Array.isArray(ws.timeline)) return false
-  if (ws.currentSectionId !== null && typeof ws.currentSectionId !== 'string') return false
+  if (typeof ws.id !== 'string') return false
+  if (typeof ws.slug !== 'string' || !ws.slug) return false
+  if (typeof ws.references !== 'string') return false
+  if (!Array.isArray(ws.features)) return false
+
+  for (const f of ws.features as unknown[]) {
+    if (!f || typeof f !== 'object') return false
+    const feat = f as Record<string, unknown>
+    if (typeof feat.id !== 'string') return false
+    if (typeof feat.slug !== 'string' || !feat.slug) return false
+    if (typeof feat.references !== 'string') return false
+    if (typeof feat.spec !== 'string') return false
+    if (!Array.isArray(feat.sections)) return false
+    if (!Array.isArray(feat.timeline)) return false
+    if (feat.currentSectionId !== undefined && typeof feat.currentSectionId !== 'string') return false
+  }
+
+  if (ws.activeFeatureId !== undefined && typeof ws.activeFeatureId !== 'string') return false
 
   return true
 }
@@ -93,38 +106,39 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       lines.push(TIMELINE_TEXT.sectionMarker(item.sectionTitle, formatTimestamp(item.createdAt)))
       lines.push('')
     } else if (item.type === 'question') {
-      const kindStr = item.kinds?.length ? item.kinds.join(' / ') : undefined
-      const meta = [item.priority, kindStr].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
-      const prefix = item.status === 'failed'
-        ? `${TIMELINE_TEXT.questionPrefixFailed} ${item.sectionTitle}`
-        : item.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
-      lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${item.text}`)
-      if (item.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${item.aiGuess.value}*`)
-      if (item.proposedMarkdown) lines.push(`*${TIMELINE_TEXT.proposedLabel}: ${item.proposedMarkdown}*`)
+      const q = item as Question
+      const kindStr = q.kinds?.length ? q.kinds.join(' / ') : undefined
+      const meta = [q.priority, kindStr].filter(Boolean).join(TIMELINE_TEXT.metaSeparator)
+      const prefix = q.status === 'failed'
+        ? `${TIMELINE_TEXT.questionPrefixFailed} ${q.sectionTitle}`
+        : q.questionType === 'initial_confirmation' ? TIMELINE_TEXT.questionPrefixInitial : TIMELINE_TEXT.questionPrefix
+      lines.push(`${prefix} ${meta ? `[${meta}] ` : ''}${q.text}`)
+      if (q.aiGuess) lines.push(`*${TIMELINE_TEXT.aiGuessLabel}: ${q.aiGuess.value}*`)
+      if (q.proposedMarkdown) lines.push(`*${TIMELINE_TEXT.proposedLabel}: ${q.proposedMarkdown}*`)
 
-      if (item.status === 'answered') {
+      if (q.status === 'answered') {
         lines.push(TIMELINE_TEXT.statusAnswered)
-        if (item.reflectedMarkdown) {
+        if (q.reflectedMarkdown) {
           lines.push(`  - ${TIMELINE_TEXT.reflectedLabel}:`)
-          lines.push(`    ${item.reflectedMarkdown}`)
+          lines.push(`    ${q.reflectedMarkdown}`)
         }
-        if (item.answeredAt) lines.push(`  - ${TIMELINE_TEXT.answeredAtLabel}: ${formatTimestamp(item.answeredAt)}`)
-      } else if (item.status === 'skipped') {
+        if (q.answeredAt) lines.push(`  - ${TIMELINE_TEXT.answeredAtLabel}: ${formatTimestamp(q.answeredAt)}`)
+      } else if (q.status === 'skipped') {
         lines.push(TIMELINE_TEXT.statusSkipped)
-        if (item.skipReason) lines.push(`  - ${TIMELINE_TEXT.reasonLabel}: ${item.skipReason}`)
-        if (item.skipCustomText) lines.push(`  - ${TIMELINE_TEXT.detailLabel}: ${item.skipCustomText}`)
-        if (item.reflectedMarkdown) {
+        if (q.skipReason) lines.push(`  - ${TIMELINE_TEXT.reasonLabel}: ${q.skipReason}`)
+        if (q.skipCustomText) lines.push(`  - ${TIMELINE_TEXT.detailLabel}: ${q.skipCustomText}`)
+        if (q.reflectedMarkdown) {
           lines.push(`  - ${TIMELINE_TEXT.reflectedLabel}:`)
-          lines.push(`    ${item.reflectedMarkdown}`)
+          lines.push(`    ${q.reflectedMarkdown}`)
         }
-        if (item.skippedAt) lines.push(`  - ${TIMELINE_TEXT.skippedAtLabel}: ${formatTimestamp(item.skippedAt)}`)
-      } else if (item.status === 'failed') {
+        if (q.skippedAt) lines.push(`  - ${TIMELINE_TEXT.skippedAtLabel}: ${formatTimestamp(q.skippedAt)}`)
+      } else if (q.status === 'failed') {
         lines.push(TIMELINE_TEXT.statusFailed)
-        if (item.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${item.failureReason}`)
-        if (item.failedAt) lines.push(`  - ${TIMELINE_TEXT.failedAtLabel}: ${formatTimestamp(item.failedAt)}`)
-        if (item.attemptedAnswer) lines.push(`  - ${TIMELINE_TEXT.attemptedAnswerLabel}: ${item.attemptedAnswer}`)
-        if (item.attemptedSkip) {
-          lines.push(`  - ${TIMELINE_TEXT.attemptedSkipLabel}: reason=${item.attemptedSkip.reason}${item.attemptedSkip.customText ? ` / ${item.attemptedSkip.customText}` : ''}`)
+        if (q.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${q.failureReason}`)
+        if (q.failedAt) lines.push(`  - ${TIMELINE_TEXT.failedAtLabel}: ${formatTimestamp(q.failedAt)}`)
+        if (q.attemptedAnswer) lines.push(`  - ${TIMELINE_TEXT.attemptedAnswerLabel}: ${q.attemptedAnswer}`)
+        if (q.attemptedSkip) {
+          lines.push(`  - ${TIMELINE_TEXT.attemptedSkipLabel}: reason=${q.attemptedSkip.reason}${q.attemptedSkip.customText ? ` / ${q.attemptedSkip.customText}` : ''}`)
         }
       } else {
         lines.push(TIMELINE_TEXT.statusOpen)
