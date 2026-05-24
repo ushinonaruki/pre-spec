@@ -1,11 +1,11 @@
-import type { Project } from '@/types'
-import type { ProjectSaveTarget } from './saveTarget'
-import { projectToPreSpecProject } from '@/lib/projectFile'
+import type { Workspace } from '@/types'
+import type { WorkspaceSaveTarget } from './saveTarget'
+import { workspaceToPreSpecWorkspace } from '@/lib/projectFile'
 
-function createFSATarget(handle: FileSystemFileHandle): ProjectSaveTarget {
+function createFSATarget(handle: FileSystemFileHandle): WorkspaceSaveTarget {
   return {
-    async write(project: Project): Promise<void> {
-      const content = JSON.stringify(projectToPreSpecProject(project), null, 2)
+    async write(workspace: Workspace): Promise<void> {
+      const content = JSON.stringify(workspaceToPreSpecWorkspace(workspace), null, 2)
       const writable = await handle.createWritable()
       await writable.write(content)
       await writable.close()
@@ -19,7 +19,7 @@ function assertFSASupported(): void {
   }
 }
 
-export async function pickSaveTarget(suggestedName: string): Promise<ProjectSaveTarget> {
+export async function pickSaveTarget(suggestedName: string): Promise<WorkspaceSaveTarget> {
   assertFSASupported()
   const handle = await window.showSaveFilePicker({
     suggestedName,
@@ -31,7 +31,7 @@ export async function pickSaveTarget(suggestedName: string): Promise<ProjectSave
 type OpenResult = {
   fileName: string
   text: string
-  saveTarget: ProjectSaveTarget
+  saveTarget: WorkspaceSaveTarget
 }
 
 export async function pickOpenTarget(): Promise<OpenResult> {
