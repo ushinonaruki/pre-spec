@@ -9,9 +9,10 @@ type ViewMode = 'preview' | 'source' | 'edit'
 type Props = {
   value: string
   onSave: (value: string) => void
+  disabled?: boolean
 }
 
-export default function SpecEditor({ value, onSave }: Props) {
+export default function SpecEditor({ value, onSave, disabled = false }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('source')
   const [draft, setDraft] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -75,7 +76,8 @@ export default function SpecEditor({ value, onSave }: Props) {
             </div>
             <button
               onClick={handleEnterEdit}
-              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
+              disabled={disabled}
+              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {UI_TEXT.specEditor.editButton}
             </button>
