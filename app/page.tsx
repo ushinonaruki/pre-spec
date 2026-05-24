@@ -379,7 +379,7 @@ export default function Home() {
         await saveTarget.write(updated)
         setWorkspace(updated)
       } catch {
-        setAutosaveError(UI_TEXT.app.autosaveError)
+        setAutosaveError(UI_TEXT.featurePanel.deleteSaveError)
       }
     },
     [workspace, saveTarget],
@@ -476,6 +476,7 @@ export default function Home() {
               answer,
               currentSpec: activeFeature.spec,
               referencesMarkdown: effectiveRefs,
+              recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
             })
           : buildAnswerFormatPrompt({
               currentHeading: sectionTitle,
@@ -533,6 +534,7 @@ export default function Home() {
       setSkippingQuestionId(questionId)
       let markerBody: string
       try {
+        const effectiveRefs = buildEffectiveReferencesForFeature(workspace, activeFeature)
         const text = await callLLM(
           buildSkipMarkerBodyPrompt({
             sectionTitle,
@@ -542,6 +544,7 @@ export default function Home() {
             skipReason: reason,
             skipInstruction,
             spec: activeFeature.spec,
+            referencesMarkdown: effectiveRefs,
             recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
           }),
         )

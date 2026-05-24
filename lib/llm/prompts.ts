@@ -140,6 +140,7 @@ export function buildInitialConfirmationAnswerFormatPrompt(params: {
   answer: string
   currentSpec: string
   referencesMarkdown: string
+  recentTimelineLog: string
 }): string {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
@@ -147,12 +148,15 @@ export function buildInitialConfirmationAnswerFormatPrompt(params: {
   const proposedSection = (params.proposedMarkdown?.trim() ?? '')
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
     : ''
+  const logSection = params.recentTimelineLog.trim()
+    ? `\n直近ログ (末尾):\n${params.recentTimelineLog}\n`
+    : ''
   return `あなたは pre-spec の初期反映回答整形エンジンです。
 
 初期反映の提案に対するユーザーの回答を受けて、spec.md への反映内容を決定してください。
 
 現在の spec.md:
-${params.currentSpec}${memoSection}
+${params.currentSpec}${memoSection}${logSection}
 対象セクション: ## ${params.sectionTitle}
 
 質問: ${params.questionText}
@@ -239,6 +243,7 @@ export function buildSkipMarkerBodyPrompt(params: {
   skipReason: string
   skipInstruction: string
   spec: string
+  referencesMarkdown: string
   recentTimelineLog: string
 }): string {
   const proposedSection = params.proposedMarkdown?.trim()
@@ -246,6 +251,9 @@ export function buildSkipMarkerBodyPrompt(params: {
     : ''
   const aiGuessSection = params.aiGuess
     ? `\nAI推定値: ${params.aiGuess.value}\n推定根拠: ${params.aiGuess.rationale}\n`
+    : ''
+  const memoSection = params.referencesMarkdown.trim()
+    ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
   const logSection = params.recentTimelineLog.trim()
     ? `\n直近タイムラインログ:\n${params.recentTimelineLog}\n`
@@ -260,7 +268,7 @@ export function buildSkipMarkerBodyPrompt(params: {
 ${proposedSection}${aiGuessSection}
 現在の spec.md:
 ${params.spec}
-${logSection}
+${memoSection}${logSection}
 指示: ${params.skipInstruction}
 
 ルール:

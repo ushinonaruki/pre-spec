@@ -11,6 +11,7 @@ export const TIMELINE_TEXT = {
   statusSkipped: '→ — スキップ',
   statusOpen: '→ ○ 未回答',
   statusFailed: '→ ✗ 反映失敗',
+  answerLabel: 'answer',
   reflectedLabel: 'reflected',
   createdAtLabel: 'createdAt',
   updatedAtLabel: 'updatedAt',
