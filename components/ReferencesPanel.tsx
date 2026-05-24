@@ -5,14 +5,25 @@ import type { RelatedSourceKind } from '@/types'
 import { URL_SOURCE_NAME } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
 
+type ScopeTab = 'global' | 'local'
 type AddMode = 'file' | 'url'
 
 type Props = {
-  referencesMarkdown: string
-  onAddReference: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
+  globalReferences: string
+  localReferences: string
+  onAppendGlobal: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
+  onAppendLocal: (kind: RelatedSourceKind, name: string, content: string, note?: string) => Promise<{ ok: boolean; reason?: string }>
+  localDisabled: boolean
 }
 
-export default function ReferencesPanel({ referencesMarkdown, onAddReference }: Props) {
+export default function ReferencesPanel({
+  globalReferences,
+  localReferences,
+  onAppendGlobal,
+  onAppendLocal,
+  localDisabled,
+}: Props) {
+  const [scopeTab, setScopeTab] = useState<ScopeTab>('global')
   const [addMode, setAddMode] = useState<AddMode | null>(null)
   const [urlInput, setUrlInput] = useState('')
   const [noteInput, setNoteInput] = useState('')
@@ -21,6 +32,10 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
   const [isReviewing, setIsReviewing] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const activeScope = localDisabled ? 'global' : scopeTab
+  const referencesMarkdown = activeScope === 'global' ? globalReferences : localReferences
+  const onAddReference = activeScope === 'global' ? onAppendGlobal : onAppendLocal
 
   function openAddForm() {
     setAddMode('file')
@@ -107,8 +122,22 @@ export default function ReferencesPanel({ referencesMarkdown, onAddReference }: 
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center border-b border-stone-200 bg-stone-50 shrink-0 px-2">
-        <span className="text-xs text-stone-500 py-2">{UI_TEXT.bottomTabs.referencesTitle}</span>
+      {/* Header: scope tabs + add button */}
+      <div className="flex items-center border-b border-stone-200 bg-stone-50 shrink-0 px-2 gap-1">
+        <span className="text-xs text-stone-500 py-2 mr-1">{UI_TEXT.bottomTabs.referencesTitle}</span>
+        <button
+          onClick={() => { setScopeTab('global'); closeAddForm() }}
+          className={`text-xs px-2 py-1 rounded transition-colors ${activeScope === 'global' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+        >
+          {UI_TEXT.references.globalTab}
+        </button>
+        <button
+          onClick={() => { if (!localDisabled) { setScopeTab('local'); closeAddForm() } }}
+          disabled={localDisabled}
+          className={`text-xs px-2 py-1 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${activeScope === 'local' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
+        >
+          {UI_TEXT.references.localTab}
+        </button>
         {addMode === null && (
           <button
             onClick={openAddForm}
