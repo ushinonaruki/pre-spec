@@ -135,13 +135,22 @@ export function failQuestion(
   const now = new Date().toISOString()
   const timeline = feature.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
-      const { answer: _answer, skipReason: _skipReason, skipCustomText: _skipCustomText, reflectedMarkdown: _reflectedMarkdown, ...baseQuestion } = item
       return {
-        ...baseQuestion,
+        id: item.id,
+        type: item.type,
+        questionType: item.questionType,
+        sectionId: item.sectionId,
+        sectionTitle: item.sectionTitle,
+        text: item.text,
+        kinds: item.kinds,
+        priority: item.priority,
+        aiGuess: item.aiGuess,
+        proposedMarkdown: item.proposedMarkdown,
         status: 'failed' as const,
         failureReason: 'target_section_not_found' as const,
         attemptedAnswer: params.attemptedAnswer,
         attemptedSkip: params.attemptedSkip,
+        createdAt: item.createdAt,
         updatedAt: now,
       }
     }
