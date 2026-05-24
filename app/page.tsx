@@ -924,10 +924,6 @@ function FeatureCreateForm({
     e.target.value = ''
     try {
       const text = await file.text()
-      if (!text.trim()) {
-        setMemoError(UI_TEXT.file.emptyFile(file.name))
-        return
-      }
       setRequirementMemoContent(text)
       setRequirementMemoFilename(file.name)
       setMemoError(null)
@@ -947,7 +943,7 @@ function FeatureCreateForm({
     if (!trimmedSlug) { setSlugError(UI_TEXT.featurePanel.slugRequired); return }
     if (!validateFeatureSlug(trimmedSlug)) { setSlugError(UI_TEXT.featurePanel.slugInvalid); return }
     if (findFeatureBySlug(workspace.features, trimmedSlug)) { setSlugError(UI_TEXT.featurePanel.slugDuplicate); return }
-    if (!requirementMemoContent?.trim()) { setMemoError(UI_TEXT.featurePanel.requirementMemoRequired); return }
+    if (requirementMemoContent === null) { setMemoError(UI_TEXT.featurePanel.requirementMemoRequired); return }
 
     setSlugError(null)
     setMemoError(null)
@@ -1080,7 +1076,6 @@ function FeatureRelatedRow({
     e.target.value = ''
     try {
       const content = await file.text()
-      if (!content.trim()) { setFileReadError(UI_TEXT.file.emptyFile(file.name)); return }
       onChange(entry.id, { fileContent: content, fileName: file.name })
       setFileReadError(null)
     } catch {
