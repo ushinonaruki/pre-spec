@@ -21,7 +21,7 @@ export const UI_TEXT = {
     slugPlaceholder: '例: my-product',
     slugRequired: 'Workspace 名を入力してください',
     slugInvalid: '使用できない文字が含まれています',
-    relatedLabel: '関連資料（任意・Global References として取り込む）',
+    relatedLabel: '関連資料（任意）',
     relatedAddButton: '+ 追加',
     relatedFileMode: 'ファイル',
     relatedUrlMode: 'URL',
@@ -40,7 +40,6 @@ export const UI_TEXT = {
   },
 
   featurePanel: {
-    title: 'Feature',
     addButton: '+ Feature',
     slugLabel: 'Feature 名',
     slugPlaceholder: '例: 001-auth-flow',
@@ -52,7 +51,6 @@ export const UI_TEXT = {
     requirementMemoFileSelected: (name: string) => `選択中: ${name}`,
     requirementMemoRequired: 'ファイルを選択してください',
     requirementMemoReadError: '要件定義メモの読み込みに失敗しました。別のファイルを選択してください。',
-    relatedLabel: '関連資料（任意・Local References として取り込む）',
     relatedAddButton: '+ 追加',
     relatedRemoveButton: '✕',
     relatedFileMode: 'ファイル',
@@ -73,7 +71,6 @@ export const UI_TEXT = {
     renameCancel: '✕',
     deleteButton: '×',
     deleteConfirm: (slug: string) => `「${slug}」を削除しますか？この操作は取り消せません。`,
-    noFeatures: 'Feature がありません。[+ Feature] で追加してください。',
     selectFeatureSaveError: 'Feature の切り替えに失敗しました。保存状態を確認してください。',
   },
 
@@ -94,7 +91,7 @@ export const UI_TEXT = {
   },
 
   specEditor: {
-    fileLabel: 'spec.md',
+    fileLabel: 'Spec',
     previewButton: 'Preview',
     sourceButton: 'Source',
     editButton: 'Edit',

@@ -123,25 +123,27 @@ export default function ReferencesPanel({
   return (
     <div className="flex flex-col h-full">
       {/* Header: scope tabs + add button */}
-      <div className="flex items-center border-b border-stone-200 bg-stone-50 shrink-0 px-2 gap-1">
-        <span className="text-xs text-stone-500 py-2 mr-1">{UI_TEXT.bottomTabs.referencesTitle}</span>
-        <button
-          onClick={() => { setScopeTab('global'); closeAddForm() }}
-          className={`text-xs px-2 py-1 rounded transition-colors ${activeScope === 'global' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
-        >
-          {UI_TEXT.references.globalTab}
-        </button>
-        <button
-          onClick={() => { if (!localDisabled) { setScopeTab('local'); closeAddForm() } }}
-          disabled={localDisabled}
-          className={`text-xs px-2 py-1 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${activeScope === 'local' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
-        >
-          {UI_TEXT.references.localTab}
-        </button>
+      <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
+        <span className="text-xs font-medium text-stone-500 mr-auto">{UI_TEXT.bottomTabs.referencesTitle}</span>
+        <div className="flex border border-stone-200 rounded overflow-hidden">
+          <button
+            onClick={() => { setScopeTab('global'); closeAddForm() }}
+            className={`text-xs px-2 py-1 transition-colors cursor-pointer ${activeScope === 'global' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
+          >
+            {UI_TEXT.references.globalTab}
+          </button>
+          <button
+            onClick={() => { if (!localDisabled) { setScopeTab('local'); closeAddForm() } }}
+            disabled={localDisabled}
+            className={`text-xs px-2 py-1 transition-colors border-l border-stone-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${activeScope === 'local' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
+          >
+            {UI_TEXT.references.localTab}
+          </button>
+        </div>
         {addMode === null && (
           <button
             onClick={openAddForm}
-            className="ml-auto text-xs text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
+            className="text-xs text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
           >
             {UI_TEXT.bottomTabs.addRefButton}
           </button>
