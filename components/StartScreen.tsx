@@ -1,15 +1,15 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import type { Project } from '@/types'
-import type { CreateProjectRequest, InitialRelatedSource } from '@/lib/ldd/project'
-import { validateProjectFileBase } from '@/lib/ldd/fileBase'
-import { validatePreSpecProject, preSpecProjectToProject, PRE_SPEC_PROJECT_FILE_SUFFIX } from '@/lib/projectFile'
-import type { ProjectSaveTarget } from '@/lib/storage/saveTarget'
+import type { Workspace } from '@/types'
+import type { InitialRelatedSource } from '@/lib/feature'
+import { validateWorkspaceSlug } from '@/lib/workspace'
+import { validatePreSpecWorkspace, preSpecWorkspaceToWorkspace, PRE_SPEC_PROJECT_FILE_SUFFIX } from '@/lib/projectFile'
+import type { WorkspaceSaveTarget } from '@/lib/storage/saveTarget'
 import { pickOpenTarget } from '@/lib/storage/fsaSaveTarget'
 import { UI_TEXT } from '@/lib/text/uiText'
 
-type View = 'landing' | 'new_project'
+type View = 'landing' | 'new_workspace'
 
 type RelatedEntryMode = 'file' | 'url'
 
@@ -26,43 +26,43 @@ function emptyEntry(): RelatedEntry {
   return { id: crypto.randomUUID(), mode: 'file', fileContent: null, fileName: null, url: '', note: '' }
 }
 
-type Props = {
-  onCreate: (inputs: CreateProjectRequest) => Promise<{ ok: true } | { ok: false; error?: string }>
-  onOpenProject: (project: Project, saveTarget: ProjectSaveTarget) => void
+export type CreateWorkspaceInputs = {
+  slug: string
+  relatedSources?: InitialRelatedSource[]
 }
 
-export default function StartScreen({ onCreate, onOpenProject }: Props) {
+type Props = {
+  onCreate: (inputs: CreateWorkspaceInputs) => Promise<{ ok: true } | { ok: false; error?: string }>
+  onOpenWorkspace: (workspace: Workspace, saveTarget: WorkspaceSaveTarget) => void
+}
+
+export default function StartScreen({ onCreate, onOpenWorkspace }: Props) {
   const [view, setView] = useState<View>('landing')
-  const [fileBase, setFileBase] = useState('')
-  const [requirementMemoContent, setRequirementMemoContent] = useState<string | null>(null)
-  const [requirementMemoFilename, setRequirementMemoFilename] = useState<string | null>(null)
+  const [slug, setSlug] = useState('')
   const [relatedEntries, setRelatedEntries] = useState<RelatedEntry[]>([])
-  const [nameError, setNameError] = useState<string | null>(null)
-  const [memoError, setMemoError] = useState<string | null>(null)
+  const [slugError, setSlugError] = useState<string | null>(null)
   const [openError, setOpenError] = useState<string | null>(null)
   const [createError, setCreateError] = useState<string | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isOpeningFile, setIsOpeningFile] = useState(false)
-
-  const requirementMemoFileInputRef = useRef<HTMLInputElement>(null)
 
   const handleOpenFile = async () => {
     setOpenError(null)
     setIsOpeningFile(true)
     try {
       const result = await pickOpenTarget()
-      const filenameFileBase = result.fileName.slice(0, -PRE_SPEC_PROJECT_FILE_SUFFIX.length)
-      if (!result.fileName.endsWith(PRE_SPEC_PROJECT_FILE_SUFFIX) || !validateProjectFileBase(filenameFileBase)) {
+      const filenameSlug = result.fileName.slice(0, -PRE_SPEC_PROJECT_FILE_SUFFIX.length)
+      if (!result.fileName.endsWith(PRE_SPEC_PROJECT_FILE_SUFFIX) || !validateWorkspaceSlug(filenameSlug)) {
         setOpenError(UI_TEXT.startScreen.openWorkFileNameError)
         return
       }
       const raw = JSON.parse(result.text) as unknown
-      if (!validatePreSpecProject(raw)) {
+      if (!validatePreSpecWorkspace(raw)) {
         setOpenError(UI_TEXT.startScreen.openWorkFileError)
         return
       }
-      const project = { ...preSpecProjectToProject(raw), fileBase: filenameFileBase }
-      onOpenProject(project, result.saveTarget)
+      const ws = preSpecWorkspaceToWorkspace(raw)
+      onOpenWorkspace(ws, result.saveTarget)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
       setOpenError(UI_TEXT.startScreen.openWorkFileError)
@@ -71,44 +71,17 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
     }
   }
 
-  const handleRequirementMemoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    e.target.value = ''
-    try {
-      const text = await file.text()
-      if (!text.trim()) {
-        setRequirementMemoContent(null)
-        setRequirementMemoFilename(null)
-        setMemoError(UI_TEXT.file.emptyFile(file.name))
-        return
-      }
-      setRequirementMemoContent(text)
-      setRequirementMemoFilename(file.name)
-      setMemoError(null)
-    } catch {
-      setMemoError(UI_TEXT.startScreen.requirementMemoReadError)
-    }
-  }
-
   const handleCreate = async () => {
-    const trimmedFileBase = fileBase.trim()
-
-    if (!trimmedFileBase) {
-      setNameError(UI_TEXT.startScreen.fileBaseRequired)
+    const trimmedSlug = slug.trim()
+    if (!trimmedSlug) {
+      setSlugError(UI_TEXT.startScreen.slugRequired)
       return
     }
-    if (!validateProjectFileBase(trimmedFileBase)) {
-      setNameError(UI_TEXT.startScreen.fileBaseInvalid)
+    if (!validateWorkspaceSlug(trimmedSlug)) {
+      setSlugError(UI_TEXT.startScreen.slugInvalid)
       return
     }
-    if (!requirementMemoContent?.trim()) {
-      setMemoError(UI_TEXT.startScreen.requirementMemoRequired)
-      return
-    }
-
-    setNameError(null)
-    setMemoError(null)
+    setSlugError(null)
     setCreateError(null)
     setIsCreating(true)
     try {
@@ -122,9 +95,7 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
         return []
       })
       const result = await onCreate({
-        projectFileBase: trimmedFileBase,
-        requirementMemo: requirementMemoContent,
-        requirementMemoFilename: requirementMemoFilename ?? undefined,
+        slug: trimmedSlug,
         relatedSources: relatedSources.length > 0 ? relatedSources : undefined,
       })
       if (!result.ok && result.error) {
@@ -170,10 +141,10 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
             )}
 
             <button
-              onClick={() => setView('new_project')}
+              onClick={() => setView('new_workspace')}
               className="w-full py-2.5 bg-stone-800 text-white text-sm font-medium rounded hover:bg-stone-700 transition-colors"
             >
-              {UI_TEXT.startScreen.newProject}
+              {UI_TEXT.startScreen.newWorkspace}
             </button>
           </div>
         </div>
@@ -188,55 +159,22 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
 
         <div className="bg-white border border-stone-200 rounded-lg p-6 space-y-5">
           <fieldset disabled={isCreating} className="border-0 p-0 m-0 min-w-0 space-y-5">
-            {/* ファイル名ベース */}
+            {/* Workspace 名 */}
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-stone-700">
-                {UI_TEXT.startScreen.fileBaseLabel}
+                {UI_TEXT.startScreen.slugLabel}
               </label>
               <input
                 type="text"
-                value={fileBase}
-                onChange={(e) => { setFileBase(e.target.value); setNameError(null) }}
-                placeholder={UI_TEXT.startScreen.fileBasePlaceholder}
+                value={slug}
+                onChange={(e) => { setSlug(e.target.value); setSlugError(null) }}
+                placeholder={UI_TEXT.startScreen.slugPlaceholder}
                 className="w-full border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              {nameError && <p className="text-xs text-red-600">{nameError}</p>}
+              {slugError && <p className="text-xs text-red-600">{slugError}</p>}
             </div>
 
-            {/* 要件メモ */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-stone-700">
-                {UI_TEXT.startScreen.requirementMemoLabel}
-              </label>
-              <input
-                ref={requirementMemoFileInputRef}
-                type="file"
-                accept=".md,.txt"
-                onChange={(e) => { void handleRequirementMemoFileChange(e) }}
-                className="hidden"
-              />
-              {requirementMemoFilename ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-stone-500 truncate flex-1">{UI_TEXT.startScreen.requirementMemoFileSelected(requirementMemoFilename)}</span>
-                  <button
-                    onClick={() => { setRequirementMemoContent(null); setRequirementMemoFilename(null) }}
-                    className="text-xs text-stone-400 hover:text-stone-700 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {UI_TEXT.startScreen.relatedRemoveButton}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => requirementMemoFileInputRef.current?.click()}
-                  className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {UI_TEXT.startScreen.requirementMemoFileButton}
-                </button>
-              )}
-              {memoError && <p className="text-xs text-red-600">{memoError}</p>}
-            </div>
-
-            {/* 関連資料 */}
+            {/* Global 関連資料 */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-stone-700">
                 {UI_TEXT.startScreen.relatedLabel}
@@ -265,16 +203,13 @@ export default function StartScreen({ onCreate, onOpenProject }: Props) {
                 disabled={isCreating}
                 className="flex-1 py-2.5 bg-stone-800 text-white text-sm font-medium rounded hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
               >
-                {isCreating ? UI_TEXT.startScreen.startButtonLoading : UI_TEXT.startScreen.startButton}
+                {isCreating ? UI_TEXT.startScreen.createButtonLoading : UI_TEXT.startScreen.createButton}
               </button>
               <button
                 onClick={() => {
-                  setFileBase('')
-                  setRequirementMemoContent(null)
-                  setRequirementMemoFilename(null)
+                  setSlug('')
                   setRelatedEntries([])
-                  setNameError(null)
-                  setMemoError(null)
+                  setSlugError(null)
                   setCreateError(null)
                   setView('landing')
                 }}
