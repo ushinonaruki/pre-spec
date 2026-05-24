@@ -5,7 +5,7 @@ import type { Question } from '@/types'
 
 const CURRENT_VERSION = '2'
 
-export const PRE_SPEC_PROJECT_FILE_SUFFIX = '.pre-spec.json'
+export const PRE_SPEC_FILE_SUFFIX = '.pre-spec.json'
 
 export function getFeatureFilenames(featureSlug: string) {
   return {
