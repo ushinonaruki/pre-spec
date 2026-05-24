@@ -12,7 +12,7 @@ import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, bu
 import type { RelatedSourceReviewResult, RetryQuestionResult } from '@/lib/llm/prompts'
 import { extractJSON } from '@/lib/llm/extractJSON'
 import { hasSectionHeading } from '@/lib/markdown'
-import { generateTimelineMarkdown, PRE_SPEC_PROJECT_FILE_SUFFIX } from '@/lib/projectFile'
+import { generateTimelineMarkdown, PRE_SPEC_FILE_SUFFIX } from '@/lib/projectFile'
 import { runWorkspacePreflightCheck } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
 import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
@@ -188,7 +188,7 @@ export default function Home() {
 
       let pickedTarget: WorkspaceSaveTarget
       try {
-        pickedTarget = await pickSaveTarget(`${slug}${PRE_SPEC_PROJECT_FILE_SUFFIX}`)
+        pickedTarget = await pickSaveTarget(`${slug}${PRE_SPEC_FILE_SUFFIX}`)
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') return { ok: false }
         return { ok: false, error: UI_TEXT.startScreen.createErrorSaveTarget }

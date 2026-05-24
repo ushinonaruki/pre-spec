@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import type { Workspace } from '@/types'
 import type { InitialRelatedSource } from '@/lib/feature'
 import { validateWorkspaceSlug } from '@/lib/workspace'
-import { validatePreSpecWorkspace, preSpecWorkspaceToWorkspace, PRE_SPEC_PROJECT_FILE_SUFFIX } from '@/lib/projectFile'
+import { validatePreSpecWorkspace, preSpecWorkspaceToWorkspace, PRE_SPEC_FILE_SUFFIX } from '@/lib/projectFile'
 import type { WorkspaceSaveTarget } from '@/lib/storage/saveTarget'
 import { pickOpenTarget } from '@/lib/storage/fsaSaveTarget'
 import { UI_TEXT } from '@/lib/text/uiText'
@@ -51,8 +51,8 @@ export default function StartScreen({ onCreate, onOpenWorkspace }: Props) {
     setIsOpeningFile(true)
     try {
       const result = await pickOpenTarget()
-      const filenameSlug = result.fileName.slice(0, -PRE_SPEC_PROJECT_FILE_SUFFIX.length)
-      if (!result.fileName.endsWith(PRE_SPEC_PROJECT_FILE_SUFFIX) || !validateWorkspaceSlug(filenameSlug)) {
+      const filenameSlug = result.fileName.slice(0, -PRE_SPEC_FILE_SUFFIX.length)
+      if (!result.fileName.endsWith(PRE_SPEC_FILE_SUFFIX) || !validateWorkspaceSlug(filenameSlug)) {
         setOpenError(UI_TEXT.startScreen.openWorkFileNameError)
         return
       }
