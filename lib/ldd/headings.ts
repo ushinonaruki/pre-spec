@@ -20,12 +20,14 @@ export function advanceCurrentSection(feature: Feature): Feature {
   const nextIdx = currentIdx === -1 || currentIdx === sections.length - 1 ? 0 : currentIdx + 1
   const nextSection = sections[nextIdx]
 
+  const now = new Date().toISOString()
   const marker: SectionMarker = {
     id: crypto.randomUUID(),
     type: 'section_marker',
     sectionId: nextSection.id,
     sectionTitle: nextSection.title,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   }
 
   return {
