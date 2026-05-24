@@ -1,26 +1,35 @@
 import type { Feature, ManualEdit, PhaseMarker, Question, SectionMarker, TimelineItem } from '@/types'
 
-export function buildRecentLogFromTimeline(timeline: TimelineItem[], maxChars: number): string {
-  const items = timeline.filter(
-    (item): item is Question => item.type === 'question' && item.status !== 'open',
-  )
+export function buildTimelineContext(timeline: TimelineItem[]): string {
+  if (timeline.length === 0) return ''
   const lines: string[] = []
-  for (const q of items) {
-    if (q.status === 'answered') {
-      lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
-      lines.push(`  → ${q.answer}`)
-      if (q.reflectedMarkdown) lines.push(`  反映: ${q.reflectedMarkdown}`)
-    } else if (q.status === 'skipped') {
-      const detail = q.skipCustomText ? ` (${q.skipCustomText})` : ''
-      lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
-      lines.push(`  → skip:${q.skipReason ?? ''}${detail}`)
-    } else if (q.status === 'failed') {
-      lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
-      lines.push(`  → failed: ${q.failureReason ?? ''}`)
+  for (const item of timeline) {
+    if (item.type === 'phase_marker') {
+      lines.push(`[${item.label}]`)
+    } else if (item.type === 'section_marker') {
+      lines.push(`[Section: ${item.sectionTitle}]`)
+    } else if (item.type === 'manual_edit') {
+      lines.push('[Manual Edit]')
+    } else if (item.type === 'question') {
+      const q = item as Question
+      if (q.status === 'answered') {
+        lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
+        lines.push(`  → ${q.answer}`)
+        if (q.reflectedMarkdown) lines.push(`  反映: ${q.reflectedMarkdown}`)
+      } else if (q.status === 'skipped') {
+        const detail = q.skipCustomText ? ` (${q.skipCustomText})` : ''
+        lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
+        lines.push(`  → skip:${q.skipReason ?? ''}${detail}`)
+      } else if (q.status === 'failed') {
+        lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
+        lines.push(`  → failed: ${q.failureReason ?? ''}`)
+      } else {
+        lines.push(`[${q.sectionTitle}] Q: ${q.text}`)
+        lines.push('  → open')
+      }
     }
   }
-  const text = lines.join('\n')
-  return text.length <= maxChars ? text : text.slice(-maxChars)
+  return lines.join('\n')
 }
 
 export function addSectionMarkerIfNeeded(feature: Feature): Feature {
