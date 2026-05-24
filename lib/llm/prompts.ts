@@ -2,7 +2,6 @@ import type { MarkerContext, Question, RelatedSourceKind, Section } from '@/type
 import { KIND_CANDIDATES, PRIORITY_CANDIDATES } from '@/lib/config/questionTaxonomy'
 
 export function buildInitialConfirmationQuestionsPrompt(params: {
-  requirementMemo: string
   referencesMarkdown: string
   spec: string
   sections: Section[]
@@ -17,9 +16,6 @@ export function buildInitialConfirmationQuestionsPrompt(params: {
 入力材料を読んで、spec.md の各セクションに「初期配置すべき候補」があれば、反映質問として列挙してください。
 
 ## 入力材料
-
-要件定義メモ:
-${params.requirementMemo}
 ${refSection}
 ## 現在の spec.md
 

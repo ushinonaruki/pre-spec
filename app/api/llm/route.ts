@@ -127,7 +127,8 @@ export async function POST(request: Request) {
           }
           const fetchResult = await fetchUrlAsText(fetchTarget)
           if (fetchResult === null) {
-            return Response.json({ error: 'URL fetch failed: unsupported content type' }, { status: 502 })
+            toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: 'URL fetch failed: unsupported content type' })
+            continue
           }
           toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: fetchResult })
         }

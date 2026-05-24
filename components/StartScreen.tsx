@@ -61,7 +61,7 @@ export default function StartScreen({ onCreate, onOpenWorkspace }: Props) {
         setOpenError(UI_TEXT.startScreen.openWorkFileError)
         return
       }
-      const ws = preSpecWorkspaceToWorkspace(raw)
+      const ws = { ...preSpecWorkspaceToWorkspace(raw), slug: filenameSlug }
       onOpenWorkspace(ws, result.saveTarget)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
