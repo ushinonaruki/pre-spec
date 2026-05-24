@@ -96,6 +96,7 @@ function buildExportConfirmMessage(
   for (const f of features) {
     lines.push(UI_TEXT.export.preflightFeatureHeader(f.featureSlug))
     lines.push(UI_TEXT.export.preflightOpenQuestions(f.openQuestions))
+    lines.push(UI_TEXT.export.preflightMarkersHeader)
     lines.push(UI_TEXT.export.preflightMarkerItem('skip', f.skipMarkers))
     if (markerDefinitions) {
       for (const [name] of Object.entries(markerDefinitions.markers)) {
@@ -326,7 +327,7 @@ export default function Home() {
       try {
         await saveTarget.write(updatedWs)
       } catch {
-        return { ok: false, error: UI_TEXT.app.autosaveError }
+        return { ok: false, error: UI_TEXT.featurePanel.createSaveError }
       }
 
       setWorkspace(updatedWs)
@@ -361,7 +362,7 @@ export default function Home() {
         setWorkspace(updated)
         return { ok: true }
       } catch {
-        return { ok: false, error: UI_TEXT.app.autosaveError }
+        return { ok: false, error: UI_TEXT.featurePanel.renameSaveError }
       }
     },
     [workspace, saveTarget],
