@@ -200,7 +200,7 @@ export default function Home() {
         const content = src.kind === 'file' ? src.content : src.url
         const source = src.kind === 'file' ? rawName : src.url
         const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
-        if (!result || result.status === 'unreadable' || !result.content) {
+        if (!result || result.status === 'unreadable' || result.content === undefined) {
           return {
             ok: false,
             error: result?.status === 'unreadable' && result.reason
@@ -257,7 +257,7 @@ export default function Home() {
         const content = src.kind === 'file' ? src.content : src.url
         const source = src.kind === 'file' ? rawName : src.url
         const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
-        if (!result || result.status === 'unreadable' || !result.content) {
+        if (!result || result.status === 'unreadable' || result.content === undefined) {
           return { ok: false, error: UI_TEXT.featurePanel.createErrorRelatedSource }
         }
         const existingNames = extractImportedNames(featureRefs)
@@ -629,7 +629,7 @@ export default function Home() {
       if (!result) return { ok: false }
       if (result.status === 'unreadable') return { ok: false, reason: result.reason }
       const aiContent = result.content
-      if (!aiContent) return { ok: false }
+      if (aiContent === undefined) return { ok: false }
 
       updateWorkspace((prev) => {
         const existingNames = extractImportedNames(prev.references)
@@ -650,7 +650,7 @@ export default function Home() {
       if (!result) return { ok: false }
       if (result.status === 'unreadable') return { ok: false, reason: result.reason }
       const aiContent = result.content
-      if (!aiContent) return { ok: false }
+      if (aiContent === undefined) return { ok: false }
 
       const featureId = activeFeature.id
       updateWorkspace((prev) => {

@@ -193,7 +193,8 @@ export function buildRelatedSourceReviewPrompt(params: {
   const suffix = `
 ルール:
 - 読める場合: status を "ok" にして、references.md の Imported block 本文として使う content を返す
-- 読めない・アクセスできない・意味のある内容が抽出できない場合: status を "unreadable" にして reason を返す
+- 取得・読み込みには成功したが本文が空または空白のみだった場合: status を "ok" にして content に空文字列を返す（unreadable にしない）
+- 読めない・アクセスできない場合: status を "unreadable" にして reason を返す
 - content は Markdown 形式で仕様化に役立つ情報のみを整理して返す
 - spec.md の書き換えは行わない
 - 日本語で記述する
