@@ -124,6 +124,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
 
       if (q.status === 'answered') {
         lines.push(TIMELINE_TEXT.statusAnswered)
+        if (q.answer) lines.push(`  - ${TIMELINE_TEXT.answerLabel}: ${q.answer}`)
         if (q.reflectedMarkdown) {
           lines.push(`  - ${TIMELINE_TEXT.reflectedLabel}:`)
           lines.push(`    ${q.reflectedMarkdown}`)
