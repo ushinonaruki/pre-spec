@@ -61,13 +61,13 @@ export function buildAnswerFormatPrompt(params: {
   answer: string
   currentSpec: string
   referencesMarkdown: string
-  recentTimelineLog: string
+  timelineContext: string
 }): string {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
-  const logSection = params.recentTimelineLog.trim()
-    ? `\n直近ログ (末尾):\n${params.recentTimelineLog}\n`
+  const logSection = params.timelineContext.trim()
+    ? `\nTimeline:\n${params.timelineContext}\n`
     : ''
   return `あなたは pre-spec の回答整形エンジンです。
 
@@ -136,7 +136,7 @@ export function buildInitialConfirmationAnswerFormatPrompt(params: {
   answer: string
   currentSpec: string
   referencesMarkdown: string
-  recentTimelineLog: string
+  timelineContext: string
 }): string {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
@@ -144,8 +144,8 @@ export function buildInitialConfirmationAnswerFormatPrompt(params: {
   const proposedSection = (params.proposedMarkdown?.trim() ?? '')
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
     : ''
-  const logSection = params.recentTimelineLog.trim()
-    ? `\n直近ログ (末尾):\n${params.recentTimelineLog}\n`
+  const logSection = params.timelineContext.trim()
+    ? `\nTimeline:\n${params.timelineContext}\n`
     : ''
   return `あなたは pre-spec の初期反映回答整形エンジンです。
 
@@ -240,7 +240,7 @@ export function buildSkipMarkerBodyPrompt(params: {
   skipInstruction: string
   spec: string
   referencesMarkdown: string
-  recentTimelineLog: string
+  timelineContext: string
 }): string {
   const proposedSection = params.proposedMarkdown?.trim()
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
@@ -251,8 +251,8 @@ export function buildSkipMarkerBodyPrompt(params: {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
-  const logSection = params.recentTimelineLog.trim()
-    ? `\n直近タイムラインログ:\n${params.recentTimelineLog}\n`
+  const logSection = params.timelineContext.trim()
+    ? `\nTimeline:\n${params.timelineContext}\n`
     : ''
 
   return `あなたは pre-spec の skip marker 生成エンジンです。
@@ -292,15 +292,15 @@ export function buildRetryQuestionPrompt(params: {
   originalQuestion: Pick<Question, 'text' | 'questionType' | 'kinds' | 'priority' | 'aiGuess' | 'proposedMarkdown'>
   spec: string
   referencesMarkdown: string
-  recentTimelineLog: string
+  timelineContext: string
   markerContexts?: MarkerContext[]
 }): string {
   const { sectionTitle, originalQuestion, spec, referencesMarkdown } = params
   const isInitial = originalQuestion.questionType === 'initial_confirmation'
 
   const memoSection = referencesMarkdown.trim() ? `\nReferences:\n${referencesMarkdown}\n` : ''
-  const logSection = params.recentTimelineLog.trim()
-    ? `\n直近タイムラインログ:\n${params.recentTimelineLog}\n`
+  const logSection = params.timelineContext.trim()
+    ? `\nTimeline:\n${params.timelineContext}\n`
     : ''
   const markerSection = buildMarkerContextSection(params.markerContexts ?? [])
 
@@ -368,14 +368,14 @@ export function buildQuestionTimelinePrompt(params: {
   spec: string
   referencesMarkdown: string
   existingQuestions: string[]
-  recentTimelineLog: string
+  timelineContext: string
   markerContexts?: MarkerContext[]
 }): string {
   const memoSection = params.referencesMarkdown.trim()
     ? `\nReferences:\n${params.referencesMarkdown}\n`
     : ''
-  const logSection = params.recentTimelineLog.trim()
-    ? `\n直近タイムラインログ:\n${params.recentTimelineLog}\n`
+  const logSection = params.timelineContext.trim()
+    ? `\nTimeline:\n${params.timelineContext}\n`
     : ''
   const existingSection = params.existingQuestions.length
     ? `\n既出質問 (重複・類似禁止):\n${params.existingQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n`

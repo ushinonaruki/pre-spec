@@ -6,7 +6,7 @@ import type { WorkspaceSaveTarget } from '@/lib/storage/saveTarget'
 import { pickSaveTarget } from '@/lib/storage/fsaSaveTarget'
 import { replaceSpecMarkdownAndRefreshSections, advanceCurrentSection } from '@/lib/ldd/headings'
 import { applyFormattedAnswer, applySkip } from '@/lib/ldd/specPatch'
-import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerQuestion, buildRecentLogFromTimeline, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
+import { addManualEdit, addPhaseMarker, addQuestionsToTimeline, addSectionMarkerIfNeeded, answerQuestion, buildTimelineContext, failQuestion, retryQuestion, skipQuestion } from '@/lib/ldd/timelines'
 import { callLLM } from '@/lib/llm/client'
 import { buildAnswerFormatPrompt, buildInitialConfirmationAnswerFormatPrompt, buildInitialConfirmationQuestionsPrompt, buildQuestionTimelinePrompt, buildRelatedSourceReviewPrompt, buildRetryQuestionPrompt, buildSkipMarkerBodyPrompt } from '@/lib/llm/prompts'
 import type { RelatedSourceReviewResult, RetryQuestionResult } from '@/lib/llm/prompts'
@@ -31,7 +31,6 @@ import SpecEditor from '@/components/SpecEditor'
 import InterviewPanel from '@/components/InterviewPanel'
 import ReferencesPanel from '@/components/ReferencesPanel'
 
-const LOG_TAIL_CHARS = 1500
 const AUTOSAVE_DEBOUNCE_MS = 500
 
 type RawQuestion = {
@@ -123,7 +122,7 @@ export default function Home() {
   const [addQuestionError, setAddQuestionError] = useState(false)
   const [retryLLMErrorQuestionId, setRetryLLMErrorQuestionId] = useState<string | null>(null)
   const [saveTarget, setSaveTarget] = useState<WorkspaceSaveTarget | null>(null)
-  const [autosaveError, setAutosaveError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
   const [showFeatureCreateForm, setShowFeatureCreateForm] = useState(false)
   const [renamingFeatureId, setRenamingFeatureId] = useState<string | null>(null)
@@ -162,7 +161,7 @@ export default function Home() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       saveTarget.write(workspace).catch(() => {
-        setAutosaveError(UI_TEXT.app.autosaveError)
+        setSaveError(UI_TEXT.app.autosaveError)
       })
     }, AUTOSAVE_DEBOUNCE_MS)
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current) }
@@ -229,7 +228,7 @@ export default function Home() {
   )
 
   const handleOpenWorkspace = useCallback((ws: Workspace, target: WorkspaceSaveTarget) => {
-    setWorkspace(ws)
+    setWorkspace({ ...ws, features: sortFeatures(ws.features) })
     setSaveTarget(target)
   }, [])
 
@@ -343,7 +342,7 @@ export default function Home() {
         await saveTarget.write(workspace)
         setWorkspace(setActiveFeature(workspace, featureId))
       } catch {
-        setAutosaveError(UI_TEXT.featurePanel.selectFeatureSaveError)
+        setSaveError(UI_TEXT.featurePanel.selectFeatureSaveError)
       }
     },
     [workspace, saveTarget],
@@ -354,7 +353,7 @@ export default function Home() {
     async (featureId: string, newSlug: string): Promise<{ ok: boolean; error?: string }> => {
       if (!workspace || !saveTarget) return { ok: false }
       if (!validateFeatureSlug(newSlug)) return { ok: false, error: UI_TEXT.featurePanel.slugInvalid }
-      if (findFeatureBySlug(workspace.features, newSlug)) return { ok: false, error: UI_TEXT.featurePanel.slugDuplicate }
+      if (workspace.features.some((f) => f.id !== featureId && f.slug === newSlug)) return { ok: false, error: UI_TEXT.featurePanel.slugDuplicate }
       const updated = renameFeature(workspace, featureId, newSlug)
       try {
         await saveTarget.write(updated)
@@ -379,7 +378,7 @@ export default function Home() {
         await saveTarget.write(updated)
         setWorkspace(updated)
       } catch {
-        setAutosaveError(UI_TEXT.featurePanel.deleteSaveError)
+        setSaveError(UI_TEXT.featurePanel.deleteSaveError)
       }
     },
     [workspace, saveTarget],
@@ -414,7 +413,7 @@ export default function Home() {
           spec: activeFeature.spec,
           referencesMarkdown: effectiveRefs,
           existingQuestions,
-          recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
+          timelineContext: buildTimelineContext(activeFeature.timeline),
           markerContexts,
         }),
       )
@@ -476,7 +475,7 @@ export default function Home() {
               answer,
               currentSpec: activeFeature.spec,
               referencesMarkdown: effectiveRefs,
-              recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
+              timelineContext: buildTimelineContext(activeFeature.timeline),
             })
           : buildAnswerFormatPrompt({
               currentHeading: sectionTitle,
@@ -484,7 +483,7 @@ export default function Home() {
               answer,
               currentSpec: activeFeature.spec,
               referencesMarkdown: effectiveRefs,
-              recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
+              timelineContext: buildTimelineContext(activeFeature.timeline),
             }),
       )
       const formatResult = extractJSON<AnswerFormatResult>(text)
@@ -545,7 +544,7 @@ export default function Home() {
             skipInstruction,
             spec: activeFeature.spec,
             referencesMarkdown: effectiveRefs,
-            recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
+            timelineContext: buildTimelineContext(activeFeature.timeline),
           }),
         )
         const result = extractJSON<{ markerBody: string }>(text)
@@ -588,7 +587,7 @@ export default function Home() {
             originalQuestion: questionItem,
             spec: activeFeature.spec,
             referencesMarkdown: effectiveRefs,
-            recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
+            timelineContext: buildTimelineContext(activeFeature.timeline),
             markerContexts: extractMarkerContexts(activeFeature.spec, markerDefinitions),
           }),
         )
@@ -733,11 +732,11 @@ export default function Home() {
       </header>
 
       {/* Autosave / export error banner */}
-      {(autosaveError || exportError) && (
+      {(saveError || exportError) && (
         <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700">
-          <span className="flex-1">{autosaveError ?? exportError}</span>
+          <span className="flex-1">{saveError ?? exportError}</span>
           <button
-            onClick={() => { setAutosaveError(null); setExportError(null) }}
+            onClick={() => { setSaveError(null); setExportError(null) }}
             className="shrink-0 text-red-400 hover:text-red-700 transition-colors cursor-pointer"
           >
             ✕
@@ -1134,7 +1133,7 @@ function FeatureRelatedRow({
         value={entry.note}
         onChange={(e) => onChange(entry.id, { note: e.target.value })}
         placeholder={UI_TEXT.featurePanel.relatedNotePlaceholder}
-        rows={1}
+        rows={2}
         className="w-full text-xs px-2 py-0.5 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 resize-none"
       />
     </div>
