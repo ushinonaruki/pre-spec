@@ -379,7 +379,7 @@ export default function Home() {
         await saveTarget.write(updated)
         setWorkspace(updated)
       } catch {
-        setAutosaveError(UI_TEXT.app.autosaveError)
+        setAutosaveError(UI_TEXT.featurePanel.deleteSaveError)
       }
     },
     [workspace, saveTarget],

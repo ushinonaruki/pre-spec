@@ -67,6 +67,7 @@ export const UI_TEXT = {
     deleteButton: '×',
     deleteConfirm: (slug: string) => `「${slug}」を削除しますか？この操作は取り消せません。`,
     selectFeatureSaveError: 'Feature の切り替えに失敗しました。保存状態を確認してください。',
+    deleteSaveError: 'Feature の削除後の保存に失敗しました。ファイルの書き込み権限を確認してください。',
   },
 
   references: {

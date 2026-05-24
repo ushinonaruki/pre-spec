@@ -35,7 +35,7 @@ const webFetchTool = {
   },
 }
 
-async function fetchUrlAsText(url: string): Promise<string> {
+async function fetchUrlAsText(url: string): Promise<string | null> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), WEB_FETCH_TIMEOUT_MS)
   try {
@@ -47,7 +47,7 @@ async function fetchUrlAsText(url: string): Promise<string> {
     if (!res.ok) return `Error: HTTP ${res.status}`
 
     const contentType = res.headers.get('content-type') ?? ''
-    if (!contentType.includes('text/')) return `Error: unsupported content type (${contentType})`
+    if (!contentType.includes('text/')) return null
 
     const text = await res.text()
     const extracted = contentType.includes('text/html')
@@ -121,10 +121,15 @@ export async function POST(request: Request) {
         if (block.type === 'tool_use' && block.name === 'web_fetch') {
           const fetchTarget = (block.input.url as string | undefined) ?? ''
           const policy = evaluateUrlFetchPolicy(fetchTarget)
-          const content = policy.allowed
-            ? await fetchUrlAsText(fetchTarget)
-            : `URL fetch was blocked by URL fetch policy: ${policy.reason}`
-          toolResults.push({ type: 'tool_result', tool_use_id: block.id, content })
+          if (!policy.allowed) {
+            toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: `URL fetch was blocked by URL fetch policy: ${policy.reason}` })
+            continue
+          }
+          const fetchResult = await fetchUrlAsText(fetchTarget)
+          if (fetchResult === null) {
+            return Response.json({ error: 'URL fetch failed: unsupported content type' }, { status: 502 })
+          }
+          toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: fetchResult })
         }
       }
 
