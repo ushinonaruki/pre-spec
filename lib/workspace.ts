@@ -1,12 +1,12 @@
 import type { Workspace } from '@/types'
-import { validateProjectFileBase } from '@/lib/ldd/fileBase'
+import { validateSlugBase } from '@/lib/ldd/fileBase'
 
 export function generateWorkspaceId(): string {
   return crypto.randomUUID()
 }
 
 export function validateWorkspaceSlug(input: string): boolean {
-  return validateProjectFileBase(input)
+  return validateSlugBase(input)
 }
 
 export function createWorkspace(slug: string, references = ''): Workspace {

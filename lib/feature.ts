@@ -1,6 +1,6 @@
 import type { Feature, Workspace } from '@/types'
 import { SPEC_TEMPLATE, extractSections } from '@/lib/markdown'
-import { validateProjectFileBase } from '@/lib/ldd/fileBase'
+import { validateSlugBase } from '@/lib/ldd/fileBase'
 
 export type InitialRelatedSource =
   | { kind: 'file'; filename: string; content: string; note?: string }
@@ -11,7 +11,7 @@ export function generateFeatureId(): string {
 }
 
 export function validateFeatureSlug(input: string): boolean {
-  return validateProjectFileBase(input)
+  return validateSlugBase(input)
 }
 
 export function sortFeatures(features: Feature[]): Feature[] {
