@@ -18,10 +18,6 @@ export function sortFeatures(features: Feature[]): Feature[] {
   return [...features].sort((a, b) => a.slug.localeCompare(b.slug))
 }
 
-export function findFeatureById(features: Feature[], id: string): Feature | undefined {
-  return features.find((f) => f.id === id)
-}
-
 export function findFeatureBySlug(features: Feature[], slug: string): Feature | undefined {
   return features.find((f) => f.slug === slug)
 }

@@ -63,13 +63,15 @@ export default function SpecEditor({ value, onSave, disabled = false }: Props) {
             <div className="flex border border-stone-200 rounded overflow-hidden">
               <button
                 onClick={() => setViewMode('preview')}
-                className={`text-xs px-2 py-1 transition-colors cursor-pointer ${viewMode === 'preview' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
+                disabled={disabled}
+                className={`text-xs px-2 py-1 transition-colors ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'preview' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
               >
                 {UI_TEXT.specEditor.previewButton}
               </button>
               <button
                 onClick={() => setViewMode('source')}
-                className={`text-xs px-2 py-1 transition-colors cursor-pointer border-l border-stone-200 ${viewMode === 'source' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
+                disabled={disabled}
+                className={`text-xs px-2 py-1 transition-colors border-l border-stone-200 ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'source' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
               >
                 {UI_TEXT.specEditor.sourceButton}
               </button>

@@ -152,6 +152,8 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
         lines.push(`  - ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(q.updatedAt)}`)
       } else {
         lines.push(TIMELINE_TEXT.statusOpen)
+        lines.push(`  - ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(q.createdAt)}`)
+        lines.push(`  - ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(q.updatedAt)}`)
       }
       lines.push('')
     } else if (item.type === 'manual_edit') {
