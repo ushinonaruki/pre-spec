@@ -275,7 +275,6 @@ export default function Home() {
       try {
         const text = await callLLM(
           buildInitialConfirmationQuestionsPrompt({
-            requirementMemo: params.requirementMemo,
             referencesMarkdown: effectiveRefs,
             spec: newFeature.spec,
             sections: newFeature.sections,
