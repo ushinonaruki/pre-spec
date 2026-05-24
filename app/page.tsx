@@ -276,6 +276,7 @@ export default function Home() {
           buildInitialConfirmationQuestionsPrompt({
             requirementMemo: params.requirementMemo,
             referencesMarkdown: effectiveRefs,
+            spec: newFeature.spec,
             sections: newFeature.sections,
           }),
         )
@@ -305,6 +306,7 @@ export default function Home() {
             proposedMarkdown: q.proposedMarkdown,
             status: 'open' as const,
             createdAt: now,
+            updatedAt: now,
           }
         })
         .filter((q): q is Question => q !== null)
@@ -432,6 +434,7 @@ export default function Home() {
         aiGuess: q.aiGuess,
         status: 'open' as const,
         createdAt: now,
+        updatedAt: now,
       }))
 
       updateActiveFeature((prev) => {
@@ -531,7 +534,16 @@ export default function Home() {
       let markerBody: string
       try {
         const text = await callLLM(
-          buildSkipMarkerBodyPrompt({ sectionTitle, questionText, proposedMarkdown, aiGuess, skipReason: reason, skipInstruction }),
+          buildSkipMarkerBodyPrompt({
+            sectionTitle,
+            questionText,
+            proposedMarkdown,
+            aiGuess,
+            skipReason: reason,
+            skipInstruction,
+            spec: activeFeature.spec,
+            recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
+          }),
         )
         const result = extractJSON<{ markerBody: string }>(text)
         if (!result?.markerBody?.trim()) throw new Error('Invalid result')
@@ -573,6 +585,7 @@ export default function Home() {
             originalQuestion: questionItem,
             spec: activeFeature.spec,
             referencesMarkdown: effectiveRefs,
+            recentTimelineLog: buildRecentLogFromTimeline(activeFeature.timeline, LOG_TAIL_CHARS),
             markerContexts: extractMarkerContexts(activeFeature.spec, markerDefinitions),
           }),
         )
@@ -593,6 +606,7 @@ export default function Home() {
           proposedMarkdown: raw.proposedMarkdown,
           status: 'open' as const,
           createdAt: now,
+          updatedAt: now,
         }
         updateActiveFeature((prev) => retryQuestion(prev, { questionId, newQuestion }))
       } catch {
