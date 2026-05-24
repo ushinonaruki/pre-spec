@@ -21,7 +21,7 @@ import { buildRelatedSourceBlock, extractImportedNames, resolveSourceName, URL_S
 import { buildCheckedAt } from '@/lib/locale'
 import { buildEffectiveReferencesForFeature, buildOutputReferencesForFeature, appendGlobalReference, appendLocalReference } from '@/lib/referencesScope'
 import { buildInitialRequirementMemoBlock } from '@/lib/references'
-import { createWorkspace, validateWorkspaceSlug } from '@/lib/workspace'
+import { createWorkspace } from '@/lib/workspace'
 import { createFeature, deleteFeature, findFeatureBySlug, renameFeature, setActiveFeature, sortFeatures, validateFeatureSlug } from '@/lib/feature'
 import type { InitialRelatedSource } from '@/lib/feature'
 import { UI_TEXT } from '@/lib/text/uiText'
