@@ -478,7 +478,7 @@ export default function InterviewPanel({
         <span title={disabledTitle}>
           <button
             onClick={onNext}
-            disabled={nextDisabled ?? openCount > 0}
+            disabled={nextDisabled}
             className="text-xs px-3 py-1 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {UI_TEXT.interview.nextButton}
@@ -487,7 +487,7 @@ export default function InterviewPanel({
         <span title={disabledTitle}>
           <button
             onClick={onAddQuestions}
-            disabled={disabled || isGenerating || (addQuestionsDisabled ?? openCount > 0)}
+            disabled={disabled || isGenerating || addQuestionsDisabled}
             className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {isGenerating ? UI_TEXT.interview.addQuestionsLoading : UI_TEXT.interview.addQuestionsButton}

@@ -135,8 +135,7 @@ export function failQuestion(
   const now = new Date().toISOString()
   const timeline = feature.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
-      const { answer, skipReason, skipCustomText, reflectedMarkdown, ...baseQuestion } = item
-      void answer; void skipReason; void skipCustomText; void reflectedMarkdown
+      const { answer: _answer, skipReason: _skipReason, skipCustomText: _skipCustomText, reflectedMarkdown: _reflectedMarkdown, ...baseQuestion } = item
       return {
         ...baseQuestion,
         status: 'failed' as const,
