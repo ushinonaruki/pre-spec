@@ -95,10 +95,6 @@ export default function ReferencesPanel({
     e.target.value = ''
     try {
       const content = await file.text()
-      if (!content.trim()) {
-        setReviewError(UI_TEXT.file.emptyFile(file.name))
-        return
-      }
       setFileContent(content)
       setFileName(file.name)
       setReviewError(null)

@@ -102,8 +102,14 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
     if (item.type === 'phase_marker') {
       lines.push(`## ${item.label}`)
       lines.push('')
+      lines.push(`- ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(item.createdAt)}`)
+      lines.push(`- ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(item.updatedAt)}`)
+      lines.push('')
     } else if (item.type === 'section_marker') {
-      lines.push(TIMELINE_TEXT.sectionMarker(item.sectionTitle, formatTimestamp(item.createdAt)))
+      lines.push(TIMELINE_TEXT.sectionMarker(item.sectionTitle))
+      lines.push('')
+      lines.push(`- ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(item.createdAt)}`)
+      lines.push(`- ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(item.updatedAt)}`)
       lines.push('')
     } else if (item.type === 'question') {
       const q = item as Question
@@ -151,6 +157,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
       lines.push(TIMELINE_TEXT.manualEditHeading)
       lines.push('')
       lines.push(`- ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(item.createdAt)}`)
+      lines.push(`- ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(item.updatedAt)}`)
       lines.push('')
     }
   }

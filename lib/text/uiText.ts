@@ -1,9 +1,4 @@
 export const UI_TEXT = {
-  file: {
-    emptyFile: (filename: string) =>
-      `選択されたファイルは空です: ${filename}\n内容のある .md / .txt ファイルを選択してください。`,
-  },
-
   app: {
     name: 'pre-spec',
     tagline: 'Spec Interview Workbench',
@@ -154,15 +149,6 @@ export const UI_TEXT = {
     failedReason: 'セクションが見つかりません',
     answeredApplyNote: 'この内容を反映します',
     targetSectionLabel: '反映先セクション',
-  },
-
-  preflight: {
-    downloadConfirmTitle: '出力前チェック',
-    downloadConfirmOpenQuestions: (n: number) => `未回答の質問: ${n}件`,
-    downloadConfirmMarkerHeader: 'marker:',
-    downloadConfirmMarkerItem: (name: string, n: number) => `  - ${name}: ${n}件`,
-    downloadConfirmWarning: '未回答の質問 または marker が残っています。',
-    downloadConfirmPrompt: 'この状態で成果物を出力しますか？',
   },
 
   initialConfirmation: {
