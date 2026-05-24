@@ -700,7 +700,7 @@ export default function Home() {
   const effectiveSkipReasons: EffectiveSkipReason[] = getEffectiveSkipReasons(skipReasonDefinitions)
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-stone-50">
+    <div className="h-screen flex flex-col overflow-hidden bg-white">
       {/* Header */}
       <header className="shrink-0 flex items-center gap-3 px-4 py-2 bg-white border-b border-stone-200">
         <span className="font-semibold text-stone-800 text-sm">{UI_TEXT.app.name}</span>
@@ -729,22 +729,15 @@ export default function Home() {
       )}
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Left column */}
-        <div className="flex flex-col w-1/2 min-w-0 border-r border-stone-200">
-
+        {/* Left column: Feature (1/2) + References (1/2) (w-1/3) */}
+        <div className="flex flex-col w-1/3 min-w-0 border-r border-stone-200">
           {/* Feature 一覧 */}
-          <div className="shrink-0 border-b border-stone-200 bg-stone-50 px-3 py-2 space-y-1 max-h-48 overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-stone-600">
-                {UI_TEXT.featurePanel.title}
-                <span className="ml-1 text-stone-400 font-normal">{workspace.slug}</span>
-              </span>
+          <div className="flex-1 min-h-0 flex flex-col border-b border-stone-200">
+            <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
+              <span className="text-xs font-medium text-stone-500">Workspace</span>
+              <span className="text-xs font-bold text-stone-800">{workspace.slug}</span>
             </div>
-
-            {workspace.features.length === 0 && (
-              <p className="text-xs text-stone-400">{UI_TEXT.featurePanel.noFeatures}</p>
-            )}
-
+            <div className="flex-1 min-h-0 px-3 py-2 space-y-1 overflow-y-auto">
             {workspace.features.map((feature) => {
               const isActive = feature.id === workspace.activeFeatureId
               const isRenaming = renamingFeatureId === feature.id
@@ -829,19 +822,11 @@ export default function Home() {
                 {UI_TEXT.featurePanel.addButton}
               </button>
             )}
-          </div>
-
-          {/* spec editor */}
-          <div className="flex-[2] min-h-0 overflow-hidden">
-            <SpecEditor
-              value={activeFeature?.spec ?? ''}
-              onSave={handleSpecSave}
-              disabled={!activeFeature}
-            />
+            </div>
           </div>
 
           {/* References */}
-          <div className="flex-1 min-h-0 border-t border-stone-200 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <ReferencesPanel
               globalReferences={workspace.references}
               localReferences={activeFeature?.references ?? ''}
@@ -852,8 +837,17 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right column: interview panel */}
-        <div className="flex flex-col w-1/2 min-w-0 overflow-hidden">
+        {/* Middle column: spec.md (w-1/3) */}
+        <div className="flex flex-col w-1/3 min-w-0 border-r border-stone-200 overflow-hidden">
+          <SpecEditor
+            value={activeFeature?.spec ?? ''}
+            onSave={handleSpecSave}
+            disabled={!activeFeature}
+          />
+        </div>
+
+        {/* Right column: Timeline (w-1/3) */}
+        <div className="flex flex-col w-1/3 min-w-0 overflow-hidden">
           <InterviewPanel
             currentSection={currentSection}
             timeline={activeFeature?.timeline ?? []}

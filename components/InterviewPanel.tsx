@@ -470,43 +470,38 @@ export default function InterviewPanel({
   }
 
   return (
-    <div className="flex flex-col h-full p-4 gap-3">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="shrink-0 space-y-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-stone-800 truncate">## {currentSection.title}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span title={disabledTitle}>
-              <button
-                onClick={onNext}
-                disabled={nextDisabled ?? openCount > 0}
-                className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-              >
-                {UI_TEXT.interview.nextButton}
-              </button>
-            </span>
-            <span title={disabledTitle}>
-              <button
-                onClick={onAddQuestions}
-                disabled={disabled || isGenerating || (addQuestionsDisabled ?? openCount > 0)}
-                className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isGenerating ? UI_TEXT.interview.addQuestionsLoading : UI_TEXT.interview.addQuestionsButton}
-              </button>
-            </span>
-          </div>
-        </div>
-        {addQuestionError && (
-          <QuestionErrorBanner text={UI_TEXT.interview.generateQuestionsError} onDismiss={onDismissAddQuestionError} />
-        )}
+      <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
+        <span className="text-xs font-medium text-stone-500 shrink-0">Timeline</span>
+        <span className="text-xs font-bold text-stone-800 mr-auto truncate">## {currentSection.title}</span>
+        <span title={disabledTitle}>
+          <button
+            onClick={onNext}
+            disabled={nextDisabled ?? openCount > 0}
+            className="text-xs px-3 py-1 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            {UI_TEXT.interview.nextButton}
+          </button>
+        </span>
+        <span title={disabledTitle}>
+          <button
+            onClick={onAddQuestions}
+            disabled={disabled || isGenerating || (addQuestionsDisabled ?? openCount > 0)}
+            className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isGenerating ? UI_TEXT.interview.addQuestionsLoading : UI_TEXT.interview.addQuestionsButton}
+          </button>
+        </span>
       </div>
+      {addQuestionError && (
+        <QuestionErrorBanner text={UI_TEXT.interview.generateQuestionsError} onDismiss={onDismissAddQuestionError} />
+      )}
 
       {/* Timeline */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-4 bg-stone-50 border border-stone-200 rounded-lg p-3" ref={scrollRef}>
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
         {timeline.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-stone-400">
+          <div className="flex flex-col items-center justify-center min-h-full gap-3 text-stone-400">
             <p className="text-sm">{UI_TEXT.interview.timelineEmpty}</p>
             <p className="text-xs">{UI_TEXT.interview.timelineEmptyHint}</p>
           </div>

@@ -91,7 +91,7 @@ export const UI_TEXT = {
   },
 
   specEditor: {
-    fileLabel: 'spec.md',
+    fileLabel: 'Spec',
     previewButton: 'Preview',
     sourceButton: 'Source',
     editButton: 'Edit',

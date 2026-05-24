@@ -41,7 +41,7 @@ export default function SpecEditor({ value, onSave, disabled = false }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-stone-200 bg-stone-50 shrink-0">
+      <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
         <span className="text-xs font-medium text-stone-500 mr-auto">{UI_TEXT.specEditor.fileLabel}</span>
         {viewMode === 'edit' ? (
           <>
