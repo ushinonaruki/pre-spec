@@ -7,14 +7,6 @@ const CURRENT_VERSION = '2'
 
 export const PRE_SPEC_FILE_SUFFIX = '.pre-spec.json'
 
-export function getFeatureFilenames(featureSlug: string) {
-  return {
-    spec: `specs/${featureSlug}/spec.md`,
-    references: `specs/${featureSlug}/references.md`,
-    timeline: `specs/${featureSlug}/timeline.md`,
-  }
-}
-
 export function workspaceToPreSpecWorkspace(workspace: Workspace): PreSpecWorkspace {
   return {
     version: CURRENT_VERSION,
