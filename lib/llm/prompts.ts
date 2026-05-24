@@ -4,6 +4,7 @@ import { KIND_CANDIDATES, PRIORITY_CANDIDATES } from '@/lib/config/questionTaxon
 export function buildInitialConfirmationQuestionsPrompt(params: {
   requirementMemo: string
   referencesMarkdown: string
+  spec: string
   sections: Section[]
 }): string {
   const sectionTitles = params.sections.map((s) => `- ${s.title}`).join('\n')
@@ -20,6 +21,10 @@ export function buildInitialConfirmationQuestionsPrompt(params: {
 要件定義メモ:
 ${params.requirementMemo}
 ${refSection}
+## 現在の spec.md
+
+${params.spec}
+
 ## spec.md セクション一覧
 
 ${sectionTitles}
@@ -232,12 +237,17 @@ export function buildSkipMarkerBodyPrompt(params: {
   aiGuess?: { value: string; rationale: string }
   skipReason: string
   skipInstruction: string
+  spec: string
+  recentTimelineLog: string
 }): string {
   const proposedSection = params.proposedMarkdown?.trim()
     ? `\n提案 Markdown:\n${params.proposedMarkdown}\n`
     : ''
   const aiGuessSection = params.aiGuess
     ? `\nAI推定値: ${params.aiGuess.value}\n推定根拠: ${params.aiGuess.rationale}\n`
+    : ''
+  const logSection = params.recentTimelineLog.trim()
+    ? `\n直近タイムラインログ:\n${params.recentTimelineLog}\n`
     : ''
 
   return `あなたは pre-spec の skip marker 生成エンジンです。
@@ -247,6 +257,9 @@ export function buildSkipMarkerBodyPrompt(params: {
 セクション: ${params.sectionTitle}
 質問: ${params.questionText}
 ${proposedSection}${aiGuessSection}
+現在の spec.md:
+${params.spec}
+${logSection}
 指示: ${params.skipInstruction}
 
 ルール:
@@ -274,12 +287,16 @@ export function buildRetryQuestionPrompt(params: {
   originalQuestion: Pick<Question, 'text' | 'questionType' | 'kinds' | 'priority' | 'aiGuess' | 'proposedMarkdown'>
   spec: string
   referencesMarkdown: string
+  recentTimelineLog: string
   markerContexts?: MarkerContext[]
 }): string {
   const { sectionTitle, originalQuestion, spec, referencesMarkdown } = params
   const isInitial = originalQuestion.questionType === 'initial_confirmation'
 
   const memoSection = referencesMarkdown.trim() ? `\nReferences:\n${referencesMarkdown}\n` : ''
+  const logSection = params.recentTimelineLog.trim()
+    ? `\n直近タイムラインログ:\n${params.recentTimelineLog}\n`
+    : ''
   const markerSection = buildMarkerContextSection(params.markerContexts ?? [])
 
   const kindsStr = originalQuestion.kinds?.length ? originalQuestion.kinds.join(' / ') : '(なし)'
@@ -323,7 +340,7 @@ priority: ${priorityStr}${aiGuessStr}${proposedStr}
 ## 現在の spec.md
 
 ${spec}
-${memoSection}${markerSection}
+${memoSection}${logSection}${markerSection}
 ## ルール
 
 - セクションは変えない（"## ${sectionTitle}" のみを対象にする）

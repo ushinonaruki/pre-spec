@@ -22,6 +22,7 @@ export type PhaseMarker = {
   type: 'phase_marker'
   label: 'Initial Setup'
   createdAt: string
+  updatedAt: string
 }
 
 export type SectionMarker = {
@@ -30,12 +31,14 @@ export type SectionMarker = {
   sectionId: string
   sectionTitle: string
   createdAt: string
+  updatedAt: string
 }
 
 export type ManualEdit = {
   id: string
   type: 'manual_edit'
   createdAt: string
+  updatedAt: string
 }
 
 export type Question = {
@@ -56,14 +59,12 @@ export type Question = {
   answer?: string
   skipReason?: SkipReason
   skipCustomText?: string
-  skippedAt?: string
   reflectedMarkdown?: string
-  failedAt?: string
   failureReason?: 'target_section_not_found'
   attemptedAnswer?: string
   attemptedSkip?: { reason: string; customText?: string }
   createdAt: string
-  answeredAt?: string
+  updatedAt: string
 }
 
 export type TimelineItem = PhaseMarker | SectionMarker | Question | ManualEdit

@@ -49,12 +49,14 @@ export function addSectionMarkerIfNeeded(feature: Feature): Feature {
   const section = feature.sections.find((s) => s.id === currentSectionId)
   if (!section) return feature
 
+  const now = new Date().toISOString()
   const marker: SectionMarker = {
     id: crypto.randomUUID(),
     type: 'section_marker',
     sectionId: section.id,
     sectionTitle: section.title,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   }
   return { ...feature, timeline: [...timeline, marker] }
 }
@@ -74,8 +76,8 @@ export function answerQuestion(
         ...item,
         status: 'answered' as const,
         answer: params.answer,
-        answeredAt: now,
         reflectedMarkdown: params.reflectedMarkdown,
+        updatedAt: now,
       }
     }
     return item
@@ -84,20 +86,24 @@ export function answerQuestion(
 }
 
 export function addManualEdit(feature: Feature): Feature {
+  const now = new Date().toISOString()
   const manualEdit: ManualEdit = {
     id: crypto.randomUUID(),
     type: 'manual_edit',
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   }
   return { ...feature, timeline: [...feature.timeline, manualEdit] }
 }
 
 export function addPhaseMarker(feature: Feature): Feature {
+  const now = new Date().toISOString()
   const marker: PhaseMarker = {
     id: crypto.randomUUID(),
     type: 'phase_marker',
     label: 'Initial Setup',
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   }
   return { ...feature, timeline: [...feature.timeline, marker] }
 }
@@ -129,20 +135,15 @@ export function failQuestion(
   const now = new Date().toISOString()
   const timeline = feature.timeline.map((item): TimelineItem => {
     if (item.type === 'question' && item.id === params.questionId) {
-      const baseQuestion = { ...item }
-      delete baseQuestion.answer
-      delete baseQuestion.answeredAt
-      delete baseQuestion.skipReason
-      delete baseQuestion.skipCustomText
-      delete baseQuestion.skippedAt
-      delete baseQuestion.reflectedMarkdown
+      const { answer, skipReason, skipCustomText, reflectedMarkdown, ...baseQuestion } = item
+      void answer; void skipReason; void skipCustomText; void reflectedMarkdown
       return {
         ...baseQuestion,
         status: 'failed' as const,
-        failedAt: now,
         failureReason: 'target_section_not_found' as const,
         attemptedAnswer: params.attemptedAnswer,
         attemptedSkip: params.attemptedSkip,
+        updatedAt: now,
       }
     }
     return item
@@ -167,8 +168,8 @@ export function skipQuestion(
         status: 'skipped' as const,
         skipReason: params.skipReason,
         skipCustomText: params.skipCustomText,
-        skippedAt: now,
         reflectedMarkdown: params.reflectedMarkdown,
+        updatedAt: now,
       }
     }
     return item

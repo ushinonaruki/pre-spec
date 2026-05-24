@@ -122,7 +122,8 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
           lines.push(`  - ${TIMELINE_TEXT.reflectedLabel}:`)
           lines.push(`    ${q.reflectedMarkdown}`)
         }
-        if (q.answeredAt) lines.push(`  - ${TIMELINE_TEXT.answeredAtLabel}: ${formatTimestamp(q.answeredAt)}`)
+        lines.push(`  - ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(q.createdAt)}`)
+        lines.push(`  - ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(q.updatedAt)}`)
       } else if (q.status === 'skipped') {
         lines.push(TIMELINE_TEXT.statusSkipped)
         if (q.skipReason) lines.push(`  - ${TIMELINE_TEXT.reasonLabel}: ${q.skipReason}`)
@@ -131,15 +132,17 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
           lines.push(`  - ${TIMELINE_TEXT.reflectedLabel}:`)
           lines.push(`    ${q.reflectedMarkdown}`)
         }
-        if (q.skippedAt) lines.push(`  - ${TIMELINE_TEXT.skippedAtLabel}: ${formatTimestamp(q.skippedAt)}`)
+        lines.push(`  - ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(q.createdAt)}`)
+        lines.push(`  - ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(q.updatedAt)}`)
       } else if (q.status === 'failed') {
         lines.push(TIMELINE_TEXT.statusFailed)
         if (q.failureReason) lines.push(`  - ${TIMELINE_TEXT.failureReasonLabel}: ${q.failureReason}`)
-        if (q.failedAt) lines.push(`  - ${TIMELINE_TEXT.failedAtLabel}: ${formatTimestamp(q.failedAt)}`)
         if (q.attemptedAnswer) lines.push(`  - ${TIMELINE_TEXT.attemptedAnswerLabel}: ${q.attemptedAnswer}`)
         if (q.attemptedSkip) {
           lines.push(`  - ${TIMELINE_TEXT.attemptedSkipLabel}: reason=${q.attemptedSkip.reason}${q.attemptedSkip.customText ? ` / ${q.attemptedSkip.customText}` : ''}`)
         }
+        lines.push(`  - ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(q.createdAt)}`)
+        lines.push(`  - ${TIMELINE_TEXT.updatedAtLabel}: ${formatTimestamp(q.updatedAt)}`)
       } else {
         lines.push(TIMELINE_TEXT.statusOpen)
       }
@@ -147,7 +150,7 @@ export function generateTimelineMarkdown(timeline: TimelineItem[]): string {
     } else if (item.type === 'manual_edit') {
       lines.push(TIMELINE_TEXT.manualEditHeading)
       lines.push('')
-      lines.push(`- createdAt: ${formatTimestamp(item.createdAt)}`)
+      lines.push(`- ${TIMELINE_TEXT.createdAtLabel}: ${formatTimestamp(item.createdAt)}`)
       lines.push('')
     }
   }
