@@ -129,6 +129,7 @@ export default function Home() {
   const [renameValue, setRenameValue] = useState('')
   const [renameError, setRenameError] = useState<string | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipNextAutosaveRef = useRef(false)
 
   const activeFeature = workspace?.features.find((f) => f.id === workspace.activeFeatureId) ?? null
   const hasFeatures = (workspace?.features.length ?? 0) > 0
@@ -158,6 +159,10 @@ export default function Home() {
 
   useEffect(() => {
     if (!workspace || !saveTarget) return
+    if (skipNextAutosaveRef.current) {
+      skipNextAutosaveRef.current = false
+      return
+    }
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
       saveTarget.write(workspace).catch(() => {
@@ -328,6 +333,7 @@ export default function Home() {
         return { ok: false, error: UI_TEXT.featurePanel.createSaveError }
       }
 
+      skipNextAutosaveRef.current = true
       setWorkspace(updatedWs)
       return { ok: true }
     },
@@ -357,6 +363,7 @@ export default function Home() {
       const updated = renameFeature(workspace, featureId, newSlug)
       try {
         await saveTarget.write(updated)
+        skipNextAutosaveRef.current = true
         setWorkspace(updated)
         return { ok: true }
       } catch {
@@ -376,6 +383,7 @@ export default function Home() {
       const updated = deleteFeature(workspace, featureId)
       try {
         await saveTarget.write(updated)
+        skipNextAutosaveRef.current = true
         setWorkspace(updated)
       } catch {
         setSaveError(UI_TEXT.featurePanel.deleteSaveError)
@@ -731,12 +739,24 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Autosave / export error banner */}
-      {(saveError || exportError) && (
+      {/* Save error banner */}
+      {saveError && (
         <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700">
-          <span className="flex-1">{saveError ?? exportError}</span>
+          <span className="flex-1">{saveError}</span>
           <button
-            onClick={() => { setSaveError(null); setExportError(null) }}
+            onClick={() => { setSaveError(null) }}
+            className="shrink-0 text-red-400 hover:text-red-700 transition-colors cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      {/* Export error banner */}
+      {exportError && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700">
+          <span className="flex-1">{exportError}</span>
+          <button
+            onClick={() => { setExportError(null) }}
             className="shrink-0 text-red-400 hover:text-red-700 transition-colors cursor-pointer"
           >
             ✕
