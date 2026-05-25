@@ -34,7 +34,7 @@ type OpenResult = {
   saveTarget: WorkspaceSaveTarget
 }
 
-export async function pickOpenTarget(): Promise<OpenResult> {
+export async function pickExistingWorkspaceSaveTarget(): Promise<OpenResult> {
   assertFSASupported()
   const [handle] = await window.showOpenFilePicker({
     types: [{ description: 'pre-spec work file', accept: { 'application/json': ['.json'] } }],
