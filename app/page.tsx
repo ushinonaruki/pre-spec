@@ -739,12 +739,24 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Autosave / export error banner */}
-      {(saveError || exportError) && (
+      {/* Save error banner */}
+      {saveError && (
         <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700">
-          <span className="flex-1">{saveError ?? exportError}</span>
+          <span className="flex-1">{saveError}</span>
           <button
-            onClick={() => { setSaveError(null); setExportError(null) }}
+            onClick={() => { setSaveError(null) }}
+            className="shrink-0 text-red-400 hover:text-red-700 transition-colors cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      {/* Export error banner */}
+      {exportError && (
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700">
+          <span className="flex-1">{exportError}</span>
+          <button
+            onClick={() => { setExportError(null) }}
             className="shrink-0 text-red-400 hover:text-red-700 transition-colors cursor-pointer"
           >
             ✕
