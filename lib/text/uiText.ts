@@ -105,7 +105,7 @@ export const UI_TEXT = {
     label: 'spec.md を手動編集しました',
   },
 
-  bottomTabs: {
+  referencesPanel: {
     referencesTitle: 'References',
     addRefButton: '+ 追加',
     addRefFile: 'ファイル',

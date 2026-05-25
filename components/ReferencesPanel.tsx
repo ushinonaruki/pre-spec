@@ -66,7 +66,7 @@ export default function ReferencesPanel({
       if (result.ok) {
         closeAddForm()
       } else {
-        setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+        setReviewError(result.reason ? UI_TEXT.referencesPanel.addRefUnreadable(result.reason) : UI_TEXT.referencesPanel.addRefError)
       }
     } finally {
       setIsReviewing(false)
@@ -82,7 +82,7 @@ export default function ReferencesPanel({
       if (result.ok) {
         closeAddForm()
       } else {
-        setReviewError(result.reason ? UI_TEXT.bottomTabs.addRefUnreadable(result.reason) : UI_TEXT.bottomTabs.addRefError)
+        setReviewError(result.reason ? UI_TEXT.referencesPanel.addRefUnreadable(result.reason) : UI_TEXT.referencesPanel.addRefError)
       }
     } finally {
       setIsReviewing(false)
@@ -99,7 +99,7 @@ export default function ReferencesPanel({
       setFileName(file.name)
       setReviewError(null)
     } catch {
-      setReviewError(UI_TEXT.bottomTabs.addRefFileReadError)
+      setReviewError(UI_TEXT.referencesPanel.addRefFileReadError)
     }
   }
 
@@ -108,7 +108,7 @@ export default function ReferencesPanel({
       <textarea
         value={noteInput}
         onChange={(e) => setNoteInput(e.target.value)}
-        placeholder={UI_TEXT.bottomTabs.addRefNotePlaceholder}
+        placeholder={UI_TEXT.referencesPanel.addRefNotePlaceholder}
         disabled={isReviewing}
         rows={2}
         className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 disabled:opacity-50 resize-none"
@@ -120,7 +120,7 @@ export default function ReferencesPanel({
     <div className="flex flex-col h-full">
       {/* Header: scope tabs + add button */}
       <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
-        <span className="text-xs font-medium text-stone-500 mr-auto">{UI_TEXT.bottomTabs.referencesTitle}</span>
+        <span className="text-xs font-medium text-stone-500 mr-auto">{UI_TEXT.referencesPanel.referencesTitle}</span>
         <div className="flex border border-stone-200 rounded overflow-hidden">
           <button
             onClick={() => { setScopeTab('global'); closeAddForm() }}
@@ -141,7 +141,7 @@ export default function ReferencesPanel({
             onClick={openAddForm}
             className="text-xs text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
           >
-            {UI_TEXT.bottomTabs.addRefButton}
+            {UI_TEXT.referencesPanel.addRefButton}
           </button>
         )}
       </div>
@@ -155,21 +155,21 @@ export default function ReferencesPanel({
                 disabled={isReviewing}
                 className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 cursor-pointer ${addMode === 'file' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
               >
-                {UI_TEXT.bottomTabs.addRefFile}
+                {UI_TEXT.referencesPanel.addRefFile}
               </button>
               <button
                 onClick={() => { setAddMode('url'); setReviewError(null) }}
                 disabled={isReviewing}
                 className={`text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 cursor-pointer ${addMode === 'url' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:text-stone-700'}`}
               >
-                {UI_TEXT.bottomTabs.addRefUrl}
+                {UI_TEXT.referencesPanel.addRefUrl}
               </button>
               <button
                 onClick={closeAddForm}
                 disabled={isReviewing}
                 className="ml-auto text-xs text-stone-400 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
-                {UI_TEXT.bottomTabs.addRefCloseButton}
+                {UI_TEXT.referencesPanel.addRefCloseButton}
               </button>
             </div>
 
@@ -190,7 +190,7 @@ export default function ReferencesPanel({
                       onClick={() => fileInputRef.current?.click()}
                       className="text-sm px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 transition-colors cursor-pointer"
                     >
-                      {UI_TEXT.bottomTabs.addRefFileButton}
+                      {UI_TEXT.referencesPanel.addRefFileButton}
                     </button>
                   )}
                 </div>
@@ -201,7 +201,7 @@ export default function ReferencesPanel({
                     disabled={!fileContent || isReviewing}
                     className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
-                    {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
+                    {isReviewing ? UI_TEXT.referencesPanel.addRefReviewing : UI_TEXT.referencesPanel.addRefAddButton}
                   </button>
                   {reviewError !== null && (
                     <span className="text-xs text-red-600">{reviewError}</span>
@@ -217,7 +217,7 @@ export default function ReferencesPanel({
                     type="text"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder={UI_TEXT.bottomTabs.addRefUrlPlaceholder}
+                    placeholder={UI_TEXT.referencesPanel.addRefUrlPlaceholder}
                     disabled={isReviewing}
                     className="w-full text-xs px-2 py-1 border border-stone-200 rounded focus:outline-none focus:ring-1 focus:ring-stone-400 disabled:opacity-50 font-mono"
                   />
@@ -229,7 +229,7 @@ export default function ReferencesPanel({
                     disabled={!urlInput.trim() || isReviewing}
                     className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                   >
-                    {isReviewing ? UI_TEXT.bottomTabs.addRefReviewing : UI_TEXT.bottomTabs.addRefAddButton}
+                    {isReviewing ? UI_TEXT.referencesPanel.addRefReviewing : UI_TEXT.referencesPanel.addRefAddButton}
                   </button>
                   {reviewError !== null && (
                     <span className="text-xs text-red-600">{reviewError}</span>
