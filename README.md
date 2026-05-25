@@ -43,34 +43,59 @@ docker compose up --build
 
 ブラウザで <http://localhost:3000> を開く。
 
+## 概念
+
+| 概念 | 説明 |
+| --- | --- |
+| **Workspace** | プロジェクト全体のコンテナ。作業ファイル（`.pre-spec.json`）に保存される |
+| **Feature** | Workspace 内の個別機能・領域。それぞれ独立した `spec.md` / `references.md` / `timeline.md` を持つ |
+| **References** | AI への参照情報。Global（Workspace 共通）と Local（Feature 固有）の 2 層構成 |
+
 ## 使い方
 
-### 新規プロジェクト
+### 新規 Workspace
 
-1. **新規作成** を選んでファイル名ベースを入力し、要件定義メモ（.md / .txt）をアップロードする
-2. 関連資料（ファイル・URL）があれば追加する
-3. **開始** を押すと AI がメモを読んで初期反映の提案を出す
+1. **新規 Workspace 作成** を選び、Workspace 名（slug）を入力する
+2. 全 Feature に共通する関連資料（ファイル・URL）があれば追加する
+3. **作成** を押して Workspace を作成する
+4. **[+ Feature]** で Feature を追加する。Feature 名・要件定義メモ（.md / .txt）・Feature 固有の関連資料を入力する
+5. **作成** を押すと AI が要件定義メモを読んで `spec.md` への初期反映を提案する
 
 ### インタビュー
 
 - AI がセクションごとに質問を生成する
 - 回答するか、スキップして未決事項として残す
-- 全セクションを回ったらまた先頭に戻る（繰り返すことで spec.md を育てる）
+- **[次へ →]** で次のセクションに進む。全セクションを回ったら先頭に戻る（繰り返すことで `spec.md` を育てる）
 - **Edit** で `spec.md` を直接編集できる
+- **[+ Feature]** で Feature を追加し、複数の仕様を並行して育てられる
 - 準備ができたら **📥** ボタンで成果物を出力する
 
 ### 作業の再開
 
-**作業ファイルを開く** で `{ファイル名ベース}.pre-spec.json` を選んで読み込む。
+**作業ファイルを開く** で `{workspace-slug}.pre-spec.json` を選んで読み込む。
 
 ## ファイル
 
+### 作業ファイル（再開用）
+
 | ファイル | 内容 |
 | --- | --- |
-| `{ファイル名ベース}.pre-spec.json` | 作業ファイル（再開用） |
-| `{ファイル名ベース}.spec.md` | 仕様書（GitHub Spec Kit テンプレート準拠） |
-| `{ファイル名ベース}.references.md` | 整理された参照メモ |
-| `{ファイル名ベース}.timeline.md` | 質問・回答・スキップ・編集の履歴 |
+| `{workspace-slug}.pre-spec.json` | 全 Feature の作業状態（ JSON 形式） |
+
+### 成果物（📥 出力時）
+
+出力先ディレクトリを選ぶと、以下の構成でファイルが書き出される：
+
+```text
+{選んだディレクトリ}/
+  specs/
+    {feature-slug}/
+      spec.md          仕様書（GitHub Spec Kit テンプレート準拠）
+      references.md    整理された参照メモ
+      timeline.md      質問・回答・スキップ・編集の履歴
+```
+
+Feature が複数ある場合は `specs/` 配下にそれぞれのディレクトリが作られる。
 
 ## マーカー
 
@@ -87,11 +112,13 @@ docker compose up --build
 - [pre-spec:skip:custom] ...
 ```
 
+`public/pre-spec.skip-reasons.json` でスキップ理由の文言・AI への指示を変更できる。
+
 **その他のマーカー**（`public/pre-spec.markers.json` で定義）:
 
 | マーカー | 用途 |
 | --- | --- |
 | `[pre-spec:revisit]` | 再確認が必要な箇所 |
-| `[pre-spec:protected]` | AI の自動変更から保護する箇所 |
+| `[pre-spec:protected]` | 既存判断・制約として慎重に扱う箇所 |
 
 `public/pre-spec.markers.json` を編集してマーカーの追加・変更ができる。
