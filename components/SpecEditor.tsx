@@ -103,6 +103,7 @@ export default function SpecEditor({ value, onSave, disabled = false }: Props) {
         {viewMode === 'source' && (
           <textarea
             readOnly
+            disabled={disabled}
             value={value}
             className="w-full h-full resize-none p-3 text-sm font-mono text-stone-800 bg-white focus:outline-none"
             spellCheck={false}

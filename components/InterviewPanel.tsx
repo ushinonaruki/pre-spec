@@ -433,9 +433,10 @@ export default function InterviewPanel({
     prevIsGenerating.current = isGenerating
   }, [isGenerating])
 
-  const openCount = timeline.filter(
-    (item): item is Question => item.type === 'question' && item.status === 'open',
-  ).length
+  const isNoSection = !currentSection
+  const effectiveNextDisabled = nextDisabled || isNoSection
+  const effectiveAddDisabled = disabled || isGenerating || addQuestionsDisabled || isNoSection
+  const disabledTitle = nextDisabled ? UI_TEXT.interview.openQuestionsWarning : undefined
 
   const reversedTimeline = [...timeline].reverse()
 
@@ -458,27 +459,18 @@ export default function InterviewPanel({
     />
   )
 
-  const disabledTitle =
-    openCount > 0 ? UI_TEXT.interview.openQuestionsWarning : undefined
-
-  if (!currentSection) {
-    return (
-      <div className="flex items-center justify-center h-full text-sm text-stone-400 p-6 text-center">
-        {UI_TEXT.interview.sectionNotFound}
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
         <span className="text-xs font-medium text-stone-500 shrink-0">Timeline</span>
-        <span className="text-xs font-bold text-stone-800 mr-auto truncate">## {currentSection.title}</span>
+        <span className="text-xs font-bold text-stone-800 mr-auto truncate">
+          {currentSection && `## ${currentSection.title}`}
+        </span>
         <span title={disabledTitle}>
           <button
             onClick={onNext}
-            disabled={nextDisabled}
+            disabled={effectiveNextDisabled}
             className="text-xs px-3 py-1 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             {UI_TEXT.interview.nextButton}
@@ -487,7 +479,7 @@ export default function InterviewPanel({
         <span title={disabledTitle}>
           <button
             onClick={onAddQuestions}
-            disabled={disabled || isGenerating || addQuestionsDisabled}
+            disabled={effectiveAddDisabled}
             className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             {isGenerating ? UI_TEXT.interview.addQuestionsLoading : UI_TEXT.interview.addQuestionsButton}
@@ -500,7 +492,11 @@ export default function InterviewPanel({
 
       {/* Timeline */}
       <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
-        {timeline.length === 0 ? (
+        {isNoSection ? (
+          <div className="flex items-center justify-center min-h-full text-sm text-stone-400 p-6 text-center">
+            {UI_TEXT.interview.sectionNotFound}
+          </div>
+        ) : timeline.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-full gap-3 text-stone-400">
             <p className="text-sm">{UI_TEXT.interview.timelineEmpty}</p>
             <p className="text-xs">{UI_TEXT.interview.timelineEmptyHint}</p>
