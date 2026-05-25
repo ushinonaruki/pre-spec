@@ -47,7 +47,11 @@ async function fetchUrlAsText(url: string): Promise<string | null> {
     if (!res.ok) return `Error: HTTP ${res.status}`
 
     const contentType = res.headers.get('content-type') ?? ''
-    if (!contentType.includes('text/')) return null
+    const isTextLike =
+      contentType.startsWith('text/') ||
+      contentType.includes('application/json') ||
+      /application\/[^;]+\+json/.test(contentType)
+    if (!isTextLike) return null
 
     const text = await res.text()
     const extracted = contentType.includes('text/html')

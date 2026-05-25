@@ -20,6 +20,6 @@ export const TIMELINE_TEXT = {
   failureReasonLabel: 'failureReason',
   attemptedAnswerLabel: 'attemptedAnswer',
   attemptedSkipLabel: 'attemptedSkip',
-  sectionMarker: (title: string) => `─── ${title} ───`,
+  sectionMarker: (title: string) => `── ${title} ──`,
   manualEditHeading: '## Manual Edit',
 }
