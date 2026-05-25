@@ -38,10 +38,10 @@ export function buildOutputReferencesForFeature(
 ): string {
   const lines: string[] = ['# References', '']
   lines.push('## Global References', '')
-  lines.push(workspace.references.trim() || '')
-  lines.push('')
+  const global = workspace.references.trim()
+  if (global) lines.push(global, '')
   lines.push('## Local References', '')
-  lines.push(feature.references.trim() || '')
-  lines.push('')
-  return lines.join('\n')
+  const local = feature.references.trim()
+  if (local) lines.push(local, '')
+  return lines.join('\n') + '\n'
 }
