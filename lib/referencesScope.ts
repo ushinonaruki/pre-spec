@@ -32,15 +32,15 @@ export function buildEffectiveReferencesForFeature(
   return global + '\n\n' + local
 }
 
-export function buildOutputReferencesForFeature(
-  workspace: Workspace,
-  feature: Feature,
-): string {
-  const lines: string[] = ['# References', '']
-  lines.push('## Global References', '')
+export function buildOutputGlobalReferences(workspace: Workspace): string {
+  const lines: string[] = ['# References', '', '## Global References', '']
   const global = workspace.references.trim()
   if (global) lines.push(global, '')
-  lines.push('## Local References', '')
+  return lines.join('\n') + '\n'
+}
+
+export function buildOutputLocalReferences(feature: Feature): string {
+  const lines: string[] = ['# References', '', '## Local References', '']
   const local = feature.references.trim()
   if (local) lines.push(local, '')
   return lines.join('\n') + '\n'

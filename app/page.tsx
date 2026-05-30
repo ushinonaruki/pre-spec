@@ -17,9 +17,9 @@ import { runWorkspacePreflightCheck } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
 import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
-import { buildRelatedSourceBlock, extractImportedNames, resolveSourceName, URL_SOURCE_NAME } from '@/lib/relatedSources'
+import { buildRelatedSourceBlock, extractImportedNames, resolveSourceName, urlToImportedName } from '@/lib/relatedSources'
 import { buildCheckedAt } from '@/lib/locale'
-import { buildEffectiveReferencesForFeature, buildOutputReferencesForFeature, appendGlobalReference, appendLocalReference } from '@/lib/referencesScope'
+import { buildEffectiveReferencesForFeature, buildOutputGlobalReferences, buildOutputLocalReferences, appendGlobalReference, appendLocalReference } from '@/lib/referencesScope'
 import { buildInitialRequirementMemoBlock } from '@/lib/references'
 import { createWorkspace } from '@/lib/workspace'
 import { createFeature, deleteFeature, findFeatureBySlug, renameFeature, setActiveFeature, sortFeatures, validateFeatureSlug } from '@/lib/feature'
@@ -201,7 +201,7 @@ export default function Home() {
 
       let globalRefs = ''
       for (const src of relatedSources ?? []) {
-        const rawName = src.kind === 'file' ? src.filename : URL_SOURCE_NAME
+        const rawName = src.kind === 'file' ? src.filename : urlToImportedName(src.url)
         const content = src.kind === 'file' ? src.content : src.url
         const source = src.kind === 'file' ? rawName : src.url
         const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
@@ -258,7 +258,7 @@ export default function Home() {
       )
 
       for (const src of params.relatedSources ?? []) {
-        const rawName = src.kind === 'file' ? src.filename : URL_SOURCE_NAME
+        const rawName = src.kind === 'file' ? src.filename : urlToImportedName(src.url)
         const content = src.kind === 'file' ? src.content : src.url
         const source = src.kind === 'file' ? rawName : src.url
         const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
@@ -699,10 +699,11 @@ export default function Home() {
 
     try {
       const specsDir = await dirHandle.getDirectoryHandle('specs', { create: true })
+      await writeFileToDir(specsDir, 'references.md', buildOutputGlobalReferences(workspace))
       for (const feature of workspace.features) {
         const featureDir = await specsDir.getDirectoryHandle(feature.slug, { create: true })
         await writeFileToDir(featureDir, 'spec.md', feature.spec)
-        await writeFileToDir(featureDir, 'references.md', buildOutputReferencesForFeature(workspace, feature))
+        await writeFileToDir(featureDir, 'references.md', buildOutputLocalReferences(feature))
         await writeFileToDir(featureDir, 'timeline.md', generateTimelineMarkdown(feature.timeline))
       }
     } catch {
