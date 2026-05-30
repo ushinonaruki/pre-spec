@@ -1,9 +1,19 @@
 import { buildImportedBlock } from '@/lib/references'
 
-export const URL_SOURCE_NAME = 'url-source'
+const FALLBACK_URL_IMPORT_NAME = 'related-url'
+
+export function urlToImportedName(url: string): string {
+  try {
+    const parsed = new URL(url)
+    const path = parsed.pathname.replace(/\/$/, '')
+    return path ? parsed.hostname + path : parsed.hostname
+  } catch {
+    return FALLBACK_URL_IMPORT_NAME
+  }
+}
 
 export function extractImportedNames(referencesMarkdown: string): string[] {
-  return [...referencesMarkdown.matchAll(/^## Imported: (.+)$/gm)].map((m) => m[1].trim())
+  return [...referencesMarkdown.matchAll(/^### Imported: (.+)$/gm)].map((m) => m[1].trim())
 }
 
 type RelatedSourceInput = {

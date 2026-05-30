@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import type { RelatedSourceKind } from '@/types'
-import { URL_SOURCE_NAME } from '@/lib/relatedSources'
+import { urlToImportedName } from '@/lib/relatedSources'
 import { UI_TEXT } from '@/lib/text/uiText'
 
 type ScopeTab = 'global' | 'local'
@@ -78,7 +78,7 @@ export default function ReferencesPanel({
     setIsReviewing(true)
     setReviewError(null)
     try {
-      const result = await onAddReference('url', URL_SOURCE_NAME, urlInput.trim(), noteInput.trim() || undefined)
+      const result = await onAddReference('url', urlToImportedName(urlInput.trim()), urlInput.trim(), noteInput.trim() || undefined)
       if (result.ok) {
         closeAddForm()
       } else {
