@@ -12,7 +12,6 @@ services:
       - ./src:/app/src
       - ./data:/app/data
       - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
       - ./tsconfig.json:/app/tsconfig.json
       - node_modules:/app/node_modules
 
