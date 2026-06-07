@@ -7,12 +7,14 @@ type RawRelatedSource =
   | { kind: 'file'; filename: string; content: string; note?: string }
   | { kind: 'url'; url: string; note?: string }
 
-export async function createFeature(
-  workspaceSlug: string,
-  featureSlug: string,
-  relatedSources: RawRelatedSource[],
-): Promise<FeatureResponse> {
-  return apiPost('/api/features/create', { workspaceSlug, featureSlug, relatedSources })
+export async function createFeature(params: {
+  workspaceSlug: string
+  featureSlug: string
+  requirementMemo: string
+  requirementMemoFilename?: string
+  relatedSources: RawRelatedSource[]
+}): Promise<FeatureResponse> {
+  return apiPost('/api/features/create', params)
 }
 
 export async function selectFeature(
@@ -35,4 +37,8 @@ export async function deleteFeature(
   featureId: string,
 ): Promise<FeatureResponse> {
   return apiPost('/api/features/delete', { workspaceSlug, featureId })
+}
+
+export async function nextSection(workspaceSlug: string): Promise<FeatureResponse> {
+  return apiPost('/api/features/next-section', { workspaceSlug })
 }

@@ -30,6 +30,8 @@ type InitialQuestion = {
 export async function createFeatureUsecase(params: {
   workspaceSlug: string
   featureSlug: string
+  requirementMemo: string
+  requirementMemoFilename?: string
   relatedSources: RawRelatedSource[]
 }): Promise<{ workspace: Workspace }> {
   if (!validateFeatureSlug(params.featureSlug)) {
@@ -39,13 +41,20 @@ export async function createFeatureUsecase(params: {
   const workspace = await loadWorkspace(params.workspaceSlug)
   if (!workspace) throw new Error(ERROR_TEXT.workspaceNotFound)
 
-  let feature = createFeature(params.featureSlug, '')
+  const memoImportId = generateImportId([])
+  const memoBlock = buildReferenceBlock({
+    importId: memoImportId,
+    source: params.requirementMemoFilename ?? 'initial.md',
+    content: params.requirementMemo,
+  })
+
+  let feature = createFeature(params.featureSlug, memoBlock + '\n')
   feature = addPhaseMarker(feature)
 
   let ws = { ...workspace, features: sortFeatures([...workspace.features, feature]) }
   ws = setActiveFeature(ws, feature.id)
 
-  const existingIds = extractImportIds(feature.references)
+  const existingIds = [memoImportId, ...extractImportIds(feature.references).filter((id) => id !== memoImportId)]
 
   for (const src of params.relatedSources) {
     const name = src.kind === 'file' ? src.filename : src.url

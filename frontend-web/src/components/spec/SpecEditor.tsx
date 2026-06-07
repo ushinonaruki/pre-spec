@@ -3,16 +3,23 @@
 import { useState } from 'react'
 import { UI_TEXT } from '@/text/uiText'
 
-type View = 'preview' | 'source' | 'edit'
+type ViewMode = 'preview' | 'source' | 'edit'
 
 type Props = {
   spec: string
-  specDraft: string
-  editMode: boolean
-  onEnterEdit: () => void
-  onCancelEdit: () => void
-  onDraftChange: (draft: string) => void
-  onSave: (newSpec: string) => void
+  onSave: (value: string) => void
+  disabled?: boolean
+}
+
+function findDuplicateSectionTitles(md: string): string[] {
+  const headings = md.match(/^## .+/gm)?.map((h) => h.slice(3).trim()) ?? []
+  const seen = new Set<string>()
+  const duplicates = new Set<string>()
+  for (const h of headings) {
+    if (seen.has(h)) duplicates.add(h)
+    seen.add(h)
+  }
+  return [...duplicates]
 }
 
 function markdownToHtml(md: string): string {
@@ -78,87 +85,117 @@ function markdownToHtml(md: string): string {
   return result.join('\n')
 }
 
-export function SpecEditor({
-  spec,
-  specDraft,
-  editMode,
-  onEnterEdit,
-  onCancelEdit,
-  onDraftChange,
-  onSave,
-}: Props) {
-  const [view, setView] = useState<View>('preview')
+export function SpecEditor({ spec, onSave, disabled = false }: Props) {
+  const [viewMode, setViewMode] = useState<ViewMode>('source')
+  const [draft, setDraft] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
 
-  const handleSave = () => {
-    onSave(specDraft)
-    setView('preview')
+  function handleEnterEdit() {
+    setDraft(spec)
+    setSaveError(null)
+    setViewMode('edit')
+  }
+
+  function handleSave() {
+    const duplicates = findDuplicateSectionTitles(draft)
+    if (duplicates.length > 0) {
+      setSaveError(UI_TEXT.specEditor.duplicateSectionTitles(duplicates))
+      return
+    }
+    setSaveError(null)
+    onSave(draft)
+    setViewMode('source')
+  }
+
+  function handleCancel() {
+    setSaveError(null)
+    setViewMode('source')
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-stone-200 bg-white">
-        <span className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
-          {UI_TEXT.specEditor.fileLabel}
-        </span>
-        <div className="flex items-center gap-1">
-          {editMode ? (
-            <>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
+        <span className="text-xs font-medium text-stone-500 mr-auto">{UI_TEXT.specEditor.fileLabel}</span>
+        {viewMode === 'edit' ? (
+          <>
+            <button
+              onClick={handleSave}
+              className="text-xs px-3 py-1 bg-stone-800 text-white rounded hover:bg-stone-700 transition-colors cursor-pointer"
+            >
+              {UI_TEXT.specEditor.saveButton}
+            </button>
+            <button
+              onClick={handleCancel}
+              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
+            >
+              {UI_TEXT.specEditor.cancelButton}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex border border-stone-200 rounded overflow-hidden">
               <button
-                onClick={handleSave}
-                className="text-xs px-2 py-0.5 rounded bg-stone-800 text-white hover:bg-stone-700"
+                onClick={() => setViewMode('preview')}
+                disabled={disabled}
+                className={`text-xs px-2 py-1 transition-colors ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'preview' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
               >
-                {UI_TEXT.specEditor.saveButton}
+                {UI_TEXT.specEditor.previewButton}
               </button>
               <button
-                onClick={() => { onCancelEdit(); setView('preview') }}
-                className="text-xs px-2 py-0.5 rounded border border-stone-300 text-stone-600 hover:bg-stone-50"
+                onClick={() => setViewMode('source')}
+                disabled={disabled}
+                className={`text-xs px-2 py-1 border-l border-stone-200 transition-colors ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${viewMode === 'source' ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
               >
-                {UI_TEXT.specEditor.cancelButton}
+                {UI_TEXT.specEditor.sourceButton}
               </button>
-            </>
-          ) : (
-            <>
-              {(['preview', 'source'] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setView(v)}
-                  className={`text-xs px-2 py-0.5 rounded ${view === v ? 'bg-stone-200 text-stone-800' : 'text-stone-500 hover:bg-stone-100'}`}
-                >
-                  {v === 'preview' ? UI_TEXT.specEditor.previewButton : UI_TEXT.specEditor.sourceButton}
-                </button>
-              ))}
-              <button
-                onClick={() => { onEnterEdit(); setView('edit') }}
-                className="text-xs px-2 py-0.5 rounded text-stone-500 hover:bg-stone-100"
-              >
-                {UI_TEXT.specEditor.editButton}
-              </button>
-            </>
-          )}
-        </div>
+            </div>
+            <button
+              onClick={handleEnterEdit}
+              disabled={disabled}
+              className="text-xs px-2 py-1 text-stone-500 hover:text-stone-800 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {UI_TEXT.specEditor.editButton}
+            </button>
+          </>
+        )}
       </div>
 
-      {editMode && (
-        <div className="px-3 py-1 bg-amber-50 border-b border-amber-200 text-xs text-amber-700">
+      {viewMode === 'edit' && (
+        <div className="shrink-0 px-3 py-2 bg-blue-50 border-b border-blue-100 text-xs text-blue-700">
           {UI_TEXT.specEditor.editModeNote}
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto">
-        {editMode ? (
-          <textarea
-            value={specDraft}
-            onChange={(e) => onDraftChange(e.target.value)}
-            className="w-full h-full p-3 text-sm font-mono resize-none focus:outline-none bg-white"
-            spellCheck={false}
-          />
-        ) : view === 'source' ? (
-          <pre className="p-3 text-xs font-mono text-stone-700 whitespace-pre-wrap break-all">{spec}</pre>
-        ) : (
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {viewMode === 'preview' && (
           <div
-            className="p-4 text-sm text-stone-800 leading-relaxed"
+            className="h-full overflow-y-auto p-4 text-sm text-stone-800"
             dangerouslySetInnerHTML={{ __html: markdownToHtml(spec) }}
           />
+        )}
+        {viewMode === 'source' && (
+          <textarea
+            readOnly
+            disabled={disabled}
+            value={spec}
+            className="w-full h-full resize-none p-3 text-sm font-mono text-stone-800 bg-white focus:outline-none"
+            spellCheck={false}
+          />
+        )}
+        {viewMode === 'edit' && (
+          <div className="flex flex-col h-full">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              className="flex-1 min-h-0 resize-none p-3 text-sm font-mono text-stone-800 bg-white focus:outline-none"
+              spellCheck={false}
+            />
+            {saveError && (
+              <div className="shrink-0 border-t border-red-200 bg-red-50 px-3 py-2">
+                <p className="text-xs text-red-600">{saveError}</p>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

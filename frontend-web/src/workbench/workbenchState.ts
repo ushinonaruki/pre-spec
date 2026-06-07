@@ -121,8 +121,10 @@ export type WorkbenchState = {
   skippingQuestionId: string | null
   retryingQuestionId: string | null
 
-  specEditMode: boolean
-  specDraft: string
+  addQuestionError: boolean
+  answerLLMErrorId: string | null
+  skipLLMErrorId: string | null
+  retryLLMErrorQuestionId: string | null
 
   error: string | null
 }
@@ -137,7 +139,9 @@ export const INITIAL_STATE: WorkbenchState = {
   formattingQuestionId: null,
   skippingQuestionId: null,
   retryingQuestionId: null,
-  specEditMode: false,
-  specDraft: '',
+  addQuestionError: false,
+  answerLLMErrorId: null,
+  skipLLMErrorId: null,
+  retryLLMErrorQuestionId: null,
   error: null,
 }
