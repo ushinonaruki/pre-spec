@@ -1,6 +1,6 @@
 'use client'
 
-import type { Workspace, PublicConfig } from '@/workbench/workbenchState'
+import type { Workspace } from '@/workbench/workbenchState'
 import { FeatureList } from './FeatureList'
 import { ReferencesPanel } from '@/components/references/ReferencesPanel'
 
@@ -8,11 +8,17 @@ type RawRelatedSource =
   | { kind: 'file'; filename: string; content: string; note?: string }
   | { kind: 'url'; url: string; note?: string }
 
+type CreateFeatureParams = {
+  featureSlug: string
+  requirementMemo: string
+  requirementMemoFilename?: string
+  relatedSources: RawRelatedSource[]
+}
+
 type Props = {
   workspace: Workspace
-  config: PublicConfig | null
   isCreatingFeature: boolean
-  onCreateFeature: (featureSlug: string, relatedSources: RawRelatedSource[]) => void
+  onCreateFeature: (params: CreateFeatureParams) => void
   onSelectFeature: (featureId: string) => void
   onRenameFeature: (featureId: string, newSlug: string) => void
   onDeleteFeature: (featureId: string) => void
@@ -27,7 +33,6 @@ type Props = {
 
 export function WorkspaceSidebar({
   workspace,
-  config,
   isCreatingFeature,
   onCreateFeature,
   onSelectFeature,
@@ -39,20 +44,25 @@ export function WorkspaceSidebar({
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-3">
-        <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-2">Features</p>
-        <FeatureList
-          features={workspace.features}
-          activeFeatureId={workspace.activeFeatureId}
-          isCreatingFeature={isCreatingFeature}
-          onSelectFeature={onSelectFeature}
-          onCreateFeature={onCreateFeature}
-          onRenameFeature={onRenameFeature}
-          onDeleteFeature={onDeleteFeature}
-        />
+      <div className="flex-1 min-h-0 flex flex-col border-b border-stone-200">
+        <div className="flex items-center gap-2 px-3 border-b border-stone-200 bg-stone-50 shrink-0 h-10">
+          <span className="text-xs font-medium text-stone-500">Workspace</span>
+          <span className="text-xs font-bold text-stone-800">{workspace.slug}</span>
+        </div>
+        <div className="flex-1 min-h-0 px-3 py-2 space-y-1 overflow-y-auto">
+          <FeatureList
+            features={workspace.features}
+            activeFeatureId={workspace.activeFeatureId}
+            isCreatingFeature={isCreatingFeature}
+            onSelectFeature={onSelectFeature}
+            onCreateFeature={onCreateFeature}
+            onRenameFeature={onRenameFeature}
+            onDeleteFeature={onDeleteFeature}
+          />
+        </div>
       </div>
 
-      <div className="border-t border-stone-200 overflow-y-auto" style={{ maxHeight: '50%' }}>
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ReferencesPanel
           globalReferences={workspace.references}
           localReferences={activeFeature?.references ?? ''}
