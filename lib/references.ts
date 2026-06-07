@@ -1,31 +1,12 @@
-type ImportedBlockParams = {
-  name: string
+type ReferenceBlockParams = {
+  importId: string
   source: string
   note?: string
-  checkedAt: string
   content: string
 }
 
-export function buildInitialRequirementMemoBlock(content: string, checkedAt: string, filename: string): string {
-  return [
-    '### Initial Requirement Memo',
-    '',
-    `source: ${filename}`,
-    `checkedAt: ${checkedAt}`,
-    'content:',
-    '`````md',
-    content,
-    '`````',
-  ].join('\n')
-}
-
-export function buildImportedBlock({ name, source, note, checkedAt, content }: ImportedBlockParams): string {
-  const lines: string[] = [
-    `### Imported: ${name}`,
-    '',
-    `source: ${source}`,
-    `checkedAt: ${checkedAt}`,
-  ]
+export function buildReferenceBlock({ importId, source, note, content }: ReferenceBlockParams): string {
+  const lines: string[] = [`### ${importId}`, '', `source: ${source}`]
   if (note?.trim()) {
     const noteLines = note.split('\n').map((l) => l.trim()).filter(Boolean)
     lines.push('note:')
@@ -38,4 +19,8 @@ export function buildImportedBlock({ name, source, note, checkedAt, content }: I
   lines.push(content)
   lines.push('`````')
   return lines.join('\n')
+}
+
+export function extractImportIds(referencesMarkdown: string): string[] {
+  return [...referencesMarkdown.matchAll(/^### (\d{14}-\d+)$/gm)].map((m) => m[1])
 }

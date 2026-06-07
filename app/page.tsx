@@ -17,10 +17,9 @@ import { runWorkspacePreflightCheck } from '@/lib/preflight'
 import { extractMarkerContexts, validateMarkerDefinitionFile } from '@/lib/markers'
 import { CUSTOM_REASON, validateSkipReasonDefinitionFile, getEffectiveSkipReasons } from '@/lib/skipReasons'
 import type { EffectiveSkipReason } from '@/lib/skipReasons'
-import { buildRelatedSourceBlock, extractImportedNames, resolveSourceName, urlToImportedName } from '@/lib/relatedSources'
-import { buildCheckedAt } from '@/lib/locale'
+import { generateImportId } from '@/lib/locale'
 import { buildEffectiveReferencesForFeature, buildOutputGlobalReferences, buildOutputLocalReferences, appendGlobalReference, appendLocalReference } from '@/lib/referencesScope'
-import { buildInitialRequirementMemoBlock } from '@/lib/references'
+import { buildReferenceBlock, extractImportIds } from '@/lib/references'
 import { createWorkspace } from '@/lib/workspace'
 import { createFeature, deleteFeature, findFeatureBySlug, renameFeature, setActiveFeature, sortFeatures, validateFeatureSlug } from '@/lib/feature'
 import type { InitialRelatedSource } from '@/lib/feature'
@@ -201,10 +200,9 @@ export default function Home() {
 
       let globalRefs = ''
       for (const src of relatedSources ?? []) {
-        const rawName = src.kind === 'file' ? src.filename : urlToImportedName(src.url)
+        const source = src.kind === 'file' ? src.filename : src.url
         const content = src.kind === 'file' ? src.content : src.url
-        const source = src.kind === 'file' ? rawName : src.url
-        const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
+        const result = await runRelatedSourceReview(src.kind, source, content, src.note)
         if (!result || result.status === 'unreadable' || result.content === undefined) {
           return {
             ok: false,
@@ -213,9 +211,8 @@ export default function Home() {
               : UI_TEXT.startScreen.createErrorRelatedSource,
           }
         }
-        const existingNames = extractImportedNames(globalRefs)
-        const name = resolveSourceName(existingNames, rawName)
-        const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, buildCheckedAt())
+        const importId = generateImportId(extractImportIds(globalRefs))
+        const block = buildReferenceBlock({ importId, source, content: result.content, note: src.note })
         globalRefs = globalRefs.replace(/\n+$/, '') + (globalRefs ? '\n\n' : '') + block + '\n'
       }
 
@@ -251,23 +248,21 @@ export default function Home() {
       if (findFeatureBySlug(workspace.features, params.slug)) return { ok: false, error: UI_TEXT.featurePanel.slugDuplicate }
 
       // Build feature.references from memo + related sources
-      let featureRefs = buildInitialRequirementMemoBlock(
-        params.requirementMemo,
-        buildCheckedAt(),
-        params.requirementMemoFilename ?? 'initial.md',
-      )
+      let featureRefs = buildReferenceBlock({
+        importId: generateImportId([]),
+        source: params.requirementMemoFilename ?? 'initial.md',
+        content: params.requirementMemo,
+      })
 
       for (const src of params.relatedSources ?? []) {
-        const rawName = src.kind === 'file' ? src.filename : urlToImportedName(src.url)
+        const source = src.kind === 'file' ? src.filename : src.url
         const content = src.kind === 'file' ? src.content : src.url
-        const source = src.kind === 'file' ? rawName : src.url
-        const result = await runRelatedSourceReview(src.kind, rawName, content, src.note)
+        const result = await runRelatedSourceReview(src.kind, source, content, src.note)
         if (!result || result.status === 'unreadable' || result.content === undefined) {
           return { ok: false, error: UI_TEXT.featurePanel.createErrorRelatedSource }
         }
-        const existingNames = extractImportedNames(featureRefs)
-        const name = resolveSourceName(existingNames, rawName)
-        const block = buildRelatedSourceBlock({ name, source, content: result.content, note: src.note }, buildCheckedAt())
+        const importId = generateImportId(extractImportIds(featureRefs))
+        const block = buildReferenceBlock({ importId, source, content: result.content, note: src.note })
         featureRefs = featureRefs.replace(/\n+$/, '') + '\n\n' + block + '\n'
       }
 
@@ -641,11 +636,10 @@ export default function Home() {
       const aiContent = result.content
       if (aiContent === undefined) return { ok: false }
 
+      const source = kind === 'url' ? content : rawName
       updateWorkspace((prev) => {
-        const existingNames = extractImportedNames(prev.references)
-        const name = resolveSourceName(existingNames, rawName)
-        const source = kind === 'url' ? content : rawName
-        const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, buildCheckedAt())
+        const importId = generateImportId(extractImportIds(prev.references))
+        const block = buildReferenceBlock({ importId, source, content: aiContent, note })
         return appendGlobalReference(prev, block)
       })
       return { ok: true }
@@ -663,13 +657,12 @@ export default function Home() {
       if (aiContent === undefined) return { ok: false }
 
       const featureId = activeFeature.id
+      const source = kind === 'url' ? content : rawName
       updateWorkspace((prev) => {
         const feature = prev.features.find((f) => f.id === featureId)
         if (!feature) return prev
-        const existingNames = extractImportedNames(feature.references)
-        const name = resolveSourceName(existingNames, rawName)
-        const source = kind === 'url' ? content : rawName
-        const block = buildRelatedSourceBlock({ name, source, content: aiContent, note }, buildCheckedAt())
+        const importId = generateImportId(extractImportIds(feature.references))
+        const block = buildReferenceBlock({ importId, source, content: aiContent, note })
         return appendLocalReference(prev, featureId, block)
       })
       return { ok: true }
