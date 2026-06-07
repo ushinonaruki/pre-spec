@@ -230,18 +230,30 @@ function QuestionCard({
   isFormatting,
   isSkipping,
   isRetrying,
+  hasAnswerError,
+  hasSkipError,
+  hasRetryError,
   onAnswer,
   onSkip,
   onRetry,
+  onDismissAnswerError,
+  onDismissSkipError,
+  onDismissRetryError,
 }: {
   question: Question
   skipReasons: SkipReason[]
   isFormatting: boolean
   isSkipping: boolean
   isRetrying: boolean
+  hasAnswerError: boolean
+  hasSkipError: boolean
+  hasRetryError: boolean
   onAnswer: (answer: string) => void
   onSkip: (reason: string, customText?: string) => void
   onRetry: () => void
+  onDismissAnswerError: () => void
+  onDismissSkipError: () => void
+  onDismissRetryError: () => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [answer, setAnswer] = useState('')
@@ -349,6 +361,18 @@ function QuestionCard({
             <>
               {!showSkip ? (
                 <>
+                  {hasAnswerError && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded p-2">
+                      <span className="text-xs text-red-700 flex-1">{UI_TEXT.interview.answerLLMError}</span>
+                      <button onClick={onDismissAnswerError} className="text-red-400 hover:text-red-700 text-xs shrink-0">✕</button>
+                    </div>
+                  )}
+                  {hasRetryError && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded p-2">
+                      <span className="text-xs text-red-700 flex-1">{UI_TEXT.interview.retryLLMError}</span>
+                      <button onClick={onDismissRetryError} className="text-red-400 hover:text-red-700 text-xs shrink-0">✕</button>
+                    </div>
+                  )}
                   <textarea
                     value={answer}
                     onChange={(e) => setAnswer(e.target.value)}
@@ -392,15 +416,23 @@ function QuestionCard({
                   </div>
                 </>
               ) : (
-                <SkipPanel
-                  questionId={question.id}
-                  skipReasons={skipReasons}
-                  onSkip={(reason, customText) => {
-                    onSkip(reason, customText)
-                    setShowSkip(false)
-                  }}
-                  onCancel={() => setShowSkip(false)}
-                />
+                <>
+                  {hasSkipError && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded p-2">
+                      <span className="text-xs text-red-700 flex-1">{UI_TEXT.interview.skipLLMError}</span>
+                      <button onClick={onDismissSkipError} className="text-red-400 hover:text-red-700 text-xs shrink-0">✕</button>
+                    </div>
+                  )}
+                  <SkipPanel
+                    questionId={question.id}
+                    skipReasons={skipReasons}
+                    onSkip={(reason, customText) => {
+                      onSkip(reason, customText)
+                      setShowSkip(false)
+                    }}
+                    onCancel={() => setShowSkip(false)}
+                  />
+                </>
               )}
             </>
           )}
@@ -417,11 +449,23 @@ type Props = {
   formattingQuestionId: string | null
   skippingQuestionId: string | null
   retryingQuestionId: string | null
+  addQuestionError: boolean
+  answerLLMErrorQuestionId: string | null
+  skipLLMErrorQuestionId: string | null
+  retryLLMErrorQuestionId: string | null
   skipReasons: SkipReason[]
+  disabled?: boolean
+  nextDisabled?: boolean
+  addQuestionsDisabled?: boolean
   onAddQuestions: () => void
   onAnswerQuestion: (questionId: string, answer: string) => void
   onSkipQuestion: (questionId: string, reason: string, customText?: string) => void
   onRetryQuestion: (questionId: string) => void
+  onNext: () => void
+  onDismissAddQuestionError: () => void
+  onDismissAnswerLLMError: () => void
+  onDismissSkipLLMError: () => void
+  onDismissRetryLLMError: () => void
 }
 
 export function InterviewPanel({
@@ -431,11 +475,23 @@ export function InterviewPanel({
   formattingQuestionId,
   skippingQuestionId,
   retryingQuestionId,
+  addQuestionError,
+  answerLLMErrorQuestionId,
+  skipLLMErrorQuestionId,
+  retryLLMErrorQuestionId,
   skipReasons,
+  disabled = false,
+  nextDisabled = false,
+  addQuestionsDisabled = false,
   onAddQuestions,
   onAnswerQuestion,
   onSkipQuestion,
   onRetryQuestion,
+  onNext,
+  onDismissAddQuestionError,
+  onDismissAnswerLLMError,
+  onDismissSkipLLMError,
+  onDismissRetryLLMError,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevIsGenerating = useRef(false)
@@ -448,7 +504,10 @@ export function InterviewPanel({
   }, [isGenerating])
 
   const isNoSection = !currentSection
-  const effectiveAddDisabled = isGenerating || isNoSection
+  const effectiveAddDisabled = disabled || isGenerating || isNoSection || addQuestionsDisabled
+  const effectiveNextDisabled = disabled || nextDisabled || isNoSection
+
+  const disabledTitle = nextDisabled ? UI_TEXT.interview.openQuestionsWarning : undefined
 
   const reversedTimeline = [...timeline].reverse()
 
@@ -459,14 +518,32 @@ export function InterviewPanel({
         <span className="text-xs font-bold text-stone-800 mr-auto truncate">
           {currentSection && `## ${currentSection.title}`}
         </span>
-        <button
-          onClick={onAddQuestions}
-          disabled={effectiveAddDisabled}
-          className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-        >
-          {isGenerating ? UI_TEXT.interview.addQuestionsLoading : UI_TEXT.interview.addQuestionsButton}
-        </button>
+        <span title={disabledTitle}>
+          <button
+            onClick={onNext}
+            disabled={effectiveNextDisabled}
+            className="text-xs px-3 py-1 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            {UI_TEXT.interview.nextButton}
+          </button>
+        </span>
+        <span title={disabledTitle}>
+          <button
+            onClick={onAddQuestions}
+            disabled={effectiveAddDisabled}
+            className="text-xs text-stone-500 hover:text-stone-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isGenerating ? UI_TEXT.interview.addQuestionsLoading : UI_TEXT.interview.addQuestionsButton}
+          </button>
+        </span>
       </div>
+
+      {addQuestionError && (
+        <div className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-red-50 border-b border-red-200 text-xs text-red-700">
+          <span className="flex-1">{UI_TEXT.interview.generateQuestionsError}</span>
+          <button onClick={onDismissAddQuestionError} className="text-red-400 hover:text-red-700 shrink-0">✕</button>
+        </div>
+      )}
 
       <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
         {isNoSection ? (
@@ -511,9 +588,15 @@ export function InterviewPanel({
                   isFormatting={formattingQuestionId === item.id}
                   isSkipping={skippingQuestionId === item.id}
                   isRetrying={retryingQuestionId === item.id}
+                  hasAnswerError={answerLLMErrorQuestionId === item.id}
+                  hasSkipError={skipLLMErrorQuestionId === item.id}
+                  hasRetryError={retryLLMErrorQuestionId === item.id}
                   onAnswer={(ans) => onAnswerQuestion(item.id, ans)}
                   onSkip={(reason, customText) => onSkipQuestion(item.id, reason, customText)}
                   onRetry={() => onRetryQuestion(item.id)}
+                  onDismissAnswerError={onDismissAnswerLLMError}
+                  onDismissSkipError={onDismissSkipLLMError}
+                  onDismissRetryError={onDismissRetryLLMError}
                 />
               </Fragment>
             )
