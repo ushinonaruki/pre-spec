@@ -142,6 +142,7 @@ export async function POST(request: Request) {
       messages.push({ role: 'user', content: toolResults })
     }
 
+    console.error('LLM tool use loop reached max iterations', { maxIterations: TOOL_USE_MAX_ITERATIONS })
     return Response.json({ error: 'Failed to complete tool use' }, { status: 502 })
   } catch {
     return Response.json({ error: 'Failed to call Anthropic API' }, { status: 502 })
