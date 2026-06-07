@@ -10,8 +10,7 @@ Next.js UI。
 ## セットアップ
 
 ```bash
-cp .env.example .env.local
-# 必要に応じて NEXT_PUBLIC_BACKEND_URL を変更する
+cp .env.example .env
 ```
 
 ## 起動
