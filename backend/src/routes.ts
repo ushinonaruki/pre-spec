@@ -21,6 +21,7 @@ export function createRouter(): Router {
   router.post('/api/features/select', featureController.select)
   router.post('/api/features/rename', featureController.rename)
   router.post('/api/features/delete', featureController.delete)
+  router.post('/api/features/next-section', featureController.nextSection)
 
   router.get('/api/references', referencesController.get)
   router.post('/api/references/add', referencesController.add)
