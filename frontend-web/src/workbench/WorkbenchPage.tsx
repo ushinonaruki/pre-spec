@@ -27,9 +27,14 @@ export function WorkbenchPage() {
   const activeFeature = state.workspace.features.find(
     (f) => f.id === state.workspace?.activeFeatureId,
   )
-  const currentSection = activeFeature?.sections.find(
-    (s) => s.id === activeFeature.currentSectionId,
-  ) ?? null
+  const hasFeatures = state.workspace.features.length > 0
+  const hasOpenQuestions =
+    activeFeature?.timeline.some(
+      (item) => item.type === 'question' && (item as Question).status === 'open',
+    ) ?? false
+
+  const currentSection =
+    activeFeature?.sections.find((s) => s.id === activeFeature.currentSectionId) ?? null
   const timeline = activeFeature?.timeline ?? []
 
   const skipReasons: Array<{ reason: string; label: string; isCustom: boolean; instruction?: string }> =
@@ -46,35 +51,36 @@ export function WorkbenchPage() {
       : [{ reason: 'custom', label: UI_TEXT.skipReasons.customLabel, isCustom: true }]
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="flex items-center justify-between px-4 py-2 border-b border-stone-200 bg-white">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-stone-700">{UI_TEXT.app.name}</span>
-          <span className="text-stone-400 text-sm">{UI_TEXT.app.tagline}</span>
-          {state.workspace.slug && (
-            <span className="text-stone-500 text-sm">— {state.workspace.slug}</span>
-          )}
+    <div className="h-screen flex flex-col overflow-hidden bg-white">
+      <header className="shrink-0 flex items-center gap-3 px-4 py-2 bg-white border-b border-stone-200">
+        <span className="font-semibold text-stone-800 text-sm">{UI_TEXT.app.name}</span>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => { void ctrl.handleExport() }}
+            disabled={!hasFeatures}
+            className="text-xs px-3 py-1.5 border border-stone-300 text-stone-600 rounded hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          >
+            {UI_TEXT.app.exportButton}
+          </button>
         </div>
-        <button
-          onClick={ctrl.handleExport}
-          className="text-sm px-3 py-1 rounded bg-stone-100 hover:bg-stone-200 text-stone-700"
-        >
-          {UI_TEXT.app.exportButton}
-        </button>
       </header>
 
       {state.error && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-700 flex items-center justify-between">
-          <span>{state.error}</span>
-          <button onClick={ctrl.clearError} className="text-red-400 hover:text-red-600 ml-2">✕</button>
+        <div className="shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700">
+          <span className="flex-1">{state.error}</span>
+          <button
+            onClick={ctrl.clearError}
+            className="shrink-0 text-red-400 hover:text-red-700 transition-colors cursor-pointer"
+          >
+            ✕
+          </button>
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-1/3 border-r border-stone-200 flex flex-col overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-col w-1/3 min-w-0 border-r border-stone-200">
           <WorkspaceSidebar
             workspace={state.workspace}
-            config={state.config}
             isCreatingFeature={state.isCreatingFeature}
             onCreateFeature={ctrl.handleCreateFeature}
             onSelectFeature={ctrl.handleSelectFeature}
@@ -84,19 +90,15 @@ export function WorkbenchPage() {
           />
         </div>
 
-        <div className="w-1/3 border-r border-stone-200 flex flex-col overflow-hidden">
+        <div className="flex flex-col w-1/3 min-w-0 border-r border-stone-200 overflow-hidden">
           <SpecEditor
             spec={activeFeature?.spec ?? ''}
-            specDraft={state.specDraft}
-            editMode={state.specEditMode}
-            onEnterEdit={ctrl.enterSpecEditMode}
-            onCancelEdit={ctrl.cancelSpecEditMode}
-            onDraftChange={ctrl.setSpecDraft}
             onSave={ctrl.handleSpecEdit}
+            disabled={!activeFeature}
           />
         </div>
 
-        <div className="w-1/3 flex flex-col overflow-hidden">
+        <div className="flex flex-col w-1/3 min-w-0 overflow-hidden">
           <InterviewPanel
             currentSection={currentSection}
             timeline={timeline}
@@ -104,11 +106,23 @@ export function WorkbenchPage() {
             formattingQuestionId={state.formattingQuestionId}
             skippingQuestionId={state.skippingQuestionId}
             retryingQuestionId={state.retryingQuestionId}
+            addQuestionError={state.addQuestionError}
+            answerLLMErrorQuestionId={state.answerLLMErrorId}
+            skipLLMErrorQuestionId={state.skipLLMErrorId}
+            retryLLMErrorQuestionId={state.retryLLMErrorQuestionId}
             skipReasons={skipReasons}
-            onAddQuestions={ctrl.handleGenerateQuestion}
+            disabled={!activeFeature}
+            nextDisabled={hasOpenQuestions}
+            addQuestionsDisabled={hasOpenQuestions}
+            onAddQuestions={() => { void ctrl.handleGenerateQuestion() }}
             onAnswerQuestion={ctrl.handleAnswerQuestion}
             onSkipQuestion={ctrl.handleSkipQuestion}
             onRetryQuestion={ctrl.handleRetryQuestion}
+            onNext={() => { void ctrl.handleNextSection() }}
+            onDismissAddQuestionError={ctrl.dismissAddQuestionError}
+            onDismissAnswerLLMError={ctrl.dismissAnswerLLMError}
+            onDismissSkipLLMError={ctrl.dismissSkipLLMError}
+            onDismissRetryLLMError={ctrl.dismissRetryLLMError}
           />
         </div>
       </div>

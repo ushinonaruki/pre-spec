@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { INITIAL_STATE, type WorkbenchState, type Workspace } from './workbenchState'
 import { fetchConfig } from '@/api-client/configApi'
 import { createWorkspace, openWorkspace, exportWorkspace } from '@/api-client/workspaceApi'
-import { createFeature, selectFeature, renameFeature, deleteFeature } from '@/api-client/featureApi'
+import { createFeature, selectFeature, renameFeature, deleteFeature, nextSection } from '@/api-client/featureApi'
 import { addReference } from '@/api-client/referencesApi'
 import { generateQuestion, answerQuestion, skipQuestion, retryQuestion } from '@/api-client/questionApi'
 import { editSpec } from '@/api-client/specApi'
@@ -69,11 +69,22 @@ export function useWorkbenchController() {
   )
 
   const handleCreateFeature = useCallback(
-    async (featureSlug: string, relatedSources: RawRelatedSource[]) => {
+    async (params: {
+      featureSlug: string
+      requirementMemo: string
+      requirementMemoFilename?: string
+      relatedSources: RawRelatedSource[]
+    }) => {
       if (!state.workspaceSlug) return
       setState((prev) => ({ ...prev, isCreatingFeature: true, error: null }))
       try {
-        const { workspace } = await createFeature(state.workspaceSlug, featureSlug, relatedSources)
+        const { workspace } = await createFeature({
+          workspaceSlug: state.workspaceSlug,
+          featureSlug: params.featureSlug,
+          requirementMemo: params.requirementMemo,
+          requirementMemoFilename: params.requirementMemoFilename,
+          relatedSources: params.relatedSources,
+        })
         setWorkspace(workspace)
       } catch (err) {
         setState((prev) => ({
@@ -135,6 +146,19 @@ export function useWorkbenchController() {
     [state.workspaceSlug, setWorkspace],
   )
 
+  const handleNextSection = useCallback(async () => {
+    if (!state.workspaceSlug) return
+    try {
+      const { workspace } = await nextSection(state.workspaceSlug)
+      setWorkspace(workspace)
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        error: err instanceof Error ? err.message : 'セクションの移動に失敗しました',
+      }))
+    }
+  }, [state.workspaceSlug, setWorkspace])
+
   const handleAddReference = useCallback(
     async (params: {
       featureId?: string
@@ -162,15 +186,12 @@ export function useWorkbenchController() {
 
   const handleGenerateQuestion = useCallback(async () => {
     if (!state.workspaceSlug) return
-    setState((prev) => ({ ...prev, isGeneratingQuestion: true, error: null }))
+    setState((prev) => ({ ...prev, isGeneratingQuestion: true, addQuestionError: false }))
     try {
       const { workspace } = await generateQuestion(state.workspaceSlug)
       setWorkspace(workspace)
-    } catch (err) {
-      setState((prev) => ({
-        ...prev,
-        error: err instanceof Error ? err.message : UI_TEXT.interview.generateQuestionsError,
-      }))
+    } catch {
+      setState((prev) => ({ ...prev, addQuestionError: true }))
     } finally {
       setState((prev) => ({ ...prev, isGeneratingQuestion: false }))
     }
@@ -179,15 +200,12 @@ export function useWorkbenchController() {
   const handleAnswerQuestion = useCallback(
     async (questionId: string, answer: string) => {
       if (!state.workspaceSlug) return
-      setState((prev) => ({ ...prev, formattingQuestionId: questionId, error: null }))
+      setState((prev) => ({ ...prev, formattingQuestionId: questionId, answerLLMErrorId: null }))
       try {
         const { workspace } = await answerQuestion(state.workspaceSlug, questionId, answer)
         setWorkspace(workspace)
-      } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          error: err instanceof Error ? err.message : UI_TEXT.interview.answerLLMError,
-        }))
+      } catch {
+        setState((prev) => ({ ...prev, answerLLMErrorId: questionId }))
       } finally {
         setState((prev) => ({ ...prev, formattingQuestionId: null }))
       }
@@ -198,15 +216,12 @@ export function useWorkbenchController() {
   const handleSkipQuestion = useCallback(
     async (questionId: string, reason: string, customText?: string) => {
       if (!state.workspaceSlug) return
-      setState((prev) => ({ ...prev, skippingQuestionId: questionId, error: null }))
+      setState((prev) => ({ ...prev, skippingQuestionId: questionId, skipLLMErrorId: null }))
       try {
         const { workspace } = await skipQuestion(state.workspaceSlug, questionId, reason, customText)
         setWorkspace(workspace)
-      } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          error: err instanceof Error ? err.message : UI_TEXT.interview.skipLLMError,
-        }))
+      } catch {
+        setState((prev) => ({ ...prev, skipLLMErrorId: questionId }))
       } finally {
         setState((prev) => ({ ...prev, skippingQuestionId: null }))
       }
@@ -217,15 +232,12 @@ export function useWorkbenchController() {
   const handleRetryQuestion = useCallback(
     async (questionId: string) => {
       if (!state.workspaceSlug) return
-      setState((prev) => ({ ...prev, retryingQuestionId: questionId, error: null }))
+      setState((prev) => ({ ...prev, retryingQuestionId: questionId, retryLLMErrorQuestionId: null }))
       try {
         const { workspace } = await retryQuestion(state.workspaceSlug, questionId)
         setWorkspace(workspace)
-      } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          error: err instanceof Error ? err.message : UI_TEXT.interview.retryLLMError,
-        }))
+      } catch {
+        setState((prev) => ({ ...prev, retryLLMErrorQuestionId: questionId }))
       } finally {
         setState((prev) => ({ ...prev, retryingQuestionId: null }))
       }
@@ -239,7 +251,6 @@ export function useWorkbenchController() {
       try {
         const { workspace } = await editSpec(state.workspaceSlug, newSpec)
         setWorkspace(workspace)
-        setState((prev) => ({ ...prev, specEditMode: false }))
       } catch (err) {
         setState((prev) => ({
           ...prev,
@@ -275,21 +286,24 @@ export function useWorkbenchController() {
     }
   }, [state.workspaceSlug])
 
-  const enterSpecEditMode = useCallback(() => {
-    const spec = state.workspace?.features.find((f) => f.id === state.workspace?.activeFeatureId)?.spec ?? ''
-    setState((prev) => ({ ...prev, specEditMode: true, specDraft: spec }))
-  }, [state.workspace])
-
-  const cancelSpecEditMode = useCallback(() => {
-    setState((prev) => ({ ...prev, specEditMode: false, specDraft: '' }))
-  }, [])
-
-  const setSpecDraft = useCallback((draft: string) => {
-    setState((prev) => ({ ...prev, specDraft: draft }))
-  }, [])
-
   const clearError = useCallback(() => {
     setState((prev) => ({ ...prev, error: null }))
+  }, [])
+
+  const dismissAddQuestionError = useCallback(() => {
+    setState((prev) => ({ ...prev, addQuestionError: false }))
+  }, [])
+
+  const dismissAnswerLLMError = useCallback(() => {
+    setState((prev) => ({ ...prev, answerLLMErrorId: null }))
+  }, [])
+
+  const dismissSkipLLMError = useCallback(() => {
+    setState((prev) => ({ ...prev, skipLLMErrorId: null }))
+  }, [])
+
+  const dismissRetryLLMError = useCallback(() => {
+    setState((prev) => ({ ...prev, retryLLMErrorQuestionId: null }))
   }, [])
 
   return {
@@ -300,6 +314,7 @@ export function useWorkbenchController() {
     handleSelectFeature,
     handleRenameFeature,
     handleDeleteFeature,
+    handleNextSection,
     handleAddReference,
     handleGenerateQuestion,
     handleAnswerQuestion,
@@ -307,9 +322,10 @@ export function useWorkbenchController() {
     handleRetryQuestion,
     handleSpecEdit,
     handleExport,
-    enterSpecEditMode,
-    cancelSpecEditMode,
-    setSpecDraft,
     clearError,
+    dismissAddQuestionError,
+    dismissAnswerLLMError,
+    dismissSkipLLMError,
+    dismissRetryLLMError,
   }
 }
