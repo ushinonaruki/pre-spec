@@ -9,14 +9,9 @@ services:
       - path: .env
         required: false
     volumes:
-      - ./app:/app/app
-      - ./components:/app/components
-      - ./workbench:/app/workbench
-      - ./api-client:/app/api-client
-      - ./text:/app/text
+      - ./src:/app/src
       - ./public:/app/public
       - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
       - ./tsconfig.json:/app/tsconfig.json
       - ./next.config.ts:/app/next.config.ts
       - ./postcss.config.mjs:/app/postcss.config.mjs
