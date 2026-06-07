@@ -252,7 +252,7 @@ export default function Home() {
         importId: generateImportId([]),
         source: params.requirementMemoFilename ?? 'initial.md',
         content: params.requirementMemo,
-      })
+      }) + '\n'
 
       for (const src of params.relatedSources ?? []) {
         const source = src.kind === 'file' ? src.filename : src.url
